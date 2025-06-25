@@ -75,7 +75,24 @@ class App:
     def __init__(self, dbPath: str):
         self.dbPath = dbPath
         conn = sqlite3.connect(dbPath)
+        self.setupDB()
+
         conn.close()
+    
+    def setupDB(self):
+        conn = sqlite3.connect(self.dbPath)
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS master (
+            uid INTEGER PRIMARY KEY AUTOINCREMENT,
+            term TEXT NOT NULL,
+            definition TEXT NOT NULL,
+            tags TEXT,
+            createdAt TEXT NOT NULL)
+        """)
+        conn.commit()
+
 
 App(dbPath=r"assets\lexes.db")
         
