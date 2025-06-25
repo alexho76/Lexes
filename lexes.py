@@ -150,5 +150,6 @@ class App:
 if __name__ == "__main__":
     app = App(dbPath=r"assets\lexes.db")
 
-    entry = Entry("testTerm", "testDefinition", "testTags")
-    entry.add()
+    testDefinition = Helper.wikipediaAPI("unit circle")
+    print(testDefinition)
+
