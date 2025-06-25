@@ -15,7 +15,7 @@ class Helper:
     # Static method to call Wikipedia API, parse response, and return definition (if found).
     def wikipediaAPI(query: str) -> str:
         url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{query}"
-        response = requests.get(url)
+        response = requests.get(url, verify = False)
         if response.status_code == 200: # successful request
             data = response.json()
             extract = data.get("extract")
