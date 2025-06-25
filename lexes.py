@@ -10,12 +10,13 @@ from tkinter import messagebox
 import datetime
 
 class Entry:
-    # Initiates the Entry with its attributes
-    def __init__(self, uid: int = None, term: str, definition: str, tags: str, createdAt: datetime.datetime = None):
+    # Initiates the Entry with its attributes: uid and createdAt are optional parameters.
+    def __init__(self, term: str, definition: str, tags: str, createdAt: datetime.datetime | None = None, uid: int | None = None):
+        self.uid = uid
         self.term = term
         self.definition = definition
         self.tags = tags
         self.createdAt = createdAt
-    
+            
     def add():
         pass
