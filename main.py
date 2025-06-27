@@ -9,6 +9,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 import datetime
 import requests
+import re
 
 class Helper:
     @staticmethod
@@ -25,12 +26,13 @@ class Helper:
 
 
 class Entry:
-    # Initiates the Entry with its attributes: uid and createdAt are optional parameters.
-    def __init__(self, term: str,
+    # Initiates the Entry with its attributes: uid and createdAt are optional parameters. Auto-generates timestamp.
+    def __init__(self,
+                 term: str,
                  definition: str,
-                 tags: str,
-                 createdAt: datetime.datetime | None = None,
-                 uid: int | None = None):
+                 tags: str = "",
+                 createdAt: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                 uid: int = None):
         self.uid = uid
         self.term = term
         self.definition = definition
@@ -41,11 +43,9 @@ class Entry:
     def __repr__(self):
         return f"Entry(uid={self.uid}, term={self.term}, definition={self.definition}, tags={self.tags}, createdAt={self.createdAt})"
 
-    # Creates timestamp of YYYY:MM:DD HH:MM:SS and pushes entry into DB
+    # Pushes entry into DB
     def add(self):
-        self.createdAt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        conn = sqlite3.connect(app.dbPath)
+        conn = sqlite3.connect(App.dbPath)
         cursor = conn.cursor()
         cursor.execute("INSERT INTO master (term, definition, tags, createdAt) VALUES (?, ?, ?, ?)",
                        (self.term, self.definition, self.tags, self.createdAt))
@@ -59,7 +59,7 @@ class Entry:
         self.tags = newTags
         uid = self.uid
 
-        conn = sqlite3.connect(app.dbPath)
+        conn = sqlite3.connect(App.dbPath)
         cursor = conn.cursor()
         cursor.execute("UPDATE master SET term = ?, definition = ?, tags = ? WHERE uid = ?",
                        (self.term, self.definition, self.tags, uid))
@@ -71,7 +71,7 @@ class Entry:
     def delete(self):
         uid = self.uid
 
-        conn = sqlite3.connect(app.dbPath)
+        conn = sqlite3.connect(App.dbPath)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM master WHERE uid = ?",
                        (uid,))
@@ -96,28 +96,52 @@ class Entry:
             selectedList.entries.remove(self)
 
 class DisplayList:
-    def __init__(self, entries: list | None = None,
-                 filterTags: str | None = None,
-                 requireAllTags: bool | None = None,
-                 searchKeyword: str | None = None,
-                 sortAttribute: str | None = None):
+    def __init__(self,
+                 entries: list = [],
+                 filterTags: str = "",
+                 requireAllTags: bool = False,
+                 searchKeyword: str = "",
+                 sortAttribute: str = "dateDescending"):
         self.entries = entries
         self.filterTags = filterTags
         self.requireAllTags = requireAllTags
         self.searchKeyword = searchKeyword
         self.sortAttribute = sortAttribute
+    
+
+    def filter(self):
+        tags = re.split("\s+", self.filterTags)
+        if len(tags) == 0:
+            conn = sqlite3.connect(App.dbPath)
+
+            
+
+    def search(self):
+        pass
+
+    def sort(self):
+        pass
+
+    def build(self):
+        pass
+
+    def selectAll(self):
+        pass
+
 
 class SelectedList:
-    def __init__(self, entries: list | None = None):
+    def __init__(self,
+                 entries: list = []):
         self.entries = entries
 
 class ImportList:
-    def __init__(self, rawText: str | None = None,
-                 entryDelimiter: str | None = None,
-                 termDefinitionDelimiter: str | None = None,
-                 massTags: str | None = None,
-                 parsedEntries: list | None = None,
-                 filePath: str | None = None):
+    def __init__(self,
+                 filePath: str,
+                 rawText: str = "",
+                 entryDelimiter: str = "\n",
+                 termDefinitionDelimiter: str = ":",
+                 massTags: str = "",
+                 parsedEntries: list = []):
         self.rawText = rawText
         self.entryDelimiter = entryDelimiter
         self.termDefinitionDelimiter = termDefinitionDelimiter
@@ -126,13 +150,19 @@ class ImportList:
         self.filePath = filePath
 
 class App:
-    def __init__(self, dbPath: str):
-        self.dbPath = dbPath
-        conn = sqlite3.connect(dbPath)
+    dbPath = r"database\lexes.db" # default database path
+
+    def __init__(self):
+        conn = sqlite3.connect(App.dbPath)
         self.setupDB()
     
+    # Ensures DB connection closes upon App closing.
+    def __del__(self):
+        conn = sqlite3.connect(App.dbPath)
+        conn.close()
+    
     def setupDB(self):
-        conn = sqlite3.connect(self.dbPath)
+        conn = sqlite3.connect(App.dbPath)
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -148,8 +178,10 @@ class App:
 
 # Testing
 if __name__ == "__main__":
-    app = App(dbPath=r"assets\lexes.db")
-
-    testDefinition = Helper.wikipediaAPI("unit circle")
-    print(testDefinition)
-
+    app = App()
+    
+    conn = sqlite3.connect(App.dbPath)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM master")
+    print(cursor.fetchall())
+    conn.close()
