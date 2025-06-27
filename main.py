@@ -96,6 +96,7 @@ class Entry:
             selectedList.entries.remove(self)
 
 class DisplayList:
+    # Initiation with default parameters for their respective data types and uses.
     def __init__(self,
                  entries: list = [],
                  filterTags: str = "",
@@ -108,12 +109,31 @@ class DisplayList:
         self.searchKeyword = searchKeyword
         self.sortAttribute = sortAttribute
     
-
+    # Out of all database entries, adds entry to displayList.entries based on filter settings (requireAllTags).
     def filter(self):
-        tags = re.split("\s+", self.filterTags)
-        if len(tags) == 0:
-            conn = sqlite3.connect(App.dbPath)
+        conn = sqlite3.connect(App.dbPath)
+        cursor = conn.cursor()
+        tags = re.split("\s+", self.filterTags) # any amount of whitespace will be split
 
+        cursor.execute("SELECT * FROM master")
+        rows = cursor.fetchall() # all rows in db
+
+        filterTags = re.split("\s+", self.filterTags) # filter tags from "a b c" to ["a", "b", "c"]
+        
+        if len(tags) == 0: # no tags, appends all
+            for row in rows:
+                entry = Entry(uid=row[0],term=row[1], definition=row[2], tags=row[3], createdAt=row[4])
+                self.entries.append(entry)
+        elif self.requireAllTags == True: # require all tags, appends if filterTags in row tags
+            for row in rows:
+                if filterTags in row[3]:
+                    entry = Entry(uid=row[0],term=row[1], definition=row[2], tags=row[3], createdAt=row[4])
+                    self.entries.append(entry)
+        elif self.requireAllTags == False: # require any tag, appends if any filterTags in row tags
+            for row in rows:
+                if any(tag in row[3] for tag in filterTags):
+                    entry = Entry(uid=row[0],term=row[1], definition=row[2], tags=row[3], createdAt=row[4])
+                    self.entries.append(entry)
             
 
     def search(self):
