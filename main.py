@@ -10,6 +10,7 @@ from tkinter import messagebox
 import datetime
 import requests
 import re
+import os
 
 class Helper:
     @staticmethod
@@ -71,13 +72,16 @@ class Entry:
                  term: str,
                  definition: str,
                  tags: str = "",
-                 createdAt: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                 createdAt: str = None,
                  uid: int = None):
         self.uid = uid
         self.term = term
         self.definition = definition
         self.tags = tags
-        self.createdAt = createdAt
+        if createdAt is None: # mutable argument solution
+            self.createdAt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            self.createdAt = createdAt
     
     # Custom representation of what the entry object looks like when printed.
     def __repr__(self):
@@ -106,8 +110,9 @@ class Entry:
         conn.commit()
         conn.close()
     
-    # Deletes row with matching uid.
+    # Deletes row in DB with matching uid.
     # NOTE: Does not need to remove from displayList and selectedList to separate functionality from UI. (Button functions will manage this.)
+    # NOTE: Only removes from DB, not object.
     def delete(self):
         uid = self.uid
 
@@ -139,12 +144,12 @@ class Entry:
 class DisplayList:
     # Initiation with default parameters for their respective data types and uses.
     def __init__(self,
-                 entries: list = [],
+                 entries: list = None,
                  filterTags: str = "",
                  requireAllTags: bool = False,
                  searchKeyword: str = "",
                  sortAttribute: str = "dateDescending"):
-        self.entries = entries
+        self.entries = entries if entries is not None else [] # mutable argument solution
         self.filterTags = filterTags
         self.requireAllTags = requireAllTags
         self.searchKeyword = searchKeyword
@@ -206,17 +211,73 @@ class DisplayList:
         self.search()
         self.sort()
 
+    # NOTE: Takes selectedList object as parameter.
     # Checked: I
     def selectAll(self,
                   selectedList: 'SelectedList'):
         for entry in self.entries:
             entry.select(selectedList)
 
-
 class SelectedList:
     def __init__(self,
-                 entries: list = []):
-        self.entries = entries
+                 entries: list = None):
+        self.entries = entries if entries is not None else [] # mutable argument solution
+    
+    # NOTE: Takes selectedList object as parameter.
+    # Checked: I
+    def unselectAll(self,
+                    selectedList: 'SelectedList'):
+        for entry in self.entries:
+            entry.unselect(selectedList)
+
+    # Deletes all selected entries from DB. Clears selectedList.entries afterwards as delete() doesn't 'remove' object itself. 
+    def deleteAll(self):
+        for entry in self.entries:
+            entry.delete()
+        self.entries.clear()
+    
+    # Creates a new CSV at location and writes entry info to rows.
+    # NOTE: CSV FORMAT: is term;definition;tags\n and each exported file will have a unique name.
+    # Checked: II
+    def exportToAnki(self,
+                     filePath: str,
+                     fileName: str = None):
+        if fileName is None:
+            fullPathCheck = os.path.join(filePath, "Lexes-Anki.csv")
+            if os.path.exists(fullPathCheck): # "Lexes-Anki.csv" exists
+                copy = 2
+                while os.path.exists(os.path.join(filePath, f"Lexes-Anki-{copy}.csv")): # iterates through potential duplicate file names until one is free
+                    copy += 1
+                fileName = f"Lexes-Anki-{copy}.csv" # ensures unique file names
+            else:
+                fileName = "Lexes-Anki.csv" # if no copies exist
+
+        elif os.path.exists(os.path.join(filePath, fileName)): # "fileName(.csv)" exists
+            baseFileName = fileName[:-4] if fileName.endswith(".csv") else fileName # removes .csv if present
+            copy = 2
+            while os.path.exists(os.path.join(filePath, f"{baseFileName}-{copy}.csv")): # iterates through potential duplicate file names until one is free
+                copy += 1
+            fileName = f"{baseFileName}-{copy}.csv"
+
+        fullPath = os.path.join(filePath, fileName)
+
+        entriesToExport = self.entries.copy() # mutable argument solution
+        entriesToExport = Helper.quickSort(entriesToExport, "dateAscending")
+        
+        with open(fullPath, mode="w", encoding="utf-8") as csvFile:
+            csvFile.write("term;definition;tags\n")
+
+            for entry in entriesToExport:
+                term = entry.term.replace(";", ",") # replaces semi-colons with commas to avoid breakign the CSV delimiter
+                definition = entry.definition.replace(";", ",")
+                tags = entry.tags.replace(";", ",")
+                row = f"{term};{definition};{tags}\n"
+                csvFile.write(row)
+
+    def exportToDB(self):
+        pass
+
+
 
 class ImportList:
     def __init__(self,
@@ -225,12 +286,12 @@ class ImportList:
                  entryDelimiter: str = "\n",
                  termDefinitionDelimiter: str = ":",
                  massTags: str = "",
-                 parsedEntries: list = []):
+                 parsedEntries: list = None):
         self.rawText = rawText
         self.entryDelimiter = entryDelimiter
         self.termDefinitionDelimiter = termDefinitionDelimiter
         self.massTags = massTags
-        self.parsedEntries = parsedEntries
+        self.parsedEntries = parsedEntries if parsedEntries is not None else [] # mutable argument solution
         self.filePath = filePath
 
 class App:
@@ -264,6 +325,11 @@ class App:
 if __name__ == "__main__":
     app = App()
     
+    # entry4 = Entry(term="Entry 4", definition="Test entry number 4", tags="test a")
+    # entry4.add()
+    # time.sleep(5)
+    # entry5 = Entry(term="Entry 5", definition="Test entry number 5", tags="test a")
+    # entry5.add()
     conn = sqlite3.connect(App.dbPath)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM master")
