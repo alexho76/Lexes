@@ -23,6 +23,46 @@ class Helper:
             return str(extract) if extract is not None else None
         else:
             return None
+    
+    @staticmethod
+    # Performs quicksort on entry objects based on various attributes: alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending
+    # NOTE: Modified pseudocode naming to be more general.
+    # Checked: I
+    def quickSort(entries,attribute):
+        if len(entries) <= 1:
+            return entries
+        pivot = entries[0]
+        lesser = []
+        greater = []
+
+        for entry in entries[1:]:
+            if attribute == "alphabeticalAscending":
+                if entry.term < pivot.term:
+                    lesser.append(entry)
+                else:
+                    greater.append(entry)
+
+            elif attribute == "alphabeticalDescending":
+                if entry.term > pivot.term:
+                    lesser.append(entry)
+                else:
+                    greater.append(entry)
+
+            elif attribute == "dateAscending":
+                if entry.createdAt < pivot.createdAt:
+                    lesser.append(entry)
+                else:
+                    greater.append(entry)
+
+            elif attribute == "dateDescending":
+                if entry.createdAt > pivot.createdAt:
+                    lesser.append(entry)
+                else:
+                    greater.append(entry)
+        
+        sortedLesser = Helper.quickSort(lesser,attribute)
+        sortedGreater = Helper.quickSort(greater,attribute)
+        return sortedLesser + [pivot] + sortedGreater
 
 
 class Entry:
@@ -43,7 +83,7 @@ class Entry:
     def __repr__(self):
         return f"Entry(uid={self.uid}, term={self.term}, definition={self.definition}, tags={self.tags}, createdAt={self.createdAt})"
 
-    # Pushes entry into DB
+    # Pushes entry into DB.
     def add(self):
         conn = sqlite3.connect(App.dbPath)
         cursor = conn.cursor()
@@ -85,11 +125,12 @@ class Entry:
 
     # Adds entry to selectedList if not in it.
     # NOTE: SelectedList object must be passed as parameter.
+    # Checked: I
     def select(self, selectedList: 'SelectedList'):
         if self not in selectedList.entries:
             selectedList.entries.append(self)
 
-    # Removes entry from selectedList if in it.
+    # Deletes entry from selectedList if in it.
     # NOTE: SelectedList object must be passed as parameter.
     def unselect(self, selectedList: 'SelectedList'):
         if self in selectedList.entries:
@@ -110,43 +151,66 @@ class DisplayList:
         self.sortAttribute = sortAttribute
     
     # Out of all database entries, adds entry to displayList.entries based on filter settings (requireAllTags).
+    # Checked: III
     def filter(self):
+        self.entries = []
         conn = sqlite3.connect(App.dbPath)
         cursor = conn.cursor()
-        tags = re.split("\s+", self.filterTags) # any amount of whitespace will be split
 
         cursor.execute("SELECT * FROM master")
         rows = cursor.fetchall() # all rows in db
 
-        filterTags = re.split("\s+", self.filterTags) # filter tags from "a b c" to ["a", "b", "c"]
+        filterTags = [tag for tag in re.split(r"\s+", self.filterTags.strip())
+                      if tag != ""] # filter tags from " a  b  c " to ["a", "b", "c"]
         
-        if len(tags) == 0: # no tags, appends all
+        if len(filterTags) == 0: # no tags, appends all
             for row in rows:
                 entry = Entry(uid=row[0],term=row[1], definition=row[2], tags=row[3], createdAt=row[4])
                 self.entries.append(entry)
+
         elif self.requireAllTags == True: # require all tags, appends if filterTags in row tags
             for row in rows:
-                if filterTags in row[3]:
+                rowTags = re.split(r"\s+", row[3].strip())
+                rowTags = [rowTag.lower() for rowTag in rowTags]
+                if all(tag.lower() in rowTags for tag in filterTags):
                     entry = Entry(uid=row[0],term=row[1], definition=row[2], tags=row[3], createdAt=row[4])
                     self.entries.append(entry)
+
         elif self.requireAllTags == False: # require any tag, appends if any filterTags in row tags
             for row in rows:
-                if any(tag in row[3] for tag in filterTags):
+                rowTags = re.split(r"\s+", row[3].strip())
+                rowTags = [rowTag.lower() for rowTag in rowTags]
+                if any(tag.lower() in rowTags for tag in filterTags):
                     entry = Entry(uid=row[0],term=row[1], definition=row[2], tags=row[3], createdAt=row[4])
                     self.entries.append(entry)
             
-
+    # Removes entries from displayList.entries that do not contain searchKeyword in term or definition.
+    # Checked: I
     def search(self):
-        pass
+        if self.searchKeyword == "":
+            return
 
+        # had to change from removing entries without keyword to rebuilding displayList.entries, due to issues with removing entries while iterating
+        self.entries = [entry for entry in self.entries
+                        if self.searchKeyword.lower() in entry.term.lower() or self.searchKeyword.lower() in entry.definition.lower()]
+
+    # Uses Helper.quickSort(), assumes sortAttribute is among alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
+    # Checked: I
     def sort(self):
-        pass
+        self.entries = Helper.quickSort(self.entries, self.sortAttribute)
 
+    # NOTE: IMPORTANT ORDER: filter -> search -> sort, and self.entries is cleared in filter() not build() itself.
+    # Checked: I
     def build(self):
-        pass
+        self.filter()
+        self.search()
+        self.sort()
 
-    def selectAll(self):
-        pass
+    # Checked: I
+    def selectAll(self,
+                  selectedList: 'SelectedList'):
+        for entry in self.entries:
+            entry.select(selectedList)
 
 
 class SelectedList:
