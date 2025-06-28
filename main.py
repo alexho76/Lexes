@@ -15,14 +15,25 @@ import os
 class Helper:
     @staticmethod
     # Static method to call Wikipedia API, parse response, and return definition (if found).
+    # Checked: I
     def wikipediaAPI(query: str) -> str:
-        query = query.strip().lower().replace(" ", "_") # removes trailing spaces, converts to lowercase, and replaces spaces with underscores
+        query = query.strip().replace(" ", "_") # removes trailing spaces, and replaces spaces with underscores
+        if query:
+            query = query[0].upper() + query[1:]
+        else:
+            return None
+        
         url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{query}"
         response = requests.get(url, verify = False)
+        
         if response.status_code == 200: # successful request
             data = response.json()
-            extract = data.get("extract")
-            return str(extract) if extract is not None else None
+            if data.get("type") == "standard":
+                extract = data.get("extract")
+                return str(extract) if extract is not None else None
+            else:
+                # disambiguation page or other types of pages
+                return None
         else:
             return None
     
