@@ -16,6 +16,7 @@ class Helper:
     @staticmethod
     # Static method to call Wikipedia API, parse response, and return definition (if found).
     def wikipediaAPI(query: str) -> str:
+        query = query.strip().lower().replace(" ", "_") # removes trailing spaces, converts to lowercase, and replaces spaces with underscores
         url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{query}"
         response = requests.get(url, verify = False)
         if response.status_code == 200: # successful request
@@ -88,15 +89,18 @@ class Entry:
         return f"Entry(uid={self.uid}, term={self.term}, definition={self.definition}, tags={self.tags}, createdAt={self.createdAt})"
 
     # Pushes entry into DB.
+    # Checked: I
     def add(self):
         conn = sqlite3.connect(App.dbPath)
         cursor = conn.cursor()
+
         cursor.execute("INSERT INTO master (term, definition, tags, createdAt) VALUES (?, ?, ?, ?)",
-                       (self.term, self.definition, self.tags, self.createdAt))
+                       (self.term, self.definition, self.tags.strip(), self.createdAt))
         conn.commit()
         conn.close()
 
     # Updates entry attributes then updates row in DB where uid matches.
+    # Checked: 1
     def edit(self, newTerm: str, newDefinition: str, newTags: str):
         self.term = newTerm
         self.definition = newDefinition
@@ -106,7 +110,7 @@ class Entry:
         conn = sqlite3.connect(App.dbPath)
         cursor = conn.cursor()
         cursor.execute("UPDATE master SET term = ?, definition = ?, tags = ? WHERE uid = ?",
-                       (self.term, self.definition, self.tags, uid))
+                       (self.term, self.definition, self.tags.strip(), uid))
         conn.commit()
         conn.close()
     
@@ -274,10 +278,51 @@ class SelectedList:
                 row = f"{term};{definition};{tags}\n"
                 csvFile.write(row)
 
-    def exportToDB(self):
-        pass
+    # Creates a new DB at location and writes entry info to rows.
+    # NOTE: exported .db table has same format as original .db table, but uid and createdAt columns are left blank for re-creation upon import.
+    # Checked: II
+    def exportToDB(self,
+                   filePath: str,
+                   fileName: str = None):
+        if fileName is None:
+            fullPathCheck = os.path.join(filePath, "Lexes-Export.db")
+            if os.path.exists(fullPathCheck):
+                copy = 2
+                while os.path.exists(os.path.join(filePath, f"Lexes-Export-{copy}.db")):
+                    copy += 1
+                fileName = f"Lexes-Export-{copy}.db"
+            else:
+                fileName = "Lexes-Export.db"
 
+        elif os.path.exists(os.path.join(filePath, fileName)):
+            baseFileName = fileName[:-3] if fileName.endswith(".db") else fileName
+            copy = 2
+            while os.path.exists(os.path.join(filePath, f"{baseFileName}-{copy}.db")):
+                copy += 1
+            fileName = f"{baseFileName}-{copy}.db"
 
+        fullPath = os.path.join(filePath, fileName)
+
+        entriesToExport = self.entries.copy() # mutable argument solution
+        entriesToExport = Helper.quickSort(entriesToExport, "dateAscending")
+
+        conn = sqlite3.connect(fullPath)
+        cursor = conn.cursor()
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS master (
+            uid INTEGER PRIMARY KEY AUTOINCREMENT,
+            term TEXT NOT NULL,
+            definition TEXT NOT NULL,
+            tags TEXT,
+            createdAt TEXT NOT NULL)
+        """)
+
+        for entry in entriesToExport: # exclude uid and createdAt, uses values straight from entry object, not from DB
+            cursor.execute("INSERT INTO master (term, definition, tags) VALUES (?, ?, ?)",
+                           (entry.term, entry.definition, entry.tags.strip()))
+
+        conn.commit()
+        conn.close()
 
 class ImportList:
     def __init__(self,
@@ -293,6 +338,89 @@ class ImportList:
         self.massTags = massTags
         self.parsedEntries = parsedEntries if parsedEntries is not None else [] # mutable argument solution
         self.filePath = filePath
+
+    # Parses the raw text chunk into entries, then entries into a tuple of (term, definition). Auto-definition if no definition provided. Reworded parsedEntries -> trialParsedEntries to avoid duplicate names.
+    # Returns Boolean of successful parse and list of parsed entries as tuples.
+    # Checked: III
+    def parseText(self):
+        rawEntries = re.split(r"\n+", self.rawText.strip())
+        trialParsedEntries = []
+        successfulParse = True
+
+        for rawEntry in rawEntries:
+            entry = rawEntry.strip().split(self.termDefinitionDelimiter, 1)
+            
+            if len(entry) == 2:
+                term = entry[0].strip()
+                definition = entry[1].strip()
+            elif len(entry) == 1:
+                term = entry[0].strip()
+                definition = Helper.wikipediaAPI(term)  # calls Wikipedia API, keeps definition as blank if API request failed
+                if definition is None:
+                    definition = ""
+            
+            if term == "" or definition == "":
+                successfulParse = False
+            trialParsedEntries.append((term,definition)) # tuple of (term, definition)
+        
+        return successfulParse, trialParsedEntries
+
+    # Checks if text is correctly formatted (entries by line break, term and definition by colon). Returns Boolean, and appends Entry objects to self.parsedEntries list if successful.
+    # Checked: III
+    def validateEntries(self):
+        self.parsedEntries.clear()
+
+        entriesToValidate = re.split(r"\n+", self.rawText.strip())
+
+        for entryToValidate in entriesToValidate:
+            entry = entryToValidate.strip().split(':', 1)
+
+            if len(entry) != 2:
+                self.parsedEntries.clear()
+                return False
+            
+            term = entry[0].strip()
+            definition = entry[1].strip()
+
+            if term == "" or definition == "":
+                self.parsedEntries.clear()
+                return False
+
+            entryObject = Entry(term=term, definition=definition, tags=self.massTags)
+            self.parsedEntries.append(entryObject)
+
+        return True
+
+    # Adds all entries in self.parsedEntries to DB and clears attributes storing inputs.
+    # Checked: I
+    def importAndClear(self):
+        for entry in self.parsedEntries:
+            entry.add()
+        
+        self.rawText = ""
+        self.parsedEntries.clear()
+        # NOTE: DO NOT CLEAR self.entryDelimiter, self.termDefinitionDelimiter, or self.massTags (keeps as a sort of setting)
+    
+    # Imports all entries from DB at absolutePath into self.parsedEntries.
+    # Checked: I
+    def importDB(self,
+                 absolutePath: str):
+        conn = sqlite3.connect(absolutePath)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM master")
+        rows = cursor.fetchall()
+
+        for row in rows:
+            term = row[1]
+            definition = row[2]
+            tags = row[3] or ""
+
+            combinedTags = f"{self.massTags.strip()} {tags.strip()}".strip()
+
+            entry = Entry(term=term, definition=definition, tags=combinedTags)
+            self.parsedEntries.append(entry)
+        
+        conn.close()
 
 class App:
     dbPath = r"database\lexes.db" # default database path
