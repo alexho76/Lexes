@@ -1,7 +1,6 @@
 import os
 import sqlite3
-from classes.helper import Helper
-
+from .helper import Helper
 
 class SelectedList:
     def __init__(self,

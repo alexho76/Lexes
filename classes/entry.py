@@ -1,7 +1,8 @@
 import sqlite3
-from classes.helper import Helper
-from classes.selected_list import SelectedList
+from .helper import Helper
 from config.database import dbPath
+import datetime
+
 
 class Entry:
     # Initiates the Entry with its attributes: uid and createdAt are optional parameters. Auto-generates timestamp.
@@ -71,12 +72,14 @@ class Entry:
     # Adds entry to selectedList if not in it.
     # NOTE: SelectedList object must be passed as parameter.
     # Checked: I
-    def select(self, selectedList: 'SelectedList'):
+    def select(self, selectedList):
+        from .selected_list import SelectedList
         if self not in selectedList.entries:
             selectedList.entries.append(self)
 
     # Deletes entry from selectedList if in it.
     # NOTE: SelectedList object must be passed as parameter.
-    def unselect(self, selectedList: 'SelectedList'):
+    def unselect(self, selectedList):
+        from .selected_list import SelectedList
         if self in selectedList.entries:
             selectedList.entries.remove(self)

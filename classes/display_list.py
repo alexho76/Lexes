@@ -1,8 +1,8 @@
 import sqlite3
 import re
-from classes.helper import Helper
-from classes.entry import Entry
-from classes.selected_list import SelectedList
+from .helper import Helper
+from .entry import Entry
+from .selected_list import SelectedList
 from config.database import dbPath
 
 class DisplayList:

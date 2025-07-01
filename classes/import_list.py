@@ -1,7 +1,7 @@
 import re
 import sqlite3
-from classes.helper import Helper
-from classes.entry import Entry
+from .helper import Helper
+from .entry import Entry
 
 
 class ImportList:
