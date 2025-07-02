@@ -1,6 +1,6 @@
 import sqlite3
 from .helper import Helper
-from config.database import dbPath
+from config.configurations import dbPath
 import datetime
 
 

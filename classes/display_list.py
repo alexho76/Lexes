@@ -3,7 +3,7 @@ import re
 from .helper import Helper
 from .entry import Entry
 from .selected_list import SelectedList
-from config.database import dbPath
+from config.configurations import dbPath
 
 class DisplayList:
     # Initiation with default parameters for their respective data types and uses.
