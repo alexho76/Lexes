@@ -5,6 +5,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def __init__(self, master, *,
                  options,
                  width=200,
+                 height=50,
                  dropdown_height=150,
                  font=None,
                  dropdown_font=None,
@@ -17,10 +18,11 @@ class MultiSelectComboBox(ctk.CTkFrame):
                  corner_radius=8,
                  default_text="Select options ▼",
                  **kwargs):
-        super().__init__(master, width=width, fg_color=fg_color, corner_radius=corner_radius, **kwargs)
+        super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, **kwargs)
 
         self.options = options
         self.width = width
+        self.height = height
         self.dropdown_height = dropdown_height
         self.font = font or ("Arial", 14)
         self.dropdown_font = dropdown_font or ("Arial", 12)
@@ -34,25 +36,45 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.default_text = default_text
 
         self.selected_indices = set()
+        self.option_frames = []
+        self.option_labels = []
 
         self.configure(border_width=1, border_color=self.border_color)
+
         self.selected_text_var = tk.StringVar(value=self.default_text)
 
-        # Main button showing selected summary
-        self.main_button = ctk.CTkButton(
+        # Main container with rounded corners
+        self.main_container = ctk.CTkFrame(
             self,
+            width=self.width,
+            height=self.height,
+            corner_radius=self.corner_radius,
+            fg_color=self.fg_color,
+        )
+        self.main_container.pack(fill="x")
+        self.main_container.pack_propagate(False)
+
+        self.dropdown_icon = ctk.CTkLabel(
+            self.main_container,
+            text="▼",
+            font=self.font,
+            text_color=self.text_color
+        )
+        self.dropdown_icon.pack(side="right", padx=(0, 10), pady=6)
+
+        self.main_label = ctk.CTkLabel(
+            self.main_container,
             textvariable=self.selected_text_var,
             font=self.font,
-            fg_color=self.fg_color,
-            hover_color=self.hover_color,
-            border_width=0,
-            corner_radius=self.corner_radius,
             text_color=self.text_color,
-            command=self._toggle_menu,
-            width=self.width,
-            anchor="w",
+            anchor="w"
         )
-        self.main_button.pack(fill="x")
+        self.main_label.pack(side="left", fill="x", expand=True, padx=(10, 0), pady=6)
+
+        # Click binding
+        self.main_container.bind("<Button-1>", lambda e: self._toggle_menu())
+        self.dropdown_icon.bind("<Button-1>", lambda e: self._toggle_menu())
+        self.main_label.bind("<Button-1>", lambda e: self._toggle_menu())
 
         self.popup = None
         self.inner_frame = None
@@ -67,7 +89,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.popup.configure(bg=self.fg_color)
 
         outer_frame = tk.Frame(self.popup, bg=self.fg_color)
-        outer_frame.pack(padx=6, pady=6)
+        outer_frame.pack(padx=0, pady=0)
 
         self.canvas = tk.Canvas(
             outer_frame,
@@ -94,26 +116,21 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.canvas.bind("<Enter>", lambda e: self._bind_mousewheel())
         self.canvas.bind("<Leave>", lambda e: self._unbind_mousewheel())
 
-        self.option_frames = []
-        self.option_labels = []
-
         for i, option in enumerate(self.options):
-            row_frame = tk.Frame(self.inner_frame, bg=self.fg_color, width=self.width, height=30)
-            row_frame.pack(fill="x", anchor="w")
+            row_frame = tk.Frame(self.inner_frame, bg=self.fg_color, width=self.width, height=36)
+            row_frame.pack(fill="x", anchor="w", pady=1)
             row_frame.pack_propagate(False)
 
-            label = tk.Label(
+            label = ctk.CTkLabel(
                 row_frame,
                 text=option,
                 font=self.dropdown_font,
-                bg=self.fg_color,
-                fg=self.text_color,
+                text_color=self.text_color,
                 anchor="w",
                 justify="left",
-                width=25,
-                wraplength=self.width - 20,
+                width=self.width - 20,
             )
-            label.pack(side="left", fill="x", expand=True)
+            label.pack(side="left", fill="x", expand=True, padx=10)
 
             def toggle_selection(idx=i):
                 if idx in self.selected_indices:
@@ -138,10 +155,10 @@ class MultiSelectComboBox(ctk.CTkFrame):
 
         if selected:
             frame.configure(bg=self.selected_bg_color)
-            label.configure(fg=self.selected_text_color, bg=self.selected_bg_color)
+            label.configure(text_color=self.selected_text_color)
         else:
             frame.configure(bg=self.fg_color)
-            label.configure(fg=self.text_color, bg=self.fg_color)
+            label.configure(text_color=self.text_color)
 
     def _bind_mousewheel(self):
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
@@ -168,7 +185,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _show_menu(self):
         x = self.winfo_rootx()
         y = self.winfo_rooty() + self.winfo_height()
-        self.popup.geometry(f"{self.width + 20}x{self.dropdown_height + 12}+{x}+{y}")
+        self.popup.geometry(f"{self.width}x{self.dropdown_height}+{x}+{y}")
         self.popup.deiconify()
         self.popup.focus_set()
         self.is_menu_open = True

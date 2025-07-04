@@ -15,8 +15,13 @@ import tkinter as tk
 import ctypes
 import tkinter.font as tkFont
 from PIL import Image, ImageTk
+import platform
+
 
 class App:
+    if platform.system() == "Windows":
+        from ctypes import windll, byref, sizeof, c_int
+        windll.shcore.SetProcessDpiAwareness(2)
     def __init__(self):
         self.setupDB()
 
@@ -49,6 +54,9 @@ class App:
 class MainWindow(ctk.CTk):
     def __init__(self, masterApp, **kwargs):
         super().__init__(**kwargs)
+
+        self.attributes("-fullscreen", True)
+
         self.masterApp = masterApp
 
         user32 = ctypes.windll.user32
@@ -96,7 +104,7 @@ class MainWindow(ctk.CTk):
         self.helpButton.pack(side='left',padx=2,pady=9)
         self.exitButton = ctk.CTkButton(self.navigationBar, text="Exit", width=120, height=50, corner_radius=5, anchor='center',
                                         font=("League Spartan Bold",22), text_color = Red, fg_color=Cream,
-                                        border_color=Red, border_width=2.5,hover_color=Cream2, command=self.destroy)
+                                        border_color=Red, border_width=2.5,hover_color=Cream2, command=self.quit)
         self.exitButton.pack(side='right',padx=(2,9),pady=9)
 
         ### Logo ###
@@ -114,9 +122,9 @@ class MainWindow(ctk.CTk):
         self.searchBar.pack(side='left',padx=(93,6))
 
         self.filterBar = MultiSelectComboBox(self.toolBar,
-        options=["Math", "Physics", "English", "History", "Biology", "Psychology", "Japanese"],
+        options=["Math", "Physics", "English", "History", "Biology21384712894723148912374321473218941734982374983174812", "Psychology", "Japanese"],
         font=("League Spartan", 36), dropdown_font=("League Spartan", 24), fg_color=DarkGreen1,
-        border_color=DarkGreen1, border_width=0, text_color=DarkGreen2, corner_radius=50,
+        text_color=DarkGreen2, corner_radius=50, height=60, border_width=0,
         hover_color=DarkGreen1b, selected_bg_color=DarkGreen3, selected_text_color=Cream,
         width=350, dropdown_height=200, default_text="Filter by tags")
         self.filterBar.pack(side='left', padx=6)
