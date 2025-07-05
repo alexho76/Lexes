@@ -1,5 +1,5 @@
 # Class Imports
-from config.configurations import dbPath, logoPath
+from config.configurations import *
 from config.theme import *
 from classes.helper import Helper
 from classes.entry import Entry
@@ -7,6 +7,8 @@ from classes.display_list import DisplayList
 from classes.selected_list import SelectedList
 from classes.import_list import ImportList
 from classes.widgets.multi_select_combobox import MultiSelectComboBox
+from classes.widgets.single_select_combobox import SingleSelectComboBox
+from classes.widgets.searchbar_with_icon import SearchBarWithIcon
 
 # Imports
 import sqlite3
@@ -117,17 +119,58 @@ class MainWindow(ctk.CTk):
         ### Tool Bar ###
         self.toolBar = ctk.CTkFrame(self.background, fg_color=LightGreen1,height=100)
         self.toolBar.pack(fill='x')
-        self.searchBar = ctk.CTkEntry(self.toolBar, placeholder_text="Search by keyword", width=500, height=50, corner_radius=200, font=("League Spartan",36),
-                                      text_color=DarkGreen2,placeholder_text_color=DarkGreen2,fg_color=DarkGreen1,border_width=0)
-        self.searchBar.pack(side='left',padx=(93,6))
+        
+        self.searchBar = SearchBarWithIcon(
+            master=self.toolBar,
+            width=500,
+            height=60,
+            corner_radius=200,
+            entry_placeholder="Search by keyword",
+            font=("League Spartan", 36),
+            text_color=DarkGreen2,
+            placeholder_text_color=DarkGreen2,
+            fg_color=DarkGreen1,
+            border_width=0,
+            icon_text="...",
+            icon_font=("Arial", 28),
+            icon_width=40
+        )   
+        self.searchBar.pack(side='left',padx=(93,6),anchor='n')
+
+
+        # self.searchBar = ctk.CTkEntry(self.toolBar, placeholder_text="Search by keyword", width=500, height=50,
+        #                               corner_radius=200, font=("League Spartan",36), text_color=DarkGreen2,
+        #                               placeholder_text_color=DarkGreen2, fg_color=DarkGreen1,border_width=0)
+        # self.searchBar.pack(side='left',padx=(93,6),anchor='n')
+        # self.searchBar.configure(justify='left')
 
         self.filterBar = MultiSelectComboBox(self.toolBar,
-        options=["Math", "Physics", "English", "History", "Biology21384712894723148912374321473218941734982374983174812", "Psychology", "Japanese"],
+        options=["Math", "Physics","3","4","5","6","7","8","9","10","11","12"],
         font=("League Spartan", 36), dropdown_font=("League Spartan", 24), fg_color=DarkGreen1,
         text_color=DarkGreen2, corner_radius=50, height=60, border_width=0,
         hover_color=DarkGreen1b, selected_bg_color=DarkGreen3, selected_text_color=Cream,
-        width=350, dropdown_height=200, default_text="Filter by tags")
+        width=350, default_text="Filter by tags")
         self.filterBar.pack(side='left', padx=6)
+
+        self.sortBar = SingleSelectComboBox(self.toolBar,
+        options=["Newest", "Oldest", "A-Z", "Z-A"],
+        font=("League Spartan", 36), dropdown_font=("League Spartan", 24), fg_color=DarkGreen1,
+        text_color=DarkGreen2, corner_radius=50, height=60, border_width=0,
+        hover_color=DarkGreen1b, selected_bg_color=DarkGreen3, selected_text_color=Cream,
+        width=200, default_text="Sort by")
+        self.sortBar.pack(side='left', padx=6)
+
+
+
+        ### Footer ###
+        self.footer = ctk.CTkFrame(self.background, fg_color='white', height=83)
+        self.footer.pack(fill='x',side='bottom')
+
+        iconImage = Image.open(iconPath)
+        iconImage = iconImage.resize((65,65), Image.LANCZOS)
+        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
+        self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="")
+        self.icon.pack(pady=9)
 
 
 
