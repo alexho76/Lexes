@@ -1,7 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 
-class MultiSelectComboBox(ctk.CTkFrame):
+class SingleSelectComboBox(ctk.CTkFrame):
     def __init__(self, master, *,
                  options,
                  width=200,
@@ -15,7 +15,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
                  selected_text_color="#004085",
                  hover_color="#e6f0ff",
                  corner_radius=8,
-                 default_text="Select options ▼",
+                 default_text="Select option ▼",
                  **kwargs):
         super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, **kwargs)
 
@@ -33,7 +33,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.corner_radius = corner_radius
         self.default_text = default_text
 
-        self.selected_indices = set()
+        self.selected_index = None  # Single selection index, None if nothing selected
         self.option_frames = []
         self.option_labels = []
         self.prevent_reopen = False
@@ -65,7 +65,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
             font=self.font,
             text_color=self.text_color
         )
-        self.dropdown_icon.pack(side="right", padx=(0, 20), pady=(6,10))
+        self.dropdown_icon.pack(side="right", padx=(0, 20), pady=(6,10) )
 
         self.main_label = ctk.CTkLabel(
             self.main_container,
@@ -137,16 +137,18 @@ class MultiSelectComboBox(ctk.CTkFrame):
             )
             label.pack(side="left", fill="x", expand=True, padx=10, pady=0)
 
-            def toggle_selection(idx=i):
-                if idx in self.selected_indices:
-                    self.selected_indices.remove(idx)
-                else:
-                    self.selected_indices.add(idx)
-                self._update_option_visual(idx)
+            def select_option(idx=i):
+                # Set single selected index
+                self.selected_index = idx
+                # Update visuals
+                self._update_all_options()
+                # Update label
                 self._on_select()
+                # Close menu after selection
+                self._hide_menu()
 
-            row_frame.bind("<Button-1>", lambda e, idx=i: toggle_selection(idx))
-            label.bind("<Button-1>", lambda e, idx=i: toggle_selection(idx))
+            row_frame.bind("<Button-1>", lambda e, idx=i: select_option(idx))
+            label.bind("<Button-1>", lambda e, idx=i: select_option(idx))
 
             self.option_frames.append(row_frame)
             self.option_labels.append(label)
@@ -154,7 +156,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.popup.bind("<FocusOut>", self._on_popup_focus_out)
 
     def _update_option_visual(self, idx):
-        selected = idx in self.selected_indices
+        selected = (self.selected_index == idx)
         frame = self.option_frames[idx]
         label = self.option_labels[idx]
 
@@ -164,6 +166,10 @@ class MultiSelectComboBox(ctk.CTkFrame):
         else:
             frame.configure(bg=self.fg_color)
             label.configure(text_color=self.text_color)
+
+    def _update_all_options(self):
+        for idx in range(len(self.options)):
+            self._update_option_visual(idx)
 
     def _bind_mousewheel(self):
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
@@ -187,8 +193,6 @@ class MultiSelectComboBox(ctk.CTkFrame):
         elif not self.prevent_reopen:
             self._show_menu()
 
-
-
     def _show_menu(self):
         x = self.winfo_rootx()
         y = self.winfo_rooty() + self.winfo_height()
@@ -201,28 +205,24 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _hide_menu(self):
         self.popup.withdraw()
         self.is_menu_open = False
-
         self.dropdown_icon.configure(text="▼")
 
-        print("Selected options:", self.get_selected())
+        print("Selected option:", self.get_selected())
 
         self.prevent_reopen = True
         self.after(150, lambda: setattr(self, 'prevent_reopen', False))
-
-
 
     def _on_popup_focus_out(self, event=None):
         if self.is_menu_open:
             self._hide_menu()
 
     def _on_select(self):
-        count = len(self.selected_indices)
-        if count == 0:
+        if self.selected_index is None:
             self.selected_text_var.set(self.default_text)
-        elif count == 1:
-            self.selected_text_var.set("1 tag selected...")
         else:
-            self.selected_text_var.set(f"{count} tags selected...")
+            self.selected_text_var.set(self.options[self.selected_index])
 
     def get_selected(self):
-        return [self.options[i] for i in sorted(self.selected_indices)]
+        if self.selected_index is None:
+            return None
+        return self.options[self.selected_index]
