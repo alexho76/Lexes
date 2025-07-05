@@ -1,6 +1,6 @@
 # Class and Asset Imports
-# from config.configurations import *
 from config.theme import *
+from config.configurations import *
 from classes.helper import Helper
 from classes.entry import Entry
 from classes.display_list import DisplayList
@@ -9,6 +9,7 @@ from classes.import_list import ImportList
 from classes.widgets.multi_select_combobox import MultiSelectComboBox
 from classes.widgets.single_select_combobox import SingleSelectComboBox
 from classes.widgets.searchbar_with_icon import SearchBarWithIcon
+from classes.widgets.toggle_checkbox_button import ToggleCheckboxButton
 from assets.images import *
 
 # Library Imports
@@ -22,9 +23,6 @@ import platform
 
 
 class App:
-    # Class attribute of database path
-    dbPath = r"database\lexes.db"
-
     if platform.system() == "Windows":
         from ctypes import windll, byref, sizeof, c_int
         windll.shcore.SetProcessDpiAwareness(2)
@@ -39,11 +37,11 @@ class App:
 
     # Ensures DB connection closes upon App closing.
     def __del__(self):
-        conn = sqlite3.connect(App.dbPath)
+        conn = sqlite3.connect(dbPath)
         conn.close()
     
     def setupDB(self):
-        conn = sqlite3.connect(App.dbPath)
+        conn = sqlite3.connect(dbPath)
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -133,18 +131,12 @@ class MainWindow(ctk.CTk):
             placeholder_text_color=DarkGreen2,
             fg_color=DarkGreen1,
             border_width=0,
-            icon_text="...",
-            icon_font=("Arial", 28),
-            icon_width=40
+            icon = searchIconImage,
+            icon_hover=searchIconDarkImage,
+            icon_width=40,
+            bg_color=LightGreen1
         )   
         self.searchBar.pack(side='left',padx=(93,6),anchor='n')
-
-
-        # self.searchBar = ctk.CTkEntry(self.toolBar, placeholder_text="Search by keyword", width=500, height=50,
-        #                               corner_radius=200, font=("League Spartan",36), text_color=DarkGreen2,
-        #                               placeholder_text_color=DarkGreen2, fg_color=DarkGreen1,border_width=0)
-        # self.searchBar.pack(side='left',padx=(93,6),anchor='n')
-        # self.searchBar.configure(justify='left')
 
         self.filterBar = MultiSelectComboBox(self.toolBar,
         options=["Math", "Physics","3","4","5","6","7","8","9","10","11","12"],
@@ -162,7 +154,12 @@ class MainWindow(ctk.CTk):
         width=200, default_text="Sort by")
         self.sortBar.pack(side='left', padx=6)
 
-
+        self.selectAllToggle = ToggleCheckboxButton(self.toolBar, neutral_text="Select all", active_text="Unselect all",
+        width=220, height=65, corner_radius=5, font=("League Spartan", 36), image_neutral=checkboxNeutralIconImage,
+        image_active=checkboxActiveIconImage, fg_color_neutral=DarkGreen1, fg_color_active=DarkGreen2,
+        text_color_neutral=DarkGreen2, text_color_active=DarkGreen1, bg_color="transparent",
+        command=lambda: print("Toggled:", self.selectAllToggle.get_state()))
+        self.selectAllToggle.pack(side='left',padx=(24,5))
 
         ### Footer ###
         self.footer = ctk.CTkFrame(self.background, fg_color='white', height=83)
