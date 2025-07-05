@@ -1,5 +1,5 @@
-# Class Imports
-from config.configurations import *
+# Class and Asset Imports
+# from config.configurations import *
 from config.theme import *
 from classes.helper import Helper
 from classes.entry import Entry
@@ -9,8 +9,9 @@ from classes.import_list import ImportList
 from classes.widgets.multi_select_combobox import MultiSelectComboBox
 from classes.widgets.single_select_combobox import SingleSelectComboBox
 from classes.widgets.searchbar_with_icon import SearchBarWithIcon
+from assets.images import *
 
-# Imports
+# Library Imports
 import sqlite3
 import customtkinter as ctk
 import tkinter as tk
@@ -21,6 +22,9 @@ import platform
 
 
 class App:
+    # Class attribute of database path
+    dbPath = r"database\lexes.db"
+
     if platform.system() == "Windows":
         from ctypes import windll, byref, sizeof, c_int
         windll.shcore.SetProcessDpiAwareness(2)
@@ -35,11 +39,11 @@ class App:
 
     # Ensures DB connection closes upon App closing.
     def __del__(self):
-        conn = sqlite3.connect(dbPath)
+        conn = sqlite3.connect(App.dbPath)
         conn.close()
     
     def setupDB(self):
-        conn = sqlite3.connect(dbPath)
+        conn = sqlite3.connect(App.dbPath)
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -110,8 +114,6 @@ class MainWindow(ctk.CTk):
         self.exitButton.pack(side='right',padx=(2,9),pady=9)
 
         ### Logo ###
-        logoImage = Image.open(logoPath)
-        logoImage = logoImage.resize((232,86), Image.LANCZOS)
         ctkLogoImage = ctk.CTkImage(light_image=logoImage, dark_image=logoImage, size=(232,86))
         self.logo = ctk.CTkLabel(self.background, image=ctkLogoImage, text="")
         self.logo.pack(pady=20)
@@ -166,8 +168,6 @@ class MainWindow(ctk.CTk):
         self.footer = ctk.CTkFrame(self.background, fg_color='white', height=83)
         self.footer.pack(fill='x',side='bottom')
 
-        iconImage = Image.open(iconPath)
-        iconImage = iconImage.resize((65,65), Image.LANCZOS)
         ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
         self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="")
         self.icon.pack(pady=9)

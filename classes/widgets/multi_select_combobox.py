@@ -65,7 +65,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
             font=self.font,
             text_color=self.text_color
         )
-        self.dropdown_icon.pack(side="right", padx=(0, 20), pady=(6,10))
+        self.dropdown_icon.pack(side="right", padx=(0, 20), pady=(4,10))
 
         self.main_label = ctk.CTkLabel(
             self.main_container,
@@ -204,7 +204,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
 
         self.dropdown_icon.configure(text="▼")
 
-        print("Selected options:", self.get_selected())
+        print("Tag(s) selected:", self.get_selected())
 
         self.prevent_reopen = True
         self.after(150, lambda: setattr(self, 'prevent_reopen', False))
