@@ -1,3 +1,7 @@
+### Images used in the app
+### Imported as Image objects, can be converted to CTkImage objects.
+
+
 from PIL import Image
 
 logoImage = Image.open("assets\lexes_logo.png").resize((232,86), Image.LANCZOS)

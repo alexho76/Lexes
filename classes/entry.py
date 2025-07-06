@@ -1,3 +1,6 @@
+### Entry Class
+### Object used to represent a row in the database. Has attributes for uid, term, definition, tags, and createdAt.
+
 import sqlite3
 from .helper import Helper
 from config.configurations import dbPath
@@ -26,7 +29,6 @@ class Entry:
         return f"Entry(uid={self.uid}, term={self.term}, definition={self.definition}, tags={self.tags}, createdAt={self.createdAt})"
 
     # Pushes entry into DB.
-    # Checked: I
     def add(self):
         conn = sqlite3.connect(dbPath)
         cursor = conn.cursor()
@@ -37,7 +39,6 @@ class Entry:
         conn.close()
 
     # Updates entry attributes then updates row in DB where uid matches.
-    # Checked: 1
     def edit(self, newTerm: str, newDefinition: str, newTags: str):
         self.term = newTerm
         self.definition = newDefinition
@@ -71,7 +72,6 @@ class Entry:
 
     # Adds entry to selectedList if not in it.
     # NOTE: SelectedList object must be passed as parameter.
-    # Checked: I
     def select(self, selectedList):
         from .selected_list import SelectedList
         if self not in selectedList.entries:

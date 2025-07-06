@@ -1,3 +1,6 @@
+### Selected List Class
+### Used to store a list of selected Entry objects. Can perform actions on selected Entry objects such as deleting or exporting.
+
 import os
 import sqlite3
 from .helper import Helper
@@ -8,7 +11,6 @@ class SelectedList:
         self.entries = entries if entries is not None else [] # mutable argument solution
     
     # NOTE: Takes selectedList object as parameter.
-    # Checked: I
     def unselectAll(self,
                     selectedList: 'SelectedList'):
         for entry in self.entries:
@@ -22,7 +24,6 @@ class SelectedList:
     
     # Creates a new CSV at location and writes entry info to rows.
     # NOTE: CSV FORMAT: is term;definition;tags\n and each exported file will have a unique name.
-    # Checked: II
     def exportToAnki(self,
                      filePath: str,
                      fileName: str = None):
@@ -60,7 +61,6 @@ class SelectedList:
 
     # Creates a new DB at location and writes entry info to rows.
     # NOTE: exported .db table has same format as original .db table, but uid and createdAt columns are left blank for re-creation upon import.
-    # Checked: II
     def exportToDB(self,
                    filePath: str,
                    fileName: str = None):

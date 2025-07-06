@@ -1,6 +1,9 @@
+### Toggle Checkbox Button Custom Widget
+### Toggleable button which can be disabled or enabled with contrasting appearance by clicking.
+### Naming Convention: snake_case
+
 import customtkinter as ctk
 from PIL import ImageTk
-
 
 class ToggleCheckboxButton(ctk.CTkFrame):
     def __init__(self, master, *,

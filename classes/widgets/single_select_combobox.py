@@ -1,3 +1,7 @@
+### Single-Select Combobox Custom Widget
+### Dropdown/Combobox widget which allows user to select a single option.
+### Naming Convention: snake_case
+
 import tkinter as tk
 import customtkinter as ctk
 

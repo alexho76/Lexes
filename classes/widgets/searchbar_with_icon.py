@@ -1,3 +1,7 @@
+### Searchbar With Icon Custom Widget
+### Searchbar widget with reactive icon and enter key functionality. 
+### Naming Convention: snake_case
+
 import customtkinter as ctk
 from PIL import ImageTk  # to convert PIL images for tkinter
 import time

@@ -1,3 +1,7 @@
+### Locked Button Custom Widget
+### Toggleable button which can be disabled or enabled with contrasting appearance by methods.
+### Naming Convention: snake_case
+
 import customtkinter as ctk
 from PIL import ImageTk
 

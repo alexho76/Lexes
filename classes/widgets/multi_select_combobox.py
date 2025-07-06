@@ -1,3 +1,7 @@
+### Multi-Select Combobox Custom Widget
+### Dropdown/Combobox widget which allows user to select multiple options.
+### Naming Convention: snake_case
+
 import tkinter as tk
 import customtkinter as ctk
 
@@ -39,9 +43,9 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.prevent_reopen = False
 
         numOptions = len(self.options)
-        if numOptions < 5:
-            self.dropdown_height = 40 * numOptions
-        else:
+        if numOptions < 5: # sets the height of the dropdown
+            self.dropdown_height = 40 * numOptions 
+        else: # max of 5 rows displayed -> 200 pixels of height
             self.dropdown_height = 200
 
         self.configure(border_width=1, border_color=self.border_color)
@@ -77,7 +81,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.main_label.pack(side="left", fill="x", expand=True, padx=(20, 0), pady=(4,10))
 
         # Click binding
-        self.main_container.bind("<Button-1>", self._toggle_menu)
+        self.main_container.bind("<Button-1>", self._toggle_menu) # left click
         self.dropdown_icon.bind("<Button-1>", self._toggle_menu)
         self.main_label.bind("<Button-1>", self._toggle_menu)
 

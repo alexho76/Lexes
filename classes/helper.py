@@ -1,10 +1,12 @@
+### Helper Class
+### Contains static methods that can be used in various classes. Provides auxiliary helper functions.
+
 import requests
 import wikipedia
 
 class Helper:
     @staticmethod
     # Static method to call Wikipedia API, parse response, and return definition (if found).
-    # Checked: I
     def wikipediaAPI(query: str) -> str:
         query = query.strip().replace(" ", "_") # removes trailing spaces, and replaces spaces with underscores
         if query:
@@ -45,7 +47,6 @@ class Helper:
     @staticmethod
     # Performs quicksort on entry objects based on various attributes: alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending
     # NOTE: Modified pseudocode naming to be more general.
-    # Checked: I
     def quickSort(entries,attribute):
         if len(entries) <= 1:
             return entries

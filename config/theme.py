@@ -1,4 +1,7 @@
-# Colour Scheme Variables for Consistency
+### Theme
+### Provides a set of consistent colours to maintain a consistent colour scheme throughout program's multiple windows and widgets.
+### Naming Convention: PascalCase
+
 NavigationPrimary = "#B47FFF" 
 NavigationSecondary = "#616C5B"
 Red = "#FF0004"

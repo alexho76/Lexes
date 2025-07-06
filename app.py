@@ -1,3 +1,6 @@
+### App Class
+### Manages the interactions between UI and backend classes and methods. All of the app's logic is contained here.
+
 # Class and Asset Imports
 from config.theme import *
 from config.configurations import *
@@ -21,21 +24,24 @@ import ctypes
 import tkinter.font as tkFont
 from PIL import Image, ImageTk
 import platform
-
+import time
 
 class App:
-    if platform.system() == "Windows":
+    if platform.system() == "Windows": # fullscreen the app
         from ctypes import windll, byref, sizeof, c_int
         windll.shcore.SetProcessDpiAwareness(2)
+    
     def __init__(self):
         self.setupDB()
 
+        # Initalise displayList and selectedList
         self.displayList = DisplayList()
         self.selectedList = SelectedList()
-        ######################## UI ########################
+
+        # Initialise UI
         self.mainWindow = MainWindow(self)
         self.mainWindow.mainloop()
-
+    
     # Ensures DB connection closes upon App closing.
     def __del__(self):
         conn = sqlite3.connect(dbPath)
@@ -59,37 +65,34 @@ class App:
 class MainWindow(ctk.CTk):
     def __init__(self, masterApp, **kwargs):
         super().__init__(**kwargs)
-
         self.attributes("-fullscreen", True)
-
-        self.masterApp = masterApp
-
         user32 = ctypes.windll.user32
         screenWidth = user32.GetSystemMetrics(0)
         screenHeight = user32.GetSystemMetrics(1)
-
+        
+        self.masterApp = masterApp
         self.geometry(f"{screenWidth}x{screenHeight}")
-        self.title("Lexes")
+        self.title("Lexes - Main Window")
 
-        ### Menubar ###
+        # Menubar
         self.menubar = tk.Menu(self)
         self.config(menu=self.menubar)
         self.file_menu = tk.Menu(self.menubar, tearoff=0)
         self.file_menu.add_command(label="Save")
         self.menubar.add_cascade(label="File", menu=self.file_menu)
 
-        ### Background ###
+        # Background Frame (behind all UI elements)
         self.background = ctk.CTkFrame(self, corner_radius=0, fg_color=LightGreen1)
         self.background.pack(fill='both',expand=True)
 
-                ### Navigation Bar ###
+        # Navigation Bar with Buttons
         self.navigationBar = ctk.CTkFrame(self.background, corner_radius=0, height=60, fg_color=LightGreen2)
         self.navigationBar.pack(side='top',fill='x')
 
-        ### Navigation Buttons ###
+        # Navigation Bar Buttons
         self.addButton = ctk.CTkButton(self.navigationBar, text="Add", width=100, height=40, corner_radius=5, anchor='center',
                                        font=("League Spartan Bold",22), text_color = NavigationPrimary, fg_color=Cream,
-                                       border_color=NavigationPrimary, border_width=2.5,hover_color=Cream2)
+                                       border_color=NavigationPrimary, border_width=2.5,hover_color=Cream2,command=lambda: self.openTopLevel())
         self.addButton.pack(side='left',padx=(9,2),pady=9)
         self.importButton = ctk.CTkButton(self.navigationBar, text="Import", width=100, height=40, corner_radius=5, anchor='center',
                                           font=("League Spartan Bold",22), text_color = NavigationPrimary, fg_color=Cream,
@@ -112,12 +115,12 @@ class MainWindow(ctk.CTk):
                                         border_color=Red, border_width=2.5,hover_color=Cream2, command=self.quit)
         self.exitButton.pack(side='right',padx=(2,9),pady=9)
 
-        ### Logo ###
+        # Lexes Main Logo
         ctkLogoImage = ctk.CTkImage(light_image=logoImage, dark_image=logoImage, size=(232,86))
         self.logo = ctk.CTkLabel(self.background, image=ctkLogoImage, text="")
         self.logo.pack(pady=20)
 
-        ### Tool Bar ###
+        # Tool Bar with Searchbar, Filterbar, Sortbar, Select Button, Delete Button widgets
         self.toolBar = ctk.CTkFrame(self.background, fg_color=LightGreen1,height=100)
         self.toolBar.pack(fill='x')
         
@@ -162,20 +165,14 @@ class MainWindow(ctk.CTk):
         command=self.selectAllToggleCommand)
         self.selectAllToggle.pack(side='left',padx=(55,5))
 
-        ctkDeleteNeutralIconImage = ctk.CTkImage(light_image=deleteNeutralIconImage, dark_image=deleteNeutralIconImage, size=(47,49))
-        
         self.deleteSelectedButton = LockedButton(self.toolBar, neutral_icon=deleteNeutralIconImage, active_icon=deleteActiveIconImage,
         icon_size=(47,49), width=60, height=60, corner_radius=5, anchor='center', fg_color_neutral=Grey1, fg_color_active=LightRed1,
         hover_color_active=LightRed2, text="")
-        
-        # self.deleteSelectedButton = ctk.CTkButton(self.toolBar, image=ctkDeleteNeutralIconImage, width=60, height=60,
-        # corner_radius=5, anchor='center',fg_color=Grey1, hover_color=Cream2, text="")
         self.deleteSelectedButton.pack(side='left',padx=(0,9))
-        # self.deleteSelectedButton.configure(state="disabled")
 
 
 
-        ### Footer ###
+        # Footer with Logo (will be across all pages)
         self.footer = ctk.CTkFrame(self.background, fg_color='white', height=83)
         self.footer.pack(fill='x',side='bottom')
 
@@ -183,13 +180,36 @@ class MainWindow(ctk.CTk):
         self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="")
         self.icon.pack(pady=9)
     
-    def selectAllToggleCommand(self):
+    def selectAllToggleCommand(self): #! bound to selectAllToggle Button to toggle deleteSelectedButton appearance.
         if self.selectAllToggle.get_state():
             self.deleteSelectedButton.unlock()
         else:
             self.deleteSelectedButton.lock()
-        
+    
+    def openTopLevel(self): #! temporary function to test TopLevels
+        self.topLevel = ctk.CTkToplevel(self)
+        self.topLevel.geometry("600x400")
+        self.topLevel.title("Add Entry")
 
+        # Make sure it's above the main window
+        self.topLevel.lift()
+        self.topLevel.attributes("-topmost", True)
+        self.topLevel.after(10, lambda: self.topLevel.attributes("-topmost", False))
 
+        # Force focus (keyboard + window manager)
+        self.topLevel.focus_force()
+        self.topLevel.grab_set()  # Makes it modal – grabs all input
+
+        # Test label
+        self.focus_label = ctk.CTkLabel(self.topLevel, text="Waiting for focus...", font=("Arial", 20))
+        self.focus_label.pack(pady=20)
+
+        # Entry to test keyboard focus
+        entry = ctk.CTkEntry(self.topLevel, placeholder_text="Type here")
+        entry.pack(pady=20)
+        entry.focus_set()
+
+        self.topLevel.bind("<FocusIn>", lambda e: self.focus_label.configure(text="TopLevel HAS focus!"))
+        self.topLevel.bind("<FocusOut>", lambda e: self.focus_label.configure(text="TopLevel lost focus."))
 
 app = App()

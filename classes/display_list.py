@@ -1,3 +1,6 @@
+### Display List Class
+### Used to populate the dictionary. Can be filtered, searched, and sorted.
+
 import sqlite3
 import re
 from .helper import Helper
@@ -20,7 +23,6 @@ class DisplayList:
         self.sortAttribute = sortAttribute
     
     # Out of all database entries, adds entry to displayList.entries based on filter settings (requireAllTags).
-    # Checked: III
     def filter(self):
         self.entries = []
         conn = sqlite3.connect(dbPath)
@@ -54,7 +56,6 @@ class DisplayList:
                     self.entries.append(entry)
             
     # Removes entries from displayList.entries that do not contain searchKeyword in term or definition.
-    # Checked: I
     def search(self):
         if self.searchKeyword == "":
             return
@@ -64,19 +65,16 @@ class DisplayList:
                         if self.searchKeyword.lower() in entry.term.lower() or self.searchKeyword.lower() in entry.definition.lower()]
 
     # Uses Helper.quickSort(), assumes sortAttribute is among alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
-    # Checked: I
     def sort(self):
         self.entries = Helper.quickSort(self.entries, self.sortAttribute)
 
     # NOTE: IMPORTANT ORDER: filter -> search -> sort, and self.entries is cleared in filter() not build() itself.
-    # Checked: I
     def build(self):
         self.filter()
         self.search()
         self.sort()
 
     # NOTE: Takes selectedList object as parameter.
-    # Checked: I
     def selectAll(self,
                   selectedList: 'SelectedList'):
         for entry in self.entries:

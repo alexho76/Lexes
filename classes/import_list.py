@@ -1,3 +1,6 @@
+### Import List Class
+### Used to format a list of raw text of terms and/or definitions into valid Entry objects which can be imported into the database.
+
 import re
 import sqlite3
 from .helper import Helper
@@ -21,7 +24,6 @@ class ImportList:
 
     # Parses the raw text chunk into entries, then entries into a tuple of (term, definition). Auto-definition if no definition provided. Reworded parsedEntries -> trialParsedEntries to avoid duplicate names.
     # Returns Boolean of successful parse and list of parsed entries as tuples.
-    # Checked: III
     def parseText(self):
         rawEntries = re.split(r"\n+", self.rawText.strip())
         trialParsedEntries = []
@@ -46,7 +48,6 @@ class ImportList:
         return successfulParse, trialParsedEntries
 
     # Checks if text is correctly formatted (entries by line break, term and definition by colon). Returns Boolean, and appends Entry objects to self.parsedEntries list if successful.
-    # Checked: III
     def validateEntries(self):
         self.parsedEntries.clear()
 
@@ -72,7 +73,6 @@ class ImportList:
         return True
 
     # Adds all entries in self.parsedEntries to DB and clears attributes storing inputs.
-    # Checked: I
     def importAndClear(self):
         for entry in self.parsedEntries:
             entry.add()
@@ -82,7 +82,6 @@ class ImportList:
         # NOTE: DO NOT CLEAR self.entryDelimiter, self.termDefinitionDelimiter, or self.massTags (keeps as a sort of setting)
     
     # Imports all entries from DB at absolutePath into self.parsedEntries.
-    # Checked: I
     def importDB(self,
                  absolutePath: str):
         conn = sqlite3.connect(absolutePath)
