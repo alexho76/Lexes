@@ -32,8 +32,8 @@ class ToggleCheckboxButton(ctk.CTkFrame):
         self.command = command
 
         # Store images and config
-        self._image_neutral = ImageTk.PhotoImage(image_neutral) if image_neutral else None
-        self._image_active = ImageTk.PhotoImage(image_active) if image_active else None
+        self._image_neutral = ctk.CTkImage(light_image=image_neutral, dark_image=image_neutral, size=(24,24)) if image_neutral else None
+        self._image_active = ctk.CTkImage(light_image=image_active, dark_image=image_active, size=(24,24)) if image_active else None
         self._fg_color_neutral = fg_color_neutral
         self._fg_color_active = fg_color_active
         self._text_color_neutral = text_color_neutral

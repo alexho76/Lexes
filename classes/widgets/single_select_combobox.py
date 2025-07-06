@@ -199,6 +199,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
         self.popup.geometry(f"{self.width}x{self.dropdown_height}+{x}+{y}")
         self.popup.deiconify()
         self.popup.focus_set()
+        self.popup.bind("<Return>", self._on_enter_press)
         self.is_menu_open = True
         self.dropdown_icon.configure(text="▲")
 
@@ -226,3 +227,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
         if self.selected_index is None:
             return None
         return self.options[self.selected_index]
+    
+    def _on_enter_press(self, event=None):
+        if self.is_menu_open:
+            self._hide_menu()

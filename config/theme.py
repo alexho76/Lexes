@@ -2,6 +2,8 @@
 NavigationPrimary = "#B47FFF" 
 NavigationSecondary = "#616C5B"
 Red = "#FF0004"
+LightRed1 = "#EAC7C8"
+LightRed2 = "#DAB9BA"
 
 LightGreen1 = "#F1FFE9"
 LightGreen2 = "#E2F6D5"
@@ -14,3 +16,6 @@ Cream = "#F2FFDD"
 Cream2 = "#D0D9C2"
 
 Transparent = "transparent"
+Grey1 = "#DCE4D8"
+Grey1b = "#C3CCBE"
+Grey2 = "#9FA69C"

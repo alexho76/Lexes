@@ -10,6 +10,7 @@ from classes.widgets.multi_select_combobox import MultiSelectComboBox
 from classes.widgets.single_select_combobox import SingleSelectComboBox
 from classes.widgets.searchbar_with_icon import SearchBarWithIcon
 from classes.widgets.toggle_checkbox_button import ToggleCheckboxButton
+from classes.widgets.locked_button import LockedButton
 from assets.images import *
 
 # Library Imports
@@ -82,31 +83,31 @@ class MainWindow(ctk.CTk):
         self.background.pack(fill='both',expand=True)
 
                 ### Navigation Bar ###
-        self.navigationBar = ctk.CTkFrame(self.background, corner_radius=0, height=68, fg_color=LightGreen2)
+        self.navigationBar = ctk.CTkFrame(self.background, corner_radius=0, height=60, fg_color=LightGreen2)
         self.navigationBar.pack(side='top',fill='x')
 
         ### Navigation Buttons ###
-        self.addButton = ctk.CTkButton(self.navigationBar, text="Add", width=120, height=50, corner_radius=5, anchor='center',
+        self.addButton = ctk.CTkButton(self.navigationBar, text="Add", width=100, height=40, corner_radius=5, anchor='center',
                                        font=("League Spartan Bold",22), text_color = NavigationPrimary, fg_color=Cream,
                                        border_color=NavigationPrimary, border_width=2.5,hover_color=Cream2)
         self.addButton.pack(side='left',padx=(9,2),pady=9)
-        self.importButton = ctk.CTkButton(self.navigationBar, text="Import", width=120, height=50, corner_radius=5, anchor='center',
+        self.importButton = ctk.CTkButton(self.navigationBar, text="Import", width=100, height=40, corner_radius=5, anchor='center',
                                           font=("League Spartan Bold",22), text_color = NavigationPrimary, fg_color=Cream,
                                           border_color=NavigationPrimary, border_width=2.5,hover_color=Cream2)
         self.importButton.pack(side='left',padx=2,pady=9)
-        self.exportButton = ctk.CTkButton(self.navigationBar, text="Export", width=120, height=50, corner_radius=5, anchor='center',
+        self.exportButton = ctk.CTkButton(self.navigationBar, text="Export", width=100, height=40, corner_radius=5, anchor='center',
                                           font=("League Spartan Bold",22), text_color = NavigationPrimary, fg_color=Cream,
                                           border_color=NavigationPrimary, border_width=2.5,hover_color=Cream2)
         self.exportButton.pack(side='left',padx=2,pady=9)
-        self.settingsButton = ctk.CTkButton(self.navigationBar, text="Settings", width=120, height=50, corner_radius=5, anchor='center',
+        self.settingsButton = ctk.CTkButton(self.navigationBar, text="Settings", width=100, height=40, corner_radius=5, anchor='center',
                                             font=("League Spartan Bold",22), text_color = NavigationSecondary, fg_color=Cream,
                                             border_color=NavigationSecondary, border_width=2.5,hover_color=Cream2)
         self.settingsButton.pack(side='left',padx=2,pady=9)
-        self.helpButton = ctk.CTkButton(self.navigationBar, text="Help", width=120, height=50, corner_radius=5, anchor='center',
+        self.helpButton = ctk.CTkButton(self.navigationBar, text="Help", width=100, height=40, corner_radius=5, anchor='center',
                                         font=("League Spartan Bold",22), text_color = NavigationSecondary, fg_color=Cream,
                                         border_color=NavigationSecondary, border_width=2.5,hover_color=Cream2)
         self.helpButton.pack(side='left',padx=2,pady=9)
-        self.exitButton = ctk.CTkButton(self.navigationBar, text="Exit", width=120, height=50, corner_radius=5, anchor='center',
+        self.exitButton = ctk.CTkButton(self.navigationBar, text="Exit", width=100, height=40, corner_radius=5, anchor='center',
                                         font=("League Spartan Bold",22), text_color = Red, fg_color=Cream,
                                         border_color=Red, border_width=2.5,hover_color=Cream2, command=self.quit)
         self.exitButton.pack(side='right',padx=(2,9),pady=9)
@@ -136,7 +137,7 @@ class MainWindow(ctk.CTk):
             icon_width=40,
             bg_color=LightGreen1
         )   
-        self.searchBar.pack(side='left',padx=(93,6),anchor='n')
+        self.searchBar.pack(side='left',padx=(55,6),anchor='n')
 
         self.filterBar = MultiSelectComboBox(self.toolBar,
         options=["Math", "Physics","3","4","5","6","7","8","9","10","11","12"],
@@ -155,11 +156,24 @@ class MainWindow(ctk.CTk):
         self.sortBar.pack(side='left', padx=6)
 
         self.selectAllToggle = ToggleCheckboxButton(self.toolBar, neutral_text="Select all", active_text="Unselect all",
-        width=220, height=65, corner_radius=5, font=("League Spartan", 36), image_neutral=checkboxNeutralIconImage,
+        width=220, height=60, corner_radius=5, font=("League Spartan", 36), image_neutral=checkboxNeutralIconImage,
         image_active=checkboxActiveIconImage, fg_color_neutral=DarkGreen1, fg_color_active=DarkGreen2,
         text_color_neutral=DarkGreen2, text_color_active=DarkGreen1, bg_color="transparent",
-        command=lambda: print("Toggled:", self.selectAllToggle.get_state()))
-        self.selectAllToggle.pack(side='left',padx=(24,5))
+        command=self.selectAllToggleCommand)
+        self.selectAllToggle.pack(side='left',padx=(55,5))
+
+        ctkDeleteNeutralIconImage = ctk.CTkImage(light_image=deleteNeutralIconImage, dark_image=deleteNeutralIconImage, size=(47,49))
+        
+        self.deleteSelectedButton = LockedButton(self.toolBar, neutral_icon=deleteNeutralIconImage, active_icon=deleteActiveIconImage,
+        icon_size=(47,49), width=60, height=60, corner_radius=5, anchor='center', fg_color_neutral=Grey1, fg_color_active=LightRed1,
+        hover_color_active=LightRed2, text="")
+        
+        # self.deleteSelectedButton = ctk.CTkButton(self.toolBar, image=ctkDeleteNeutralIconImage, width=60, height=60,
+        # corner_radius=5, anchor='center',fg_color=Grey1, hover_color=Cream2, text="")
+        self.deleteSelectedButton.pack(side='left',padx=(0,9))
+        # self.deleteSelectedButton.configure(state="disabled")
+
+
 
         ### Footer ###
         self.footer = ctk.CTkFrame(self.background, fg_color='white', height=83)
@@ -168,6 +182,13 @@ class MainWindow(ctk.CTk):
         ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
         self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="")
         self.icon.pack(pady=9)
+    
+    def selectAllToggleCommand(self):
+        if self.selectAllToggle.get_state():
+            self.deleteSelectedButton.unlock()
+        else:
+            self.deleteSelectedButton.lock()
+        
 
 
 

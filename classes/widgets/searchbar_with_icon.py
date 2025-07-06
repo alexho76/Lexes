@@ -59,8 +59,8 @@ class SearchBarWithIcon(ctk.CTkFrame):
         )
         self.search_entry.pack(side="left", fill="y", pady=(0, 6))
 
-        self.icon_image_default = ImageTk.PhotoImage(icon)
-        self.icon_image_hover = ImageTk.PhotoImage(icon_hover)
+        self.icon_image_default = ctk.CTkImage(light_image=icon, dark_image=icon, size=(38,38))
+        self.icon_image_hover = ctk.CTkImage(light_image=icon_hover, dark_image=icon_hover, size=(40,40))
 
         self.icon_button = ctk.CTkButton(
             self.fake_box,
@@ -73,7 +73,7 @@ class SearchBarWithIcon(ctk.CTkFrame):
             command=self._on_icon_click,
             hover_color=fg_color
         )
-        self.icon_button.place(x=self.width - self.icon_width - 25, y=(self.height - (self.height - 2)) // 2 + 8)
+        self.icon_button.place(x=self.width - self.icon_width - 25, y=(self.height - (self.height - 2)) // 2 + 5)
 
         # BIND HOVER EVENTS
         self.icon_button.bind("<Enter>", self._on_hover_enter)
@@ -109,11 +109,11 @@ class SearchBarWithIcon(ctk.CTkFrame):
 
     def _on_hover_enter(self, event):
         self.icon_button.configure(image=self.icon_image_hover)
-        self.icon_button.place(x=self.width - self.icon_width - 27, y=(self.height - (self.height - 2)) // 2 + 4)
+        self.icon_button.place(x=self.width - self.icon_width - 26, y=(self.height - (self.height - 2)) // 2 + 5)
 
     def _on_hover_leave(self, event):
         self.icon_button.configure(image=self.icon_image_default)
-        self.icon_button.place(x=self.width - self.icon_width - 25, y=(self.height - (self.height - 2)) // 2 + 8)
+        self.icon_button.place(x=self.width - self.icon_width - 25, y=(self.height - (self.height - 2)) // 2 + 5)
 
 
 

@@ -195,6 +195,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.popup.geometry(f"{self.width}x{self.dropdown_height}+{x}+{y}")
         self.popup.deiconify()
         self.popup.focus_set()
+        self.popup.bind("<Return>", self._on_enter_press)
         self.is_menu_open = True
         self.dropdown_icon.configure(text="▲")
 
@@ -226,3 +227,8 @@ class MultiSelectComboBox(ctk.CTkFrame):
 
     def get_selected(self):
         return [self.options[i] for i in sorted(self.selected_indices)]
+
+    def _on_enter_press(self, event=None):
+        if self.is_menu_open:
+            self._hide_menu()
+
