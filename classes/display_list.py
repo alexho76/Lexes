@@ -25,11 +25,11 @@ class DisplayList:
     # Out of all database entries, adds entry to displayList.entries based on filter settings (requireAllTags).
     def filter(self):
         self.entries = []
-        conn = sqlite3.connect(dbPath)
-        cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM master")
-        rows = cursor.fetchall() # all rows in db
+        with sqlite3.connect(dbPath) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM master")
+            rows = cursor.fetchall()
 
         filterTags = [tag for tag in re.split(r"\s+", self.filterTags.strip())
                       if tag != ""] # filter tags from " a  b  c " to ["a", "b", "c"]

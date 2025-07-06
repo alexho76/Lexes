@@ -4,6 +4,7 @@
 import os
 import sqlite3
 from .helper import Helper
+import csv
 
 class SelectedList:
     def __init__(self,
@@ -49,15 +50,15 @@ class SelectedList:
         entriesToExport = self.entries.copy() # mutable argument solution
         entriesToExport = Helper.quickSort(entriesToExport, "dateAscending")
         
-        with open(fullPath, mode="w", encoding="utf-8") as csvFile:
-            csvFile.write("term;definition;tags\n")
+        with open(fullPath, mode="w", encoding="utf-8", newline="") as csvFile:
+            writer = csv.writer(csvFile, delimiter=';', quoting=csv.QUOTE_MINIMAL) # uses csv library to write
 
             for entry in entriesToExport:
                 term = entry.term.replace(";", ",") # replaces semi-colons with commas to avoid breakign the CSV delimiter
                 definition = entry.definition.replace(";", ",")
                 tags = entry.tags.replace(";", ",")
-                row = f"{term};{definition};{tags}\n"
-                csvFile.write(row)
+                
+                writer.writerow([term, definition, tags])
 
     # Creates a new DB at location and writes entry info to rows.
     # NOTE: exported .db table has same format as original .db table, but uid and createdAt columns are left blank for re-creation upon import.
@@ -86,20 +87,19 @@ class SelectedList:
         entriesToExport = self.entries.copy() # mutable argument solution
         entriesToExport = Helper.quickSort(entriesToExport, "dateAscending")
 
-        conn = sqlite3.connect(fullPath)
-        cursor = conn.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS master (
-            uid INTEGER PRIMARY KEY AUTOINCREMENT,
-            term TEXT NOT NULL,
-            definition TEXT NOT NULL,
-            tags TEXT,
-            createdAt TEXT NOT NULL)
-        """)
+        with sqlite3.connect(fullPath) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS master (
+                uid INTEGER PRIMARY KEY AUTOINCREMENT,
+                term TEXT NOT NULL,
+                definition TEXT NOT NULL,
+                tags TEXT,
+                createdAt TEXT NOT NULL)
+            """)
 
-        for entry in entriesToExport: # exclude uid and createdAt, uses values straight from entry object, not from DB
-            cursor.execute("INSERT INTO master (term, definition, tags) VALUES (?, ?, ?)",
-                           (entry.term, entry.definition, entry.tags.strip()))
+            for entry in entriesToExport: # exclude uid and createdAt, uses values straight from entry object, not from DB
+                cursor.execute("INSERT INTO master (term, definition, tags) VALUES (?, ?, ?)",
+                            (entry.term, entry.definition, entry.tags.strip()))
 
-        conn.commit()
-        conn.close()
+            conn.commit()

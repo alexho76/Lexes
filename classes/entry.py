@@ -30,13 +30,14 @@ class Entry:
 
     # Pushes entry into DB.
     def add(self):
-        conn = sqlite3.connect(dbPath)
-        cursor = conn.cursor()
+        with sqlite3.connect(dbPath) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO master (term, definition, tags, createdAt) VALUES (?, ?, ?, ?)",
+                (self.term, self.definition, self.tags.strip(), self.createdAt)
+            )
+            conn.commit()
 
-        cursor.execute("INSERT INTO master (term, definition, tags, createdAt) VALUES (?, ?, ?, ?)",
-                       (self.term, self.definition, self.tags.strip(), self.createdAt))
-        conn.commit()
-        conn.close()
 
     # Updates entry attributes then updates row in DB where uid matches.
     def edit(self, newTerm: str, newDefinition: str, newTags: str):
@@ -45,25 +46,23 @@ class Entry:
         self.tags = newTags
         uid = self.uid
 
-        conn = sqlite3.connect(dbPath)
-        cursor = conn.cursor()
-        cursor.execute("UPDATE master SET term = ?, definition = ?, tags = ? WHERE uid = ?",
-                       (self.term, self.definition, self.tags.strip(), uid))
-        conn.commit()
-        conn.close()
-    
+        with sqlite3.connect(dbPath) as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE master SET term = ?, definition = ?, tags = ? WHERE uid = ?",
+                        (self.term, self.definition, self.tags.strip(), uid))
+            conn.commit()
+
     # Deletes row in DB with matching uid.
     # NOTE: Does not need to remove from displayList and selectedList to separate functionality from UI. (Button functions will manage this.)
     # NOTE: Only removes from DB, not object.
     def delete(self):
         uid = self.uid
 
-        conn = sqlite3.connect(dbPath)
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM master WHERE uid = ?",
-                       (uid,))
-        conn.commit()
-        conn.close()
+        with sqlite3.connect(dbPath) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM master WHERE uid = ?",
+                        (uid,))
+            conn.commit()
     
     # Retrieves definition from Wikipedia API using helper function, then returns string as string.
     def autoGenerate(self) -> str:

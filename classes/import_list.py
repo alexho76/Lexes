@@ -84,10 +84,10 @@ class ImportList:
     # Imports all entries from DB at absolutePath into self.parsedEntries.
     def importDB(self,
                  absolutePath: str):
-        conn = sqlite3.connect(absolutePath)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM master")
-        rows = cursor.fetchall()
+        with sqlite3.connect(absolutePath) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM master")
+            rows = cursor.fetchall()
 
         for row in rows:
             term = row[1]
@@ -98,5 +98,3 @@ class ImportList:
 
             entry = Entry(term=term, definition=definition, tags=combinedTags)
             self.parsedEntries.append(entry)
-        
-        conn.close()
