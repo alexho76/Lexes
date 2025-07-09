@@ -14,6 +14,7 @@ from classes.widgets.single_select_combobox import SingleSelectComboBox
 from classes.widgets.searchbar_with_icon import SearchBarWithIcon
 from classes.widgets.toggle_checkbox_button import ToggleCheckboxButton
 from classes.widgets.locked_button import LockedButton
+from classes.widgets.dictionary_list import DictionaryList
 from assets.images import *
 
 # Library Imports
@@ -163,6 +164,20 @@ class MainWindow(ctk.CTk):
         hover_color_active=LightRed2, text="")
         self.deleteSelectedButton.pack(side='left',padx=(0,9))
 
+        # Dictionary List Test
+        self.dictionaryList = DictionaryList(self.background)
+        self.dictionaryList.pack()
+
+        entries = [
+            Entry(term="Photosynthesis", definition="Process used by plants and other organisms to convert light energy into chemical energy stored in glucose.", tags="biology plants energy skibble"),
+            Entry(term="Entropy", definition="A measure of the disorder or randomness in a closed system, important in thermodynamics.", tags="physics thermodynamics"),
+            Entry(term="Mitochondria", definition="Organelles known as the powerhouse of the cell; generate most of the cell's supply of ATP.", tags="biology cell energy"),
+            Entry(term="Quantum Mechanics", definition="A fundamental theory in physics describing nature at the smallest scales.", tags="physics quantum theory science"),
+            Entry(term="Algorithm", definition="A step-by-step procedure for solving a problem or accomplishing some end.", tags="computer science programming logic"),
+            Entry(term="Ecosystem", definition="A biological community of interacting organisms and their physical environment.", tags="biology environment ecology"),
+        ]
+
+        self.dictionaryList.populate(entries)
 
 
         # Footer with Logo (will be across all pages)
