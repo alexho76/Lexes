@@ -78,116 +78,229 @@ class MainWindow(ctk.CTk):
 
         # Background Frame (behind all UI elements)
         self.background = ctk.CTkFrame(self, corner_radius=0, fg_color=LightGreen1)
-        self.background.pack(fill='both',expand=True)
+        self.background.pack(fill='both', expand=True)
 
         # Navigation Bar with Buttons
-        self.navigationBar = ctk.CTkFrame(self.background, corner_radius=0, height=60, fg_color=LightGreen2)
-        self.navigationBar.pack(side='top',fill='x')
+        self.navigationBar = ctk.CTkFrame(self.background, corner_radius=0, height=68, fg_color=LightGreen2)
+        self.navigationBar.pack(side='top', fill='x')
 
         # Navigation Bar Buttons
-        self.addButton = ctk.CTkButton(self.navigationBar, text="Add", width=100, height=40, corner_radius=5, anchor='center',
-                                       font=("League Spartan Bold",22), text_color = NavigationPrimary, fg_color=Cream,
-                                       border_color=NavigationPrimary, border_width=2.5,hover_color=Cream2,command=lambda: self.openTopLevel())
-        self.addButton.pack(side='left',padx=(9,2),pady=9)
-        self.importButton = ctk.CTkButton(self.navigationBar, text="Import", width=100, height=40, corner_radius=5, anchor='center',
-                                          font=("League Spartan Bold",22), text_color = NavigationPrimary, fg_color=Cream,
-                                          border_color=NavigationPrimary, border_width=2.5,hover_color=Cream2)
-        self.importButton.pack(side='left',padx=2,pady=9)
-        self.exportButton = ctk.CTkButton(self.navigationBar, text="Export", width=100, height=40, corner_radius=5, anchor='center',
-                                          font=("League Spartan Bold",22), text_color = NavigationPrimary, fg_color=Cream,
-                                          border_color=NavigationPrimary, border_width=2.5,hover_color=Cream2)
-        self.exportButton.pack(side='left',padx=2,pady=9)
-        self.settingsButton = ctk.CTkButton(self.navigationBar, text="Settings", width=100, height=40, corner_radius=5, anchor='center',
-                                            font=("League Spartan Bold",22), text_color = NavigationSecondary, fg_color=Cream,
-                                            border_color=NavigationSecondary, border_width=2.5,hover_color=Cream2)
-        self.settingsButton.pack(side='left',padx=2,pady=9)
-        self.helpButton = ctk.CTkButton(self.navigationBar, text="Help", width=100, height=40, corner_radius=5, anchor='center',
-                                        font=("League Spartan Bold",22), text_color = NavigationSecondary, fg_color=Cream,
-                                        border_color=NavigationSecondary, border_width=2.5,hover_color=Cream2)
-        self.helpButton.pack(side='left',padx=2,pady=9)
-        self.exitButton = ctk.CTkButton(self.navigationBar, text="Exit", width=100, height=40, corner_radius=5, anchor='center',
-                                        font=("League Spartan Bold",22), text_color = Red, fg_color=Cream,
-                                        border_color=Red, border_width=2.5,hover_color=Cream2, command=self.quit)
-        self.exitButton.pack(side='right',padx=(2,9),pady=9)
+        self.addButton = ctk.CTkButton(self.navigationBar,
+                                       text="Add",
+                                       width=129,
+                                       height=50,
+                                       corner_radius=5,
+                                       anchor='center',
+                                       font=("League Spartan Bold",24),
+                                       text_color=NavigationPrimary,
+                                       fg_color=Cream,
+                                       border_color=NavigationPrimary,
+                                       border_width=2,
+                                       hover_color=Cream2,
+                                       command=lambda: self.openTopLevel())
+        self.addButton.pack(side='left', padx=(9,2), pady=9)
+        
+        self.importButton = ctk.CTkButton(self.navigationBar,
+                                          text="Import",
+                                          width=129,
+                                          height=50,
+                                          corner_radius=5,
+                                          anchor='center',
+                                          font=("League Spartan Bold",24),
+                                          text_color = NavigationPrimary,
+                                          fg_color=Cream,
+                                          border_color=NavigationPrimary,
+                                          border_width=2,
+                                          hover_color=Cream2)
+        self.importButton.pack(side='left', padx=2, pady=9)
+        
+        self.exportButton = ctk.CTkButton(self.navigationBar,
+                                          text="Export",
+                                          width=129,
+                                          height=50,
+                                          corner_radius=5,
+                                          anchor='center',
+                                          font=("League Spartan Bold",24),
+                                          text_color=NavigationPrimary,
+                                          fg_color=Cream,
+                                          border_color=NavigationPrimary,
+                                          border_width=2,
+                                          hover_color=Cream2)
+        self.exportButton.pack(side='left', padx=2, pady=9)
+        
+        self.settingsButton = ctk.CTkButton(self.navigationBar,
+                                            text="Settings",
+                                            width=129,
+                                            height=50,
+                                            corner_radius=5,
+                                            anchor='center',
+                                            font=("League Spartan Bold",24),
+                                            text_color=NavigationSecondary,
+                                            fg_color=Cream,
+                                            border_color=NavigationSecondary,
+                                            border_width=2,
+                                            hover_color=Cream2)
+        self.settingsButton.pack(side='left', padx=2, pady=9)
+        
+        self.helpButton = ctk.CTkButton(self.navigationBar,
+                                        text="Help",
+                                        width=129,
+                                        height=50,
+                                        corner_radius=5,
+                                        anchor='center',
+                                        font=("League Spartan Bold",24),
+                                        text_color=NavigationSecondary,
+                                        fg_color=Cream,
+                                        border_color=NavigationSecondary,
+                                        border_width=2,
+                                        hover_color=Cream2)
+        self.helpButton.pack(side='left', padx=2, pady=9)
+        
+        self.exitButton = ctk.CTkButton(self.navigationBar,
+                                        text="Exit",
+                                        width=129,
+                                        height=50,
+                                        corner_radius=5,
+                                        anchor='center',
+                                        font=("League Spartan Bold",24),
+                                        text_color=Red,
+                                        fg_color=Cream,
+                                        border_color=Red,
+                                        border_width=2,
+                                        hover_color=Cream2,
+                                        command=self.quit)
+        self.exitButton.pack(side='right', padx=9, pady=9)
 
         # Lexes Main Logo
-        ctkLogoImage = ctk.CTkImage(light_image=logoImage, dark_image=logoImage, size=(232,86))
+        ctkLogoImage = ctk.CTkImage(light_image=logoImage, dark_image=logoImage, size=(258,95))
         self.logo = ctk.CTkLabel(self.background, image=ctkLogoImage, text="")
-        self.logo.pack(pady=20)
+        self.logo.pack(pady=39)
 
         # Tool Bar with Searchbar, Filterbar, Sortbar, Select Button, Delete Button widgets
-        self.toolBar = ctk.CTkFrame(self.background, fg_color=LightGreen1,height=100)
-        self.toolBar.pack(fill='x')
+        self.toolBar = ctk.CTkFrame(self.background, fg_color=LightGreen1, height=70)
+        self.toolBar.pack(fill='x', pady=(8,0))
         
-        self.searchBar = SearchBarWithIcon(
-            master=self.toolBar,
-            width=500,
-            height=60,
-            corner_radius=200,
-            entry_placeholder="Search by keyword",
-            font=("League Spartan", 36),
-            text_color=DarkGreen2,
-            placeholder_text_color=DarkGreen2,
-            fg_color=DarkGreen1,
-            border_width=0,
-            icon = searchIconImage,
-            icon_hover=searchIconDarkImage,
-            icon_width=40,
-            bg_color=LightGreen1
-        )   
-        self.searchBar.pack(side='left',padx=(55,6),anchor='n')
+        self.searchBar = SearchBarWithIcon(self.toolBar,
+                                           width=661,
+                                           height=65,
+                                           corner_radius=200,
+                                           entry_placeholder="Search by keyword",
+                                           font=("League Spartan", 36),
+                                           text_color=DarkGreen2,
+                                           placeholder_text_color=DarkGreen2,
+                                           fg_color=DarkGreen1,
+                                           border_width=0,
+                                           icon=searchIconImage,
+                                           icon_hover=searchIconDarkImage,
+                                           icon_width=40,
+                                           bg_color=LightGreen1)   
+        self.searchBar.pack(side='left', padx=(93,6))
 
         self.filterBar = MultiSelectComboBox(self.toolBar,
-        options=["Math", "Physics","3","4","5","6","7","8","9","10","11","12"],
-        font=("League Spartan", 36), dropdown_font=("League Spartan", 24), fg_color=DarkGreen1,
-        text_color=DarkGreen2, corner_radius=50, height=60, border_width=0,
-        hover_color=DarkGreen1b, selected_bg_color=DarkGreen3, selected_text_color=Cream,
-        width=350, default_text="Filter by tags")
+                                             options=["Math", "Physics", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+                                             font=("League Spartan", 36),
+                                             dropdown_font=("League Spartan", 24),
+                                             fg_color=DarkGreen1,
+                                             text_color=DarkGreen2,
+                                             corner_radius=50,
+                                             height=65,
+                                             border_width=0,
+                                             hover_color=DarkGreen1b,
+                                             selected_bg_color=DarkGreen3,
+                                             selected_text_color=Cream,
+                                             width=400,
+                                             default_text="Filter by tags",
+                                             dropdown_bg_color=DarkGreen1b)
         self.filterBar.pack(side='left', padx=6)
 
         self.sortBar = SingleSelectComboBox(self.toolBar,
-        options=["Newest", "Oldest", "A-Z", "Z-A"],
-        font=("League Spartan", 36), dropdown_font=("League Spartan", 24), fg_color=DarkGreen1,
-        text_color=DarkGreen2, corner_radius=50, height=60, border_width=0,
-        hover_color=DarkGreen1b, selected_bg_color=DarkGreen3, selected_text_color=Cream,
-        width=200, default_text="Sort by")
+                                            options=["Newest", "Oldest", "A-Z", "Z-A"],
+                                            font=("League Spartan", 36),
+                                            dropdown_font=("League Spartan", 24),
+                                            fg_color=DarkGreen1,
+                                            text_color=DarkGreen2,
+                                            corner_radius=50,
+                                            width=238,
+                                            height=65,
+                                            border_width=0,
+                                            hover_color=DarkGreen1b,
+                                            selected_bg_color=DarkGreen3,
+                                            selected_text_color=Cream,
+                                            default_text="Sort by",
+                                            dropdown_bg_color=DarkGreen1b)
         self.sortBar.pack(side='left', padx=6)
 
-        self.selectAllToggle = ToggleCheckboxButton(self.toolBar, neutral_text="Select all", active_text="Unselect all",
-        width=220, height=60, corner_radius=5, font=("League Spartan", 36), image_neutral=checkboxNeutralIconImage,
-        image_active=checkboxActiveIconImage, fg_color_neutral=DarkGreen1, fg_color_active=DarkGreen2,
-        text_color_neutral=DarkGreen2, text_color_active=DarkGreen1, bg_color="transparent",
-        command=self.selectAllToggleCommand)
-        self.selectAllToggle.pack(side='left',padx=(55,5))
+        self.selectAllToggle = ToggleCheckboxButton(self.toolBar,
+                                                    neutral_text="Select all",
+                                                    active_text="Unselect all",
+                                                    width=250,
+                                                    height=65,
+                                                    corner_radius=5,
+                                                    font=("League Spartan", 36),
+                                                    image_neutral=checkboxNeutralIconImage,
+                                                    image_active=checkboxActiveIconImage,
+                                                    fg_color_neutral=DarkGreen1,
+                                                    fg_color_active=DarkGreen2,
+                                                    text_color_neutral=DarkGreen2,
+                                                    text_color_active=DarkGreen1,
+                                                    bg_color="transparent",
+                                                    command=self.selectAllToggleCommand)
+        self.selectAllToggle.pack(side='left', padx=(85,5))
 
-        self.deleteSelectedButton = LockedButton(self.toolBar, neutral_icon=deleteNeutralIconImage, active_icon=deleteActiveIconImage,
-        icon_size=(47,49), width=60, height=60, corner_radius=5, anchor='center', fg_color_neutral=Grey1, fg_color_active=LightRed1,
-        hover_color_active=LightRed2, text="")
-        self.deleteSelectedButton.pack(side='left',padx=(0,9))
+        self.deleteSelectedButton = LockedButton(self.toolBar,
+                                                 neutral_icon=deleteNeutralIconImage,
+                                                 active_icon=deleteActiveIconImage,
+                                                 icon_size=(47,49),
+                                                 width=65,
+                                                 height=65,
+                                                 corner_radius=5,
+                                                 anchor='center',
+                                                 fg_color_neutral=Grey1,
+                                                 fg_color_active=LightRed1,
+                                                 hover_color_active=LightRed2,
+                                                 text="")
+        self.deleteSelectedButton.pack(side='right', padx=(0,93))
 
         # Dictionary List Test
-        self.dictionaryList = DictionaryList(self.background)
-        self.dictionaryList.pack(pady=(10,0))
+        self.dictionaryList = DictionaryList(self.background,
+                                             width=1920,
+                                             height=644,
+                                             row_height=100,
+                                             term_font_size=48,
+                                             definition_font_size=24,
+                                             tag_font_size=36,
+                                             header_bg_color=Cream,
+                                             header_text_color=DarkGreen3,
+                                             row_bg_color_1=DarkGreen1,
+                                             row_bg_color_2=LightGreen2,
+                                             main_text_color="black",
+                                             checkbox_color=DarkGreen2,
+                                             tag_box_bg_color=Cream,
+                                             tag_text_color=DarkGreen3,
+                                             scroll_speed=2)
+        self.dictionaryList.pack(pady=(15,0))
 
-        entries = [
-            Entry(term="Photosynthesis", definition="Process used by plants and other organisms to convert light energy into chemical energy stored in glucose.", tags="biology plants energy skibble"),
-            Entry(term="Entropy", definition="A measure of the disorder or randomness in a closed system, important in thermodynamics.", tags="physics thermodynamics"),
-            Entry(term="Mitochondria", definition="Organelles known as the powerhouse of the cell; generate most of the cell's supply of ATP.", tags="biology cell energy"),
-            Entry(term="Quantum Mechanics", definition="A fundamental theory in physics describing nature at the smallest scales.", tags="physics quantum theory science"),
-            Entry(term="Algorithm", definition="A step-by-step procedure for solving a problem or accomplishing some end.", tags="computer science programming logic"),
-            Entry(term="Ecosystem", definition="A biological community of interacting organisms and their physical environment.", tags="biology environment ecology"),
-        ]
+        entries = [Entry(term="Photosynthesis", definition="Process used by plants and other organisms to convert light energy into chemical energy stored in glucose.", tags="biology plants energy skibble science chemistry science2 science3"),
+                   Entry(term="Entropy", definition="A measure of the disorder or randomness in a closed system, important in thermodynamics.", tags="physics thermodynamics science chemistry science2 science3"),
+                   Entry(term="Mitochondria", definition="Organelles known as the powerhouse of the cell; generate most of the cell's supply of ATP.", tags="biology cell energy"),
+                   Entry(term="Quantum Mechanics", definition="A fundamental theory in physics describing nature at the smallest scales.", tags="physics quantum_theory science"),
+                   Entry(term="Algorithm", definition="A step-by-step procedure for solving a problem or accomplishing some end.", tags="computer_science programming logic algorithms science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
+                   Entry(term="Ecosystem", definition="A biological community of interacting organisms and their physical environment.", tags="biology environment ecology"),
+                   Entry(term="Thermodynamics", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics science"),
+                   Entry(term="Electrochemistry", definition="The study of the behavior of matter and energy.", tags="physics chemistry science"),
+                   Entry(term="Thermodynamics", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics programming_definition computer_science2 programming_definition2 science2")]
 
         self.dictionaryList.populate(entries)
 
 
         # Footer with Logo (will be across all pages)
-        self.footer = ctk.CTkFrame(self.background, fg_color='blue', height=10)
-        self.footer.pack(fill='x',side='bottom',pady=9)
+        self.footer = ctk.CTkFrame(self.background, fg_color=LightGreen1, height=83)
+        self.footer.pack(fill='x', side='bottom', pady=0, padx=0)
+        self.footer.pack_propagate(False)
 
-        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(1,1))
-        self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="")
-        self.icon.pack(pady=1)
+        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
+        self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="", anchor='center')
+        self.icon.pack(expand=True)
     
     def selectAllToggleCommand(self): #! bound to selectAllToggle Button to toggle deleteSelectedButton appearance.
         if self.selectAllToggle.get_state():
@@ -207,7 +320,7 @@ class MainWindow(ctk.CTk):
 
         # Force focus (keyboard + window manager)
         self.topLevel.focus_force()
-        self.topLevel.grab_set()  # Makes it modal – grabs all input
+        self.topLevel.grab_set()  # grabs all inputs (kb and mouse)
 
         # Test label
         self.focusLabel = ctk.CTkLabel(self.topLevel, text="Waiting for focus...", font=("Arial", 20))

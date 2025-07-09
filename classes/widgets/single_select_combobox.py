@@ -20,6 +20,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
                  hover_color="#e6f0ff",
                  corner_radius=8,
                  default_text="Select option ▼",
+                 dropdown_bg_color = "#C6E1B8",
                  **kwargs):
         super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, **kwargs)
 
@@ -36,6 +37,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
         self.hover_color = hover_color
         self.corner_radius = corner_radius
         self.default_text = default_text
+        self.dropdown_bg_color = dropdown_bg_color
 
         self.selected_index = None  # Single selection index, None if nothing selected
         self.option_frames = []
@@ -69,7 +71,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
             font=self.font,
             text_color=self.text_color
         )
-        self.dropdown_icon.pack(side="right", padx=(0, 20), pady=(4,10) )
+        self.dropdown_icon.pack(side="right", padx=(0, 25), pady=(4,10) )
 
         self.main_label = ctk.CTkLabel(
             self.main_container,
@@ -78,7 +80,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
             text_color=self.text_color,
             anchor="w"
         )
-        self.main_label.pack(side="left", fill="x", expand=True, padx=(20, 0), pady=(4,10))
+        self.main_label.pack(side="left", fill="x", expand=True, padx=(27, 0), pady=(4,10))
 
         # Click binding
         self.main_container.bind("<Button-1>", self._toggle_menu)
@@ -95,14 +97,14 @@ class SingleSelectComboBox(ctk.CTkFrame):
         self.popup = tk.Toplevel(self)
         self.popup.withdraw()
         self.popup.overrideredirect(True)
-        self.popup.configure(bg=self.fg_color)
+        self.popup.configure(bg=self.dropdown_bg_color)
 
-        outer_frame = tk.Frame(self.popup, bg=self.fg_color)
+        outer_frame = tk.Frame(self.popup, bg=self.dropdown_bg_color)
         outer_frame.pack(padx=0, pady=0)
 
         self.canvas = tk.Canvas(
             outer_frame,
-            bg=self.fg_color,
+            bg=self.dropdown_bg_color,
             highlightthickness=0,
             width=self.width,
             height=self.dropdown_height,
@@ -114,7 +116,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
 
         self.canvas.configure(yscrollcommand=scrollbar.set)
 
-        self.inner_frame = tk.Frame(self.canvas, bg=self.fg_color, width=self.width)
+        self.inner_frame = tk.Frame(self.canvas, bg=self.dropdown_bg_color, width=self.width)
         self.inner_frame.bind(
             "<Configure>",
             lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -126,7 +128,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
         self.canvas.bind("<Leave>", lambda e: self._unbind_mousewheel())
 
         for i, option in enumerate(self.options):
-            row_frame = tk.Frame(self.inner_frame, bg=self.fg_color, width=self.width, height=40)
+            row_frame = tk.Frame(self.inner_frame, bg=self.dropdown_bg_color, width=self.width, height=40)
             row_frame.pack(fill="x", anchor="w", pady=0)
             row_frame.pack_propagate(False)
 
@@ -168,7 +170,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
             frame.configure(bg=self.selected_bg_color)
             label.configure(text_color=self.selected_text_color)
         else:
-            frame.configure(bg=self.fg_color)
+            frame.configure(bg=self.dropdown_bg_color)
             label.configure(text_color=self.text_color)
 
     def _update_all_options(self):

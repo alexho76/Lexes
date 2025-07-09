@@ -52,12 +52,12 @@ class ToggleCheckboxButton(ctk.CTkFrame):
         # Icon
         self.image_label = ctk.CTkLabel(self.button_frame, text="", image=self._image_neutral,
                                         fg_color="transparent")
-        self.image_label.pack(side="left", padx=(10, 10))
+        self.image_label.pack(side="left", padx=13)
 
         # Text
         self.text_label = ctk.CTkLabel(self.button_frame, text=self.neutral_text, font=font,
                                        text_color=self._text_color_neutral, fg_color="transparent")
-        self.text_label.pack(side="left", padx=(0, 10), pady=(4, 10))
+        self.text_label.pack(side="left", padx=(9,0), pady=(4,10))
 
         # Bind clicks to all subcomponents
         for widget in (self, self.button_frame, self.image_label, self.text_label):

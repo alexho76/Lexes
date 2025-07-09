@@ -14,13 +14,11 @@ class Entry:
 class DictionaryList(ctk.CTkFrame):
     def __init__(self, master=None,
                  width: int = 1920,
-                 height: int = 500,
+                 height: int = 644,
                  row_height: int = 100,
                  term_font_size: int = 36,
                  definition_font_size: int = 20,
                  tag_font_size: int = 30,
-                 padx: int = 0,
-                 pady: Union[int, Tuple[int,int]] = (10, 0),
                  header_bg_color: str = "#F2FFDD",
                  header_text_color: str = "#658657",
                  row_bg_color_1: str = "#D4EAC7",
@@ -31,10 +29,9 @@ class DictionaryList(ctk.CTkFrame):
                  tag_text_color: str = "#658657",
                  scroll_speed: int = 2,
                  **kwargs):
-        self.external_padx = padx
-        self.external_pady = pady
 
-        super().__init__(master, width=width, height=height, fg_color=header_bg_color, **kwargs)
+        super().__init__(master, width=width, height=height, fg_color=header_bg_color, corner_radius=0, **kwargs)
+        super().pack_propagate(False)
 
         self.width = width
         self.height = height
@@ -57,42 +54,42 @@ class DictionaryList(ctk.CTkFrame):
         self.selected_vars = []
 
         self.font_term = ctk.CTkFont(family="League Spartan", size=self.term_font_size)
-        self.font_definition = ctk.CTkFont(family="League Spartan", size=self.definition_font_size)
+        self.font_definition = ctk.CTkFont(family="Bahnschrift", size=self.definition_font_size)
         self.font_tag = ctk.CTkFont(family="League Spartan", size=self.tag_font_size)
         self.header_font = ctk.CTkFont(family="League Spartan", size=28)
 
-        self.checkbox_width = 40
-        self.term_width = 450
-        self.definition_width = 390
-        self.tags_width = self.width - (self.checkbox_width + self.term_width + self.definition_width + 40)
+        self.checkbox_width = 45
+        self.term_width = 558
+        self.definition_width = 552
+        self.tags_width = 765
 
         self._setup_widgets()
         self.pack_propagate(False)
-        self.pack(padx=0, pady=self.external_pady, fill="both", expand=True)
 
     def _setup_widgets(self):
-        self.header_frame = ctk.CTkFrame(self, fg_color=self.header_bg_color, height=self.row_height)
+        self.header_frame = ctk.CTkFrame(self, fg_color=self.header_bg_color, height=42, corner_radius=0)
         self.header_frame.pack(fill="x", side="top", padx=0, pady=0)
+        self.header_frame.pack_propagate(False)
 
-        self.header_checkbox = ctk.CTkLabel(self.header_frame, text="", width=self.checkbox_width, fg_color=self.header_bg_color)
-        self.header_checkbox.pack(side="left", padx=(10, 0), pady=0)
+        self.checkbox_header = ctk.CTkLabel(self.header_frame, text="", width=self.checkbox_width, fg_color=self.header_bg_color)
+        self.checkbox_header.pack(side="left", padx=(10, 0), pady=0)
 
-        self.header_term = ctk.CTkLabel(self.header_frame, text="Term", font=self.header_font, width=self.term_width,
+        self.term_header = ctk.CTkLabel(self.header_frame, text="Term", font=self.header_font, width=self.term_width,
                                         anchor="w", fg_color=self.header_bg_color, text_color=self.header_text_color)
-        self.header_term.pack(side="left", padx=(10, 0), pady=0)
+        self.term_header.pack(side="left", padx=(10, 0), pady=0)
 
-        self.header_definition = ctk.CTkLabel(self.header_frame, text="Definition", font=self.header_font, width=self.definition_width,
+        self.definition_header = ctk.CTkLabel(self.header_frame, text="Definition", font=self.header_font, width=self.definition_width,
                                               anchor="w", fg_color=self.header_bg_color, text_color=self.header_text_color)
-        self.header_definition.pack(side="left", padx=(10, 0), pady=0)
+        self.definition_header.pack(side="left", padx=(10, 0), pady=0)
 
-        self.header_tags = ctk.CTkLabel(self.header_frame, text="Tags", font=self.header_font, width=self.tags_width,
+        self.tags_header = ctk.CTkLabel(self.header_frame, text="Tags", font=self.header_font, width=self.tags_width,
                                         anchor="w", fg_color=self.header_bg_color, text_color=self.header_text_color)
-        self.header_tags.pack(side="left", padx=(10, 10), pady=0)
+        self.tags_header.pack(side="left", padx=(10, 10), pady=0)
 
-        self.canvas_frame = ctk.CTkFrame(self, fg_color=self.header_bg_color)
-        self.canvas_frame.pack(fill="both", expand=True, padx=0, pady=(0, 10))
+        self.canvas_frame = ctk.CTkFrame(self, fg_color=self.header_bg_color,corner_radius=0)
+        self.canvas_frame.pack(fill="both", expand=True, padx=0, pady=(0,0))
 
-        self.canvas = tk.Canvas(self.canvas_frame, bg=self.header_bg_color, highlightthickness=0,
+        self.canvas = tk.Canvas(self.canvas_frame, bg="Red", highlightthickness=0,
                                 width=self.width, height=self.height - self.row_height)
         self.canvas.pack(side="left", fill="both", expand=True)
 
@@ -101,23 +98,17 @@ class DictionaryList(ctk.CTkFrame):
 
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        self.rows_frame = ctk.CTkFrame(self.canvas, fg_color=self.header_bg_color)
+        self.rows_frame = ctk.CTkFrame(self.canvas, fg_color=self.header_bg_color, corner_radius=0)
         self.rows_frame.bind("<Configure>", self._on_frame_configure)
-
         self.canvas_window = self.canvas.create_window((0, 0), window=self.rows_frame, anchor="nw")
 
-        self.rows_frame.bind("<Enter>", lambda e: self._bind_mousewheel())
-        self.rows_frame.bind("<Leave>", lambda e: self._unbind_mousewheel())
-
-    def _bind_mousewheel(self):
-        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
-
-    def _unbind_mousewheel(self):
-        self.canvas.unbind_all("<MouseWheel>")
+        self.canvas.bind("<Enter>", lambda e: self.canvas.bind_all("<MouseWheel>", self._on_mousewheel))
+        self.canvas.bind("<Leave>", lambda e: self.canvas.unbind_all("<MouseWheel>"))
 
     def _on_mousewheel(self, event):
-        delta = -event.delta * self.scroll_speed / 120  # Keep it float
-        self.canvas.yview_scroll(int(delta), "units")
+        direction = -1 if event.delta > 0 else 1
+        self.canvas.yview_scroll(direction * self.scroll_speed, "units")
+        return "break"
 
     def _on_scroll(self, *args):
         self.canvas.yview(*args)
@@ -146,7 +137,7 @@ class DictionaryList(ctk.CTkFrame):
         self.selected_vars.append(selected_var)
 
         # Create a frame to represent the entire checkbox column area
-        checkbox_column_frame = ctk.CTkFrame(row_frame, width=self.checkbox_width, height=self.row_height, fg_color=bg_color)
+        checkbox_column_frame = ctk.CTkFrame(row_frame, width=self.checkbox_width, height=self.row_height, fg_color=bg_color, corner_radius=0)
         checkbox_column_frame.pack_propagate(False)
         checkbox_column_frame.pack(side="left", padx=(10, 0), pady=0)
 
@@ -180,38 +171,34 @@ class DictionaryList(ctk.CTkFrame):
         max_lines = 3
         lines = self._truncate_multiline_text(entry.definition, max_chars_per_line, max_lines).split("\n")
 
-        definition_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, width=self.definition_width, height=self.row_height)
+        definition_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, width=self.definition_width, height=self.row_height, corner_radius=0)
         definition_frame.pack_propagate(False)
-        definition_frame.pack(side="left", padx=(10, 0), pady=0)
+        definition_frame.pack(side="left", padx=(10, 0), pady=5)
 
         for line in lines:
             label = ctk.CTkLabel(
                 definition_frame,
                 text=line,
-                font=self.font_definition,
+                font=("Bahnschrift",24),
                 fg_color=bg_color,
                 text_color=self.main_text_color,
                 anchor="w"
             )
             label.pack(anchor="w", pady=0)
 
-        tags_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, height=self.row_height, width=self.tags_width)
+        tags_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, height=self.row_height, width=self.tags_width, corner_radius=5)
         tags_frame.pack_propagate(False)
         tags_frame.pack(side="left", padx=(10, 10), pady=0)
 
         tags_list = entry.tags.split()
         self._render_tags(tags_frame, tags_list)
 
-
-        def on_row_hover(event):
-            print(f"Row {row_num} hovered")
-
         def on_row_click(event):
             print(f"Row {row_num} clicked")
 
         def bind_click_recursive(widget):
             for child in widget.winfo_children():
-                if isinstance(child, ctk.CTkCheckBox):
+                if isinstance(child, (ctk.CTkCheckBox, ctk.CTkButton)):
                     continue
                 child.bind("<Button-1>", on_row_click)
                 bind_click_recursive(child)
@@ -264,19 +251,22 @@ class DictionaryList(ctk.CTkFrame):
         rendered_tags = 0
         tag_widths = [len(t) * avg_char_width + 16 for t in tags_list]
 
+        unused_tags = []
+
         for i, (tag, width) in enumerate(zip(tags_list, tag_widths)):
             if used_width + width > available_width:
+                unused_tags = tags_list[i:]  # these didn’t fit
                 if used_width + 50 <= available_width:
-                    self._create_tag_box(container, "[...]", is_overflow=True)
+                    self._create_overflow_tag_box(container, unused_tags)
                 break
             self._create_tag_box(container, tag)
             used_width += width + 8
             rendered_tags += 1
 
         if rendered_tags == 0 and tags_list:
-            self._create_tag_box(container, "[...]", is_overflow=True)
+            self._create_overflow_tag_box(container, tags_list)
 
-    def _create_tag_box(self, container: ctk.CTkFrame, text: str, is_overflow=False):
+    def _create_tag_box(self, container: ctk.CTkFrame, text: str):
         tag_frame = ctk.CTkFrame(container, fg_color=self.tag_box_bg_color,
                                 corner_radius=12)
         tag_frame.pack(side="left", padx=(0, 8), pady=(self.row_height - self.tag_font_size - 16)//2)
@@ -286,7 +276,123 @@ class DictionaryList(ctk.CTkFrame):
                                 fg_color=self.tag_box_bg_color,
                                 text_color=self.tag_text_color,
                                 anchor="center")
-        tag_label.pack(pady=(0, 6), padx=8)  # Asymmetric vertical padding on label
+        tag_label.pack(pady=(0, 6), padx=8)
 
-        if is_overflow:
-            tag_label.configure(text_color="#999999")
+    def _create_overflow_tag_box(self, container: ctk.CTkFrame, unused_tags: List[str]):
+        def on_button_click(event=None):
+            print("button")
+            self._toggle_overflow_popup(tag_button, unused_tags)
+            return "break"
+        
+        tag_button = ctk.CTkButton(
+            container,
+            text="...",
+            font=self.font_tag,
+            fg_color=self.tag_box_bg_color,
+            text_color=self.tag_text_color,
+            corner_radius=12,
+            hover_color="#E6F3D2",
+            width=30,
+            height=self.row_height - 12,
+        )
+        tag_button.pack(side="left", padx=(0, 8), pady=(self.row_height - self.tag_font_size - 16)//2)
+    
+        tag_button.bind("<Button-1>", on_button_click)
+
+    def _create_overflow_tag_dropdown(self, unused_tags_list):
+        if hasattr(self, "popup") and self.popup.winfo_exists():
+            self.popup.destroy()
+
+        self.popup = tk.Toplevel(self)
+        self.popup.overrideredirect(True)
+        self.popup.configure(bg=self.tag_box_bg_color)
+
+        outer_frame = tk.Frame(self.popup, bg=self.tag_box_bg_color)
+        outer_frame.pack(padx=0, pady=0)
+
+        dropdown_height = min(len(unused_tags_list), 8) * 24
+
+        self.popup_canvas = tk.Canvas(
+            outer_frame,
+            bg=self.tag_box_bg_color,
+            highlightthickness=0,
+            width=200,
+            height=dropdown_height,
+        )
+        self.popup_canvas.pack(side="left", fill="both", expand=True)
+
+        self.inner_frame = tk.Frame(self.popup_canvas, bg=self.tag_box_bg_color, width=200)
+        self.popup_canvas.create_window((0, 0), window=self.inner_frame, anchor="nw")
+
+        self.inner_frame.bind("<Configure>", lambda e: self.popup_canvas.configure(scrollregion=self.popup_canvas.bbox("all")))
+
+        for tag in unused_tags_list:
+            row_frame = tk.Frame(self.inner_frame, bg=self.tag_box_bg_color, width=200, height=23)
+            row_frame.pack(fill="x", anchor="w", pady=0)
+            row_frame.pack_propagate(False)
+
+            label = ctk.CTkLabel(
+                row_frame,
+                text=tag,
+                font=("League Spartan", 16),
+                text_color=self.tag_text_color,
+                anchor="w",
+                justify="left",
+                width=180,
+            )
+            label.pack(side="left", fill="x", expand=True, padx=10, pady=0)
+
+        # Bind mousewheel only on the popup canvas
+        def _on_popup_mousewheel(event):
+            if event.delta:
+                direction = -1 if event.delta > 0 else 1
+                self.popup_canvas.yview_scroll(direction, "units")
+            else:
+                if event.num == 4:
+                    self.popup_canvas.yview_scroll(-1, "units")
+                elif event.num == 5:
+                    self.popup_canvas.yview_scroll(1, "units")
+            return "break"
+
+        self.popup_canvas.bind("<MouseWheel>", _on_popup_mousewheel)  # For Windows/macOS
+        self.popup_canvas.bind("<Button-4>", _on_popup_mousewheel)   # For Linux scroll up
+        self.popup_canvas.bind("<Button-5>", _on_popup_mousewheel)   # For Linux scroll down
+
+        # Bind global click to detect clicks outside popup to close it
+        self._bind_popup_outside_click()
+
+    def _bind_popup_outside_click(self):
+        # Bind a global click event on the root window
+        def on_click_outside(event):
+            if hasattr(self, "popup") and self.popup.winfo_exists():
+                x1 = self.popup.winfo_rootx()
+                y1 = self.popup.winfo_rooty()
+                x2 = x1 + self.popup.winfo_width()
+                y2 = y1 + self.popup.winfo_height()
+                if not (x1 <= event.x_root <= x2 and y1 <= event.y_root <= y2):
+                    self._safe_destroy_popup()
+                    self._unbind_popup_outside_click()
+        # Store the handler to unbind later
+        self._outside_click_handler = on_click_outside
+        self.winfo_toplevel().bind_all("<Button-1>", self._outside_click_handler)
+
+    def _unbind_popup_outside_click(self):
+        if hasattr(self, "_outside_click_handler"):
+            self.winfo_toplevel().unbind_all("<Button-1>")
+            del self._outside_click_handler
+
+    def _safe_destroy_popup(self):
+        if hasattr(self, "popup") and self.popup.winfo_exists():
+            self.popup.destroy()
+        self._unbind_popup_outside_click()
+
+    def _toggle_overflow_popup(self, widget, unused_tags):
+        if hasattr(self, "popup") and self.popup.winfo_exists():
+            self.popup.destroy()
+        else:
+            self._create_overflow_tag_dropdown(unused_tags)
+            x = widget.winfo_rootx()
+            y = widget.winfo_rooty() + widget.winfo_height()
+            self.popup.geometry(f"+{x}+{y}")
+            self.popup.deiconify()
+            self.popup.lift()
