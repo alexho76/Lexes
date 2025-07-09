@@ -63,6 +63,8 @@ class MainWindow(ctk.CTk):
         user32 = ctypes.windll.user32
         screenWidth = user32.GetSystemMetrics(0)
         screenHeight = user32.GetSystemMetrics(1)
+        ctk.set_widget_scaling(1.0)
+        ctk.set_window_scaling(1.0)
         
         self.masterApp = masterApp
         self.geometry(f"{screenWidth}x{screenHeight}")
