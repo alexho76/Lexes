@@ -63,8 +63,7 @@ class MainWindow(ctk.CTk):
         user32 = ctypes.windll.user32
         screenWidth = user32.GetSystemMetrics(0)
         screenHeight = user32.GetSystemMetrics(1)
-        ctk.set_widget_scaling(1.0)
-        ctk.set_window_scaling(1.0)
+        self.applyCustomScaling()
         
         self.masterApp = masterApp
         self.geometry(f"{screenWidth}x{screenHeight}")
@@ -73,9 +72,9 @@ class MainWindow(ctk.CTk):
         # Menubar
         self.menubar = tk.Menu(self)
         self.config(menu=self.menubar)
-        self.file_menu = tk.Menu(self.menubar, tearoff=0)
-        self.file_menu.add_command(label="Save")
-        self.menubar.add_cascade(label="File", menu=self.file_menu)
+        self.fileMenu = tk.Menu(self.menubar, tearoff=0)
+        self.fileMenu.add_command(label="Save")
+        self.menubar.add_cascade(label="File", menu=self.fileMenu)
 
         # Background Frame (behind all UI elements)
         self.background = ctk.CTkFrame(self, corner_radius=0, fg_color=LightGreen1)
@@ -211,8 +210,8 @@ class MainWindow(ctk.CTk):
         self.topLevel.grab_set()  # Makes it modal – grabs all input
 
         # Test label
-        self.focus_label = ctk.CTkLabel(self.topLevel, text="Waiting for focus...", font=("Arial", 20))
-        self.focus_label.pack(pady=20)
+        self.focusLabel = ctk.CTkLabel(self.topLevel, text="Waiting for focus...", font=("Arial", 20))
+        self.focusLabel.pack(pady=20)
 
         # Entry to test keyboard focus
         entry = ctk.CTkEntry(self.topLevel, placeholder_text="Type here")
@@ -221,5 +220,26 @@ class MainWindow(ctk.CTk):
 
         self.topLevel.bind("<FocusIn>", lambda e: self.focus_label.configure(text="TopLevel HAS focus!"))
         self.topLevel.bind("<FocusOut>", lambda e: self.focus_label.configure(text="TopLevel lost focus."))
+
+    # Sets Windows display settings scaling to match intended scaling for app
+    def applyCustomScaling(self):
+        user32 = ctypes.windll.user32
+        gdi32 = ctypes.windll.gdi32
+
+        hdc = user32.GetDC(0)
+        dpi = gdi32.GetDeviceCaps(hdc, 88)
+        user32.ReleaseDC(0, hdc)
+
+        scalingPercent = int((dpi / 96) * 100)
+
+        if scalingPercent != 125:
+            # scale is not 125%, manipulate to get to 125%
+            scale = 125/scalingPercent
+            ctk.set_window_scaling(scale)
+            ctk.set_widget_scaling(scale)
+        else:
+            # scale is already 125%
+            ctk.set_window_scaling(1.0)
+            ctk.set_widget_scaling(1.0)
 
 app = App()
