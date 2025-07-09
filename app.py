@@ -64,7 +64,7 @@ class MainWindow(ctk.CTk):
         screenWidth = user32.GetSystemMetrics(0)
         screenHeight = user32.GetSystemMetrics(1)
         self.applyCustomScaling()
-        
+
         self.masterApp = masterApp
         self.geometry(f"{screenWidth}x{screenHeight}")
         self.title("Lexes - Main Window")
@@ -232,13 +232,13 @@ class MainWindow(ctk.CTk):
 
         scalingPercent = int((dpi / 96) * 100)
 
-        if scalingPercent != 125:
-            # scale is not 125%, manipulate to get to 125%
-            scale = 125/scalingPercent
+        if scalingPercent != 100:
+            # scale is not 100%, manipulate to get to 100%
+            scale = 100/scalingPercent
             ctk.set_window_scaling(scale)
             ctk.set_widget_scaling(scale)
         else:
-            # scale is already 125%
+            # scale is already 100%
             ctk.set_window_scaling(1.0)
             ctk.set_widget_scaling(1.0)
 
