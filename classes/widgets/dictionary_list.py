@@ -1,3 +1,5 @@
+# dictionary_list.py
+
 import tkinter as tk
 import customtkinter as ctk
 from dataclasses import dataclass
@@ -18,7 +20,7 @@ class DictionaryList(ctk.CTkFrame):
                  definition_font_size: int = 20,
                  tag_font_size: int = 30,
                  padx: int = 0,
-                 pady: Union[int, Tuple[int,int]] = (20, 0),
+                 pady: Union[int, Tuple[int,int]] = (10, 0),
                  header_bg_color: str = "#F2FFDD",
                  header_text_color: str = "#658657",
                  row_bg_color_1: str = "#D4EAC7",
@@ -60,13 +62,13 @@ class DictionaryList(ctk.CTkFrame):
         self.header_font = ctk.CTkFont(family="League Spartan", size=28)
 
         self.checkbox_width = 40
-        self.term_width = 400
-        self.definition_width = 400
+        self.term_width = 450
+        self.definition_width = 390
         self.tags_width = self.width - (self.checkbox_width + self.term_width + self.definition_width + 40)
 
         self._setup_widgets()
         self.pack_propagate(False)
-        self.pack(padx=self.external_padx, pady=self.external_pady, fill="both", expand=True)
+        self.pack(padx=0, pady=self.external_pady, fill="both", expand=True)
 
     def _setup_widgets(self):
         self.header_frame = ctk.CTkFrame(self, fg_color=self.header_bg_color, height=self.row_height)
@@ -88,7 +90,7 @@ class DictionaryList(ctk.CTkFrame):
         self.header_tags.pack(side="left", padx=(10, 10), pady=0)
 
         self.canvas_frame = ctk.CTkFrame(self, fg_color=self.header_bg_color)
-        self.canvas_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self.canvas_frame.pack(fill="both", expand=True, padx=0, pady=(0, 10))
 
         self.canvas = tk.Canvas(self.canvas_frame, bg=self.header_bg_color, highlightthickness=0,
                                 width=self.width, height=self.height - self.row_height)
@@ -114,8 +116,8 @@ class DictionaryList(ctk.CTkFrame):
         self.canvas.unbind_all("<MouseWheel>")
 
     def _on_mousewheel(self, event):
-        delta = -1 * int(event.delta / 120) * self.scroll_speed
-        self.canvas.yview_scroll(delta, "units")
+        delta = -event.delta * self.scroll_speed / 120  # Keep it float
+        self.canvas.yview_scroll(int(delta), "units")
 
     def _on_scroll(self, *args):
         self.canvas.yview(*args)
@@ -138,19 +140,30 @@ class DictionaryList(ctk.CTkFrame):
 
         row_frame = ctk.CTkFrame(self.rows_frame, fg_color=bg_color, height=self.row_height, corner_radius=0)
         row_frame.pack(fill="x", pady=0)
-        row_frame.pack_propagate(False)  # Fix height to row_height
+        row_frame.pack_propagate(False)
 
         selected_var = tk.IntVar(value=0)
         self.selected_vars.append(selected_var)
 
-        checkbox = ctk.CTkCheckBox(row_frame, variable=selected_var, width=20, height=20, text="", border_color=self.checkbox_color)
-        checkbox.pack(side="left", padx=(10, 0), pady=(self.row_height - 24)//2)
+        # Create a frame to represent the entire checkbox column area
+        checkbox_column_frame = ctk.CTkFrame(row_frame, width=self.checkbox_width, height=self.row_height, fg_color=bg_color)
+        checkbox_column_frame.pack_propagate(False)
+        checkbox_column_frame.pack(side="left", padx=(10, 0), pady=0)
 
-        def checkbox_click(event):
-            event.widget.master.focus_set()
+        # Checkbox inside the checkbox column frame, centered vertically and horizontally
+        checkbox = ctk.CTkCheckBox(checkbox_column_frame, variable=selected_var, width=20, height=20, text="", border_color=self.checkbox_color)
+        checkbox.place(relx=0.5, rely=0.5, anchor="center")
+
+        # Bind click on entire checkbox column area to toggle the checkbox
+        def toggle_checkbox(event):
+            selected_var.set(0 if selected_var.get() else 1)
             return "break"
 
-        checkbox.bind("<Button-1>", checkbox_click)
+        checkbox_column_frame.bind("<Button-1>", toggle_checkbox)
+        # Also bind click on checkbox itself (to avoid interference)
+        checkbox.bind("<Button-1>", lambda e: None)  # allow default checkbox toggle behavior
+
+        # Rest of the columns
 
         term_label = ctk.CTkLabel(
             row_frame,
@@ -159,19 +172,17 @@ class DictionaryList(ctk.CTkFrame):
             width=self.term_width,
             fg_color=bg_color,
             text_color=self.main_text_color,
-            anchor="w",
-            wraplength=self.term_width
+            anchor="w"
         )
-        term_label.pack(side="left", padx=(10, 0), pady=10)
-        term_label.pack_propagate(False)
+        term_label.pack(side="left", padx=(10, 0), pady=(0,5))
 
-        definition_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, width=self.definition_width, height=self.row_height)
-        definition_frame.pack(side="left", padx=(10, 0), pady=0)
-        definition_frame.pack_propagate(False)
-
-        max_chars_per_line = 50
+        max_chars_per_line = len("Process used by plants and other organisms to")
         max_lines = 3
         lines = self._truncate_multiline_text(entry.definition, max_chars_per_line, max_lines).split("\n")
+
+        definition_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, width=self.definition_width, height=self.row_height)
+        definition_frame.pack_propagate(False)
+        definition_frame.pack(side="left", padx=(10, 0), pady=0)
 
         for line in lines:
             label = ctk.CTkLabel(
@@ -180,17 +191,20 @@ class DictionaryList(ctk.CTkFrame):
                 font=self.font_definition,
                 fg_color=bg_color,
                 text_color=self.main_text_color,
-                anchor="w",
-                wraplength=self.definition_width
+                anchor="w"
             )
             label.pack(anchor="w", pady=0)
 
-        tags_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, width=self.tags_width, height=self.row_height)
-        tags_frame.pack(side="left", padx=(10, 10), pady=10, fill="both", expand=False)
+        tags_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, height=self.row_height, width=self.tags_width)
         tags_frame.pack_propagate(False)
+        tags_frame.pack(side="left", padx=(10, 10), pady=0)
 
         tags_list = entry.tags.split()
         self._render_tags(tags_frame, tags_list)
+
+
+        def on_row_hover(event):
+            print(f"Row {row_num} hovered")
 
         def on_row_click(event):
             print(f"Row {row_num} clicked")
@@ -263,14 +277,16 @@ class DictionaryList(ctk.CTkFrame):
             self._create_tag_box(container, "[...]", is_overflow=True)
 
     def _create_tag_box(self, container: ctk.CTkFrame, text: str, is_overflow=False):
-        tag_label = ctk.CTkLabel(container, text=text,
-                                 font=self.font_tag,
-                                 fg_color=self.tag_box_bg_color,
-                                 text_color=self.tag_text_color,
-                                 corner_radius=12,
-                                 padx=8,
-                                 pady=4,
-                                 anchor="center")
-        tag_label.pack(side="left", padx=(0, 8))
+        tag_frame = ctk.CTkFrame(container, fg_color=self.tag_box_bg_color,
+                                corner_radius=12)
+        tag_frame.pack(side="left", padx=(0, 8), pady=(self.row_height - self.tag_font_size - 16)//2)
+
+        tag_label = ctk.CTkLabel(tag_frame, text=text,
+                                font=self.font_tag,
+                                fg_color=self.tag_box_bg_color,
+                                text_color=self.tag_text_color,
+                                anchor="center")
+        tag_label.pack(pady=(0, 6), padx=8)  # Asymmetric vertical padding on label
+
         if is_overflow:
             tag_label.configure(text_color="#999999")

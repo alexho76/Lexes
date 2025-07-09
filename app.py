@@ -166,7 +166,7 @@ class MainWindow(ctk.CTk):
 
         # Dictionary List Test
         self.dictionaryList = DictionaryList(self.background)
-        self.dictionaryList.pack()
+        self.dictionaryList.pack(pady=(10,0))
 
         entries = [
             Entry(term="Photosynthesis", definition="Process used by plants and other organisms to convert light energy into chemical energy stored in glucose.", tags="biology plants energy skibble"),
@@ -181,12 +181,12 @@ class MainWindow(ctk.CTk):
 
 
         # Footer with Logo (will be across all pages)
-        self.footer = ctk.CTkFrame(self.background, fg_color='white', height=83)
-        self.footer.pack(fill='x',side='bottom')
+        self.footer = ctk.CTkFrame(self.background, fg_color='blue', height=10)
+        self.footer.pack(fill='x',side='bottom',pady=9)
 
-        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
+        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(1,1))
         self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="")
-        self.icon.pack(pady=9)
+        self.icon.pack(pady=1)
     
     def selectAllToggleCommand(self): #! bound to selectAllToggle Button to toggle deleteSelectedButton appearance.
         if self.selectAllToggle.get_state():
