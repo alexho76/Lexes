@@ -36,7 +36,23 @@ class App:
         self.setupDB()
 
         # Initalise displayList and selectedList
-        self.displayList = DisplayList()
+        self.entries = [Entry(term="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", definition="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii...iiiiii fsdafadssfdsaffdsafdsfs sdafsdaf sadsdsafasd testing", tags="biology plants energy skibble science chemistry science2 science3"),
+            Entry(term="Einstein's Theory of General", definition="A theory of relativity that states that the speed of light is the same in all frames of reference. Einstein discovered this theory in 1905 when he was working on the photoelectric effect.", tags="physics quantum_theory science"),
+            Entry(term="Entropy", definition="A measure of the disorder or randomness in a closed system, important in thermodynamics.", tags="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ science physics chemical_science_exam_study"),
+            Entry(term="Mitochondria", definition="Organelles known as the powerhouse of the cell; generate most of the cell's supply of ATP.", tags="biology cell energy"),
+            Entry(term="Quantum Mechanics", definition="A fundamental theory in physics describing nature at the smallest scales.", tags="physics quantum_theory science"),
+            
+            Entry(term="Algorithm", definition="A step-by-step procedure for solving a problem or accomplishing some end.",
+                    tags="computer_science programming algorit science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
+            
+            Entry(term="Ecosystem", definition="A biological community of interacting organisms and their physical environment.", tags="biology     environment ecology computer_science programming logic algorithms science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
+            Entry(term="Thermodynamics", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics science"),
+            Entry(term="Electrochemistry", definition="The study of the behavior of matter and energy.", tags="physics chemistry science")]
+        
+        for i in range(100):
+            self.entries.append(Entry(term=f"Thermodynamics {i}", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics science physics thermodynamics programming_definition computer_science2 programming_definition2 science2 physics thermodynamics programming_definition computer_science2 programming_definition2 sciencefsadjfadsjfkl"))
+        
+        self.displayList = DisplayList(entries=self.entries)
         self.selectedList = SelectedList()
 
         # Initialise UI
@@ -263,6 +279,8 @@ class MainWindow(ctk.CTk):
 
         # Dictionary List Test
         self.dictionaryList = DictionaryList(self.background,
+                                             entries=self.masterApp.displayList.entries,
+                                             selectedList=self.masterApp.selectedList,
                                              width=1920,
                                              height=644,
                                              row_height=100,
@@ -273,25 +291,21 @@ class MainWindow(ctk.CTk):
                                              header_text_color=DarkGreen3,
                                              row_bg_color_1=DarkGreen1,
                                              row_bg_color_2=LightGreen2,
+                                             selected_row_color_1="#C7EBD9",
+                                             selected_row_color_2="#D5F6E9",
+                                             divider_color=DarkGreen2,
                                              main_text_color="black",
-                                             checkbox_color=DarkGreen2,
+                                             checkbox_color=DarkGreen3,
                                              tag_box_bg_color=Cream,
                                              tag_text_color=DarkGreen3,
-                                             scroll_speed=2)
+                                             scroll_speed=1,
+                                             overflow_icon = ellipsisIconImage,
+                                             select_icon = clickToSelectIconImage,
+                                             term_icon = termIconImage,
+                                             definition_icon = definitionIconImage,
+                                             tag_icon = tagIconImage,
+                                             on_selection_change=self.onEntrySelectionChanged)
         self.dictionaryList.pack(pady=(15,0))
-
-        entries = [Entry(term="Photosynthesis", definition="Process used by plants and other organisms to convert light energy into chemical energy stored in glucose.", tags="biology plants energy skibble science chemistry science2 science3"),
-                   Entry(term="Entropy", definition="A measure of the disorder or randomness in a closed system, important in thermodynamics.", tags="physics thermodynamics science chemistry science2 science3"),
-                   Entry(term="Mitochondria", definition="Organelles known as the powerhouse of the cell; generate most of the cell's supply of ATP.", tags="biology cell energy"),
-                   Entry(term="Quantum Mechanics", definition="A fundamental theory in physics describing nature at the smallest scales.", tags="physics quantum_theory science"),
-                   Entry(term="Algorithm", definition="A step-by-step procedure for solving a problem or accomplishing some end.", tags="computer_science programming logic algorithms science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
-                   Entry(term="Ecosystem", definition="A biological community of interacting organisms and their physical environment.", tags="biology environment ecology"),
-                   Entry(term="Thermodynamics", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics science"),
-                   Entry(term="Electrochemistry", definition="The study of the behavior of matter and energy.", tags="physics chemistry science"),
-                   Entry(term="Thermodynamics", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics programming_definition computer_science2 programming_definition2 science2")]
-
-        self.dictionaryList.populate(entries)
-
 
         # Footer with Logo (will be across all pages)
         self.footer = ctk.CTkFrame(self.background, fg_color=LightGreen1, height=83)
@@ -302,11 +316,28 @@ class MainWindow(ctk.CTk):
         self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="", anchor='center')
         self.icon.pack(expand=True)
     
-    def selectAllToggleCommand(self): #! bound to selectAllToggle Button to toggle deleteSelectedButton appearance.
+    def selectAllToggleCommand(self):
         if self.selectAllToggle.get_state():
+            self.dictionaryList.select_all()
+        else:
+            self.dictionaryList.unselect_all()
+        
+        self.updateDeleteButtonState()
+        print(len(self.masterApp.selectedList.entries))
+
+    def onEntrySelectionChanged(self):
+        self.updateDeleteButtonState()
+    
+    def updateDeleteButtonState(self):
+        if len(self.masterApp.selectedList.entries) > 0:
             self.deleteSelectedButton.unlock()
         else:
             self.deleteSelectedButton.lock()
+
+    def deleteSelectedButtonCommand(self):
+        for entry in self.masterApp.selectedList.entries:
+            #$entry.delete()
+            print(f"{entry.term} deleted!")
     
     def openTopLevel(self): #! temporary function to test TopLevels
         self.topLevel = ctk.CTkToplevel(self)
