@@ -46,6 +46,8 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.option_labels = []
         self.prevent_reopen = False
 
+        self.measure_font = ctk.CTkFont(family=self.dropdown_font[0], size=self.dropdown_font[1])
+
         numOptions = len(self.options)
         if numOptions < 5: # sets the height of the dropdown
             self.dropdown_height = 40 * numOptions + 25
@@ -157,9 +159,13 @@ class MultiSelectComboBox(ctk.CTkFrame):
             row_frame.pack(fill="x", anchor="w", pady=0)
             row_frame.pack_propagate(False)
 
+            # Truncate text if necessary
+            max_label_width = self.width - 20
+            truncated_text = self._truncate_text(option, max_label_width, self.measure_font)
+
             label = ctk.CTkLabel(
                 row_frame,
-                text=option,
+                text=truncated_text,
                 font=self.dropdown_font,
                 text_color=self.text_color,
                 anchor="w",
@@ -167,6 +173,10 @@ class MultiSelectComboBox(ctk.CTkFrame):
                 width=self.width - 20,
             )
             label.pack(side="left", fill="x", expand=True, padx=10, pady=0)
+
+            # Add tooltip if text was truncated
+            if truncated_text != option:
+                self._add_tooltip(label, option)
 
             def toggle_selection(idx=i):
                 if idx in self.selected_indices:
@@ -263,6 +273,38 @@ class MultiSelectComboBox(ctk.CTkFrame):
         else:
             self.require_checkbox.configure(state="normal")
 
+    def _truncate_text(self, text: str, max_width_px: int, font) -> str:
+        ellipsis = "..."
+        ellipsis_width = font.measure(ellipsis)
+
+        if font.measure(text) <= max_width_px:
+            return text
+
+        for i in range(len(text), 0, -1):
+            sub_text = text[:i]
+            if font.measure(sub_text) + ellipsis_width <= max_width_px:
+                return sub_text + ellipsis
+
+        return ellipsis  # fallback if even a single char is too wide
+
+
+    def _add_tooltip(self, widget, text):
+        tooltip = tk.Toplevel(widget)
+        tooltip.withdraw()
+        tooltip.overrideredirect(True)
+        label = tk.Label(tooltip, text=text, bg="#CDE8C0", fg=self.text_color, padx=6, pady=2)
+        label.pack()
+
+        def show_tooltip(event):
+            tooltip.geometry(f"+{event.x_root + 10}+{event.y_root + 10}")
+            tooltip.deiconify()
+
+        def hide_tooltip(event):
+            tooltip.withdraw()
+
+        widget.bind("<Enter>", show_tooltip)
+        widget.bind("<Leave>", hide_tooltip)
+
 
     def get_selected(self):
         return [self.options[i].strip() for i in sorted(self.selected_indices)]
@@ -291,9 +333,13 @@ class MultiSelectComboBox(ctk.CTkFrame):
             row_frame.pack(fill="x", anchor="w", pady=0)
             row_frame.pack_propagate(False)
 
+            # Truncate text if necessary
+            max_label_width = self.width - 25
+            truncated_text = self._truncate_text(option, max_label_width, self.measure_font)
+
             label = ctk.CTkLabel(
                 row_frame,
-                text=option,
+                text=truncated_text,
                 font=self.dropdown_font,
                 text_color=self.text_color,
                 anchor="w",
@@ -301,6 +347,10 @@ class MultiSelectComboBox(ctk.CTkFrame):
                 width=self.width - 20,
             )
             label.pack(side="left", fill="x", expand=True, padx=10, pady=0)
+
+            # Add tooltip if text was truncated
+            if truncated_text != option:
+                self._add_tooltip(label, option)
 
             def toggle_selection(idx=i):
                 if idx in self.selected_indices:
@@ -337,3 +387,5 @@ class MultiSelectComboBox(ctk.CTkFrame):
             self.require_checkbox.configure(state="disabled")
             self.require_all_var.set(False)
             self.selected_text_var.set(self.default_text)
+        
+    

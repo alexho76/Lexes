@@ -39,16 +39,16 @@ class App:
         self.setupDB()
 
         # Initalise displayList and selectedList
-        self.entries = [Entry(term="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", definition="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii...iiiiii fsdafadssfdsaffdsafdsfs sdafsdaf sadsdsafasd testing", tags="biology plants energy skibble science chemistry science2 science3"),
+        self.entries = [Entry(term="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", definition="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii...iiiiii fsdafadssfdsaffdsafdsfs sdafsdaf sadsdsafasd testing", tags="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii biology plants energy skibble science chemistry science2 science3"),
             Entry(term="Einstein's Theory of General", definition="A theory of relativity that states that the speed of light is the same in all frames of reference. Einstein discovered this theory in 1905 when he was working on the photoelectric effect.", tags="physics quantum_theory science"),
             Entry(term="Entropy", definition="A measure of the disorder or randomness in a closed system, important in thermodynamics.", tags="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ science physics chemical_science_exam_study"),
             Entry(term="Mitochondria", definition="Organelles known as the powerhouse of the cell; generate most of the cell's supply of ATP.", tags="biology cell energy"),
             Entry(term="Quantum Mechanics", definition="A fundamental theory in physics describing nature at the smallest scales.", tags="physics quantum_theory science"),
             
             Entry(term="Algorithm", definition="A step-by-step procedure for solving a problem or accomplishing some end.",
-                    tags="computer_science programming algorit science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
+                    tags="computer_science_aaaaabbbcc programming algorit science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
             
-            Entry(term="Ecosystem", definition="A biological community of interacting organisms and their physical environment.", tags="biology     environment ecology computer_science programming logic algorithms science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
+            Entry(term="Ecosystem", definition="A biological community of interacting organisms and their physical environment.", tags="biology     environment ecology computer_scienc1e programming logic algorithms science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
             Entry(term="Thermodynamics", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics science"),
             Entry(term="Electrochemistry", definition="The study of the behavior of matter and energy.", tags="physics chemistry science")]
         

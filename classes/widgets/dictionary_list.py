@@ -615,7 +615,7 @@ class DictionaryList(ctk.CTkFrame):
         tooltip = tk.Toplevel(widget)
         tooltip.withdraw()
         tooltip.overrideredirect(True)
-        label = tk.Label(tooltip, text=text, bg="#F2FFDD", fg="#658657", padx=6, pady=2)
+        label = tk.Label(tooltip, text=text, bg="#E7F4D3", fg="#658657", padx=6, pady=2)
         label.pack()
 
         def show_tooltip(event):
@@ -659,5 +659,3 @@ class DictionaryList(ctk.CTkFrame):
             entry.unselect(self.selectedList)
             self.selected_vars[idx].set(0)
         self._update_visible_rows()
-    
-
