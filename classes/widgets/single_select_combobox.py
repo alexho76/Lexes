@@ -20,7 +20,8 @@ class SingleSelectComboBox(ctk.CTkFrame):
                  hover_color="#e6f0ff",
                  corner_radius=8,
                  default_text="Select option ▼",
-                 dropdown_bg_color = "#C6E1B8",
+                 dropdown_bg_color="#C6E1B8",
+                 on_close_callback=None,
                  **kwargs):
         super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, **kwargs)
 
@@ -38,15 +39,24 @@ class SingleSelectComboBox(ctk.CTkFrame):
         self.corner_radius = corner_radius
         self.default_text = default_text
         self.dropdown_bg_color = dropdown_bg_color
+        self.on_close_callback = on_close_callback
 
         self.selected_index = None  # Single selection index, None if nothing selected
         self.option_frames = []
         self.option_labels = []
         self.prevent_reopen = False
 
-        numOptions = len(self.options)
-        if numOptions < 5:
-            self.dropdown_height = 40 * numOptions
+        self.options_dictionary = {
+            "Newest": "dateDescending",
+            "Oldest": "dateAscending",
+            "A-Z": "alphabeticalAscending",
+            "Z-A": "alphabeticalDescending",
+            None: "dateDescending"
+        }
+
+        num_options = len(self.options)
+        if num_options < 5:
+            self.dropdown_height = 40 * num_options
         else:
             self.dropdown_height = 200
 
@@ -214,7 +224,9 @@ class SingleSelectComboBox(ctk.CTkFrame):
         self.is_menu_open = False
         self.dropdown_icon.configure(text="▼")
 
-        print("Sort selected:", self.get_selected())
+        if self.on_close_callback:
+            translated_option = self.options_dictionary[self.get_selected()]
+            self.on_close_callback(translated_option)
 
         self.prevent_reopen = True
         self.after(150, lambda: setattr(self, 'prevent_reopen', False))

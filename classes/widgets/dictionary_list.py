@@ -164,8 +164,13 @@ class DictionaryList(ctk.CTkFrame):
 
     def _on_frame_configure(self, event):
         total_height = len(self.entries) * self.row_height
-        self.canvas.configure(scrollregion=(0, 0, self.width, total_height))
+
+        self.canvas.update_idletasks()
+        frame_height = max(total_height, self.canvas.winfo_height())
+        self.canvas.configure(scrollregion=(0, 0, self.width, frame_height))
+
         self._update_visible_rows()
+        
     
     def _on_canvas_resize(self, event):
         self._update_visible_rows()
@@ -296,6 +301,8 @@ class DictionaryList(ctk.CTkFrame):
                 entry.select(self.selectedList)
             else:
                 entry.unselect(self.selectedList)
+            
+            update_row_colors()
 
             if self.on_selection_change:
                 self.on_selection_change()
@@ -427,7 +434,7 @@ class DictionaryList(ctk.CTkFrame):
         overflow_created = False
 
         for i, (tag, width) in enumerate(tag_measured_widths):
-            if used_width + width + overflow_button_total_width + scrollbar_width > available_width:
+            if used_width + width + overflow_button_total_width + scrollbar_width + 5 > available_width:
                 unused_tags = tags_list[i:]  # these didn’t fit
                 if used_width + overflow_button_total_width + scrollbar_width <= available_width:
                     self._create_overflow_tag_box(container, unused_tags)
@@ -631,9 +638,14 @@ class DictionaryList(ctk.CTkFrame):
 
         self.selected_vars = {i: tk.IntVar(value=0) for i in range(len(self.entries))}
 
+        self.update_idletasks()
+        canvas_height = self.canvas.winfo_height()
         total_height = len(self.entries) * self.row_height
-        self.canvas.configure(scrollregion=(0, 0, self.width, total_height))
+        scrollregion_height = max(canvas_height, total_height)
+        self.canvas.configure(scrollregion=(0, 0, self.width, scrollregion_height))
+
         self._update_visible_rows()
+
     
     def select_all(self):
         for idx, entry in enumerate(self.entries):
@@ -647,4 +659,5 @@ class DictionaryList(ctk.CTkFrame):
             entry.unselect(self.selectedList)
             self.selected_vars[idx].set(0)
         self._update_visible_rows()
+    
 

@@ -33,10 +33,13 @@ class App:
         windll.shcore.SetProcessDpiAwareness(2)
     
     def __init__(self):
+        self.initaliseUI()
+
+    def initaliseUI(self):
         self.setupDB()
 
         # Initalise displayList and selectedList
-        self.entries = [Entry(term="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", definition="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii...iiiiii fsdafadssfdsaffdsafdsfs sdafsdaf sadsdsafasd testing", tags="biology plants energy skibble science chemistry science2 science3"),
+        self.entries = [Entry(term="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", definition="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii...iiiiii fsdafadssfdsaffdsafdsfs sdafsdaf sadsdsafasd testing", tags="biology plants energy skibble science chemistry science2 science3"),
             Entry(term="Einstein's Theory of General", definition="A theory of relativity that states that the speed of light is the same in all frames of reference. Einstein discovered this theory in 1905 when he was working on the photoelectric effect.", tags="physics quantum_theory science"),
             Entry(term="Entropy", definition="A measure of the disorder or randomness in a closed system, important in thermodynamics.", tags="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ science physics chemical_science_exam_study"),
             Entry(term="Mitochondria", definition="Organelles known as the powerhouse of the cell; generate most of the cell's supply of ATP.", tags="biology cell energy"),
@@ -49,16 +52,30 @@ class App:
             Entry(term="Thermodynamics", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics science"),
             Entry(term="Electrochemistry", definition="The study of the behavior of matter and energy.", tags="physics chemistry science")]
         
-        for i in range(100):
-            self.entries.append(Entry(term=f"Thermodynamics {i}", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics science physics thermodynamics programming_definition computer_science2 programming_definition2 science2 physics thermodynamics programming_definition computer_science2 programming_definition2 sciencefsadjfadsjfkl"))
+        for i in range(50):
+            self.entries.append(Entry(term=f"Term {i}", definition=f"Definition {i}", tags=f"Tag {i}"))
         
-        self.displayList = DisplayList(entries=self.entries)
+        # clear all rows from database
+        with sqlite3.connect(dbPath) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM master")
+            # clear uid counter
+            cursor.execute("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'master'")
+
+        for entry in self.entries:
+            # add entry to database
+            entry.add()
+
+        self.displayList = DisplayList()
+        self.displayList.build()
         self.selectedList = SelectedList()
 
         # Initialise UI
         self.mainWindow = MainWindow(self)
-        self.mainWindow.mainloop()
     
+    def start(self):
+        self.mainWindow.mainloop()
+
     def setupDB(self):
         with sqlite3.connect(dbPath) as conn:
             cursor = conn.cursor()
@@ -209,11 +226,12 @@ class MainWindow(ctk.CTk):
                                            icon=searchIconImage,
                                            icon_hover=searchIconDarkImage,
                                            icon_width=40,
-                                           bg_color=LightGreen1)   
+                                           bg_color=LightGreen1,
+                                           on_search_callback=self.searchBarCommand)   
         self.searchBar.pack(side='left', padx=(93,6))
 
         self.filterBar = MultiSelectComboBox(self.toolBar,
-                                             options=["Math", "Physics", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+                                             options=self.getUniqueTags(),
                                              font=("League Spartan", 36),
                                              dropdown_font=("League Spartan", 24),
                                              fg_color=DarkGreen1,
@@ -226,7 +244,8 @@ class MainWindow(ctk.CTk):
                                              selected_text_color=Cream,
                                              width=400,
                                              default_text="Filter by tags",
-                                             dropdown_bg_color=DarkGreen1b)
+                                             dropdown_bg_color=DarkGreen1b,
+                                             on_close_callback=self.filterBarCommand)
         self.filterBar.pack(side='left', padx=6)
 
         self.sortBar = SingleSelectComboBox(self.toolBar,
@@ -243,7 +262,8 @@ class MainWindow(ctk.CTk):
                                             selected_bg_color=DarkGreen3,
                                             selected_text_color=Cream,
                                             default_text="Sort by",
-                                            dropdown_bg_color=DarkGreen1b)
+                                            dropdown_bg_color=DarkGreen1b,
+                                            on_close_callback=self.sortBarCommand)
         self.sortBar.pack(side='left', padx=6)
 
         self.selectAllToggle = ToggleCheckboxButton(self.toolBar,
@@ -274,7 +294,8 @@ class MainWindow(ctk.CTk):
                                                  fg_color_neutral=Grey1,
                                                  fg_color_active=LightRed1,
                                                  hover_color_active=LightRed2,
-                                                 text="")
+                                                 text="",
+                                                 command=self.deleteSelectedButtonCommand)
         self.deleteSelectedButton.pack(side='right', padx=(0,93))
 
         # Dictionary List Test
@@ -312,9 +333,42 @@ class MainWindow(ctk.CTk):
         self.footer.pack(fill='x', side='bottom', pady=0, padx=0)
         self.footer.pack_propagate(False)
 
+        self.entryCounter = ctk.CTkLabel(self.footer, text=f"# Entries: {len(self.masterApp.displayList.entries)}", font=("League Spartan", 20), text_color=DarkGreen3)
+        self.entryCounter.pack(side='left', padx=10, pady=0, anchor='n')
+
         ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
         self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="", anchor='center')
         self.icon.pack(expand=True)
+
+    def searchBarCommand(self, searchKeyword):
+        if searchKeyword != self.masterApp.displayList.searchKeyword: # update search term
+            self.masterApp.displayList.searchKeyword = searchKeyword
+            
+            # update ui
+            self.updateDictionaryUI()
+        else: # selected attribute unchanged so do nothing
+            return
+
+    def filterBarCommand(self, selectedTags):
+        selectedTags = " ".join(selectedTags)
+
+        if selectedTags != self.masterApp.displayList.filterTags or self.filterBar.require_all_selected() != self.masterApp.displayList.requireAllTags: # update filter tags
+            self.masterApp.displayList.filterTags = selectedTags
+            self.masterApp.displayList.requireAllTags = self.filterBar.require_all_selected()
+            
+            # update ui
+            self.updateDictionaryUI()
+        else: # selected tags unchanged so do nothing
+            return
+
+    def sortBarCommand(self, selectedAttribute):
+        if selectedAttribute != self.masterApp.displayList.sortAttribute: # update sort attribute
+            self.masterApp.displayList.sortAttribute = selectedAttribute
+            
+            # update ui
+            self.updateDictionaryUI()
+        else: # selected attribute unchanged so do nothing
+            return
     
     def selectAllToggleCommand(self):
         if self.selectAllToggle.get_state():
@@ -323,7 +377,6 @@ class MainWindow(ctk.CTk):
             self.dictionaryList.unselect_all()
         
         self.updateDeleteButtonState()
-        print(len(self.masterApp.selectedList.entries))
 
     def onEntrySelectionChanged(self):
         self.updateDeleteButtonState()
@@ -335,10 +388,41 @@ class MainWindow(ctk.CTk):
             self.deleteSelectedButton.lock()
 
     def deleteSelectedButtonCommand(self):
-        for entry in self.masterApp.selectedList.entries:
-            #$entry.delete()
-            print(f"{entry.term} deleted!")
-    
+        if not self.masterApp.selectedList.entries:
+            return
+
+        uidsToDelete = [entry.uid for entry in self.masterApp.selectedList.entries]
+
+        with sqlite3.connect(dbPath) as conn: # mass removal from db
+            cursor = conn.cursor()
+            cursor.executemany("DELETE FROM master WHERE uid = ?", [(uid,) for uid in uidsToDelete])
+            conn.commit()
+
+        self.masterApp.selectedList.entries.clear()
+
+        self.updateUI()
+
+        if self.dictionaryList.entries == []:
+            print("None left")
+            # Reset displayList filter attributes
+            self.masterApp.displayList.filterTags = ""
+            self.masterApp.displayList.requireAllTags = False
+
+            # Reset filter bar visually
+            self.filterBar.selected_indices.clear()
+            self.filterBar.require_all_var.set(False)
+            self.filterBar.selected_text_var.set(self.filterBar.default_text)
+            self.filterBar.refresh_options()
+
+            # Reset search keyword attribute
+            self.masterApp.displayList.searchKeyword = ""
+
+            # Reset search bar visually
+            self.searchBar.clear()  
+
+            # Rebuild the display list again with filters off
+            self.updateUI()
+
     def openTopLevel(self): #! temporary function to test TopLevels
         self.topLevel = ctk.CTkToplevel(self)
         self.topLevel.geometry("600x400")
@@ -385,5 +469,40 @@ class MainWindow(ctk.CTk):
             # scale is already 100%
             ctk.set_window_scaling(1.0)
             ctk.set_widget_scaling(1.0)
+        
+    def updateDictionaryUI(self):
+        self.masterApp.selectedList.entries.clear()  # clear selected entries
+        self.masterApp.displayList.build()  # rebuild filtered list
+        self.dictionaryList.entries = self.masterApp.displayList.entries
+        self.dictionaryList.populate()  # refresh list UI
+        self.selectAllToggle.set_state(False)  # force toggle to be unselected
+        self.updateDeleteButtonState()
+        
+        self.entryCounter.configure(text=f"# Entries: {len(self.masterApp.displayList.entries)}")
+
+    def updateAuxiliaryUI(self):
+        self.filterBar.options = self.getUniqueTags()
+        self.filterBar.refresh_options()
+
+    def updateUI(self):
+        self.updateDictionaryUI()
+        self.updateAuxiliaryUI()
+
+    def getUniqueTags(self):
+        # gets unique tags
+        seen = set()
+        orderedTags = []
+
+        with sqlite3.connect(dbPath) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT tags FROM master ORDER BY uid")  # or createdAt
+            for (tagString,) in cursor.fetchall():
+                if tagString:
+                    for tag in tagString.strip().split():
+                        if tag not in seen:
+                            seen.add(tag)
+                            orderedTags.append(tag)
+        return orderedTags
 
 app = App()
+app.start()

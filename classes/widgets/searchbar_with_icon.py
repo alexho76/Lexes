@@ -21,6 +21,7 @@ class SearchBarWithIcon(ctk.CTkFrame):
                  icon=None,
                  icon_hover=None,
                  icon_width=60,
+                 on_search_callback = None,
                  **kwargs):
         super().__init__(master, width=width, height=height, fg_color="transparent", **kwargs)
         self.width = width
@@ -29,6 +30,8 @@ class SearchBarWithIcon(ctk.CTkFrame):
         self.pack_propagate(False)
 
         self.icon_width = icon_width
+
+        self.on_search_callback = on_search_callback
 
         # Outer fake box to create rounded border look
         self.fake_box = ctk.CTkFrame(
@@ -96,7 +99,8 @@ class SearchBarWithIcon(ctk.CTkFrame):
         self.search_entry.delete(0, "end")
     
     def _on_icon_click(self, event=None):
-        print(f"Searching {self.get()}")
+        if self.on_search_callback:
+            self.on_search_callback(self.get())
 
         self._on_hover_leave(event)
 
@@ -104,7 +108,8 @@ class SearchBarWithIcon(ctk.CTkFrame):
         self.search_entry.master.focus_set()
     
     def _on_enter_press(self, event=None):
-        print(f"Searching {self.get()}")
+        if self.on_search_callback:
+            self.on_search_callback(self.get())
 
         self._on_hover_enter(event)
 

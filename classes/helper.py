@@ -56,13 +56,13 @@ class Helper:
 
         for entry in entries[1:]:
             if attribute == "alphabeticalAscending":
-                if entry.term < pivot.term:
+                if entry.term.lower() < pivot.term.lower():
                     lesser.append(entry)
                 else:
                     greater.append(entry)
 
             elif attribute == "alphabeticalDescending":
-                if entry.term > pivot.term:
+                if entry.term.lower() > pivot.term.lower():
                     lesser.append(entry)
                 else:
                     greater.append(entry)
