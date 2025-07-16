@@ -39,8 +39,9 @@ class App:
         self.setupDB()
 
         # Initalise displayList and selectedList
-        self.entries = [Entry(term="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", definition="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii...iiiiii fsdafadssfdsaffdsafdsfs sdafsdaf sadsdsafasd testing", tags="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii biology plants energy skibble science chemistry science2 science3"),
-            Entry(term="Einstein's Theory of General", definition="A theory of relativity that states that the speed of light is the same in all frames of reference. Einstein discovered this theory in 1905 when he was working on the photoelectric effect.", tags="physics quantum_theory science"),
+        self.entries = [Entry(term="fundamental forces", definition="In physics, fundamental forces (or fundamental interactions) are the basic forces in nature that cannot be reduced to more basic interactions. They are the forces that govern how objects and particles interact and how certain particles decay. There are four known fundamental forces: gravity, electromagnetism, the strong nuclear force, and the weak nuclear force.", tags="physics nuclear_physics forces vce"),
+            Entry(term="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii,", definition="abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde", tags="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii biology plants energy skibble science chemistry science2 science3"),
+            Entry(term="Einstein's Theory of General Relativity (Classical Mechanics) AKA General Relativity", definition="A theory of relativity that states that the speed of light is the same in all frames of reference. Einstein discovered this theory in 1905 when he was working on the photoelectric effect.", tags="physics quantum_theory science"),
             Entry(term="Entropy", definition="A measure of the disorder or randomness in a closed system, important in thermodynamics.", tags="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ science physics chemical_science_exam_study"),
             Entry(term="Mitochondria", definition="Organelles known as the powerhouse of the cell; generate most of the cell's supply of ATP.", tags="biology cell energy"),
             Entry(term="Quantum Mechanics", definition="A fundamental theory in physics describing nature at the smallest scales.", tags="physics quantum_theory science"),
@@ -130,7 +131,7 @@ class MainWindow(ctk.CTk):
                                        border_color=NavigationPrimary,
                                        border_width=2,
                                        hover_color=Cream2,
-                                       command=lambda: self.openTopLevel())
+                                       command=None)
         self.addButton.pack(side='left', padx=(9,2), pady=9)
         
         self.importButton = ctk.CTkButton(self.navigationBar,
@@ -325,7 +326,8 @@ class MainWindow(ctk.CTk):
                                              term_icon = termIconImage,
                                              definition_icon = definitionIconImage,
                                              tag_icon = tagIconImage,
-                                             on_selection_change=self.onEntrySelectionChanged)
+                                             on_selection_change=self.onEntrySelectionChanged,
+                                             on_row_click=self.handleRowClick)
         self.dictionaryList.pack(pady=(15,0))
 
         # Footer with Logo (will be across all pages)
@@ -334,11 +336,251 @@ class MainWindow(ctk.CTk):
         self.footer.pack_propagate(False)
 
         self.entryCounter = ctk.CTkLabel(self.footer, text=f"# Entries: {len(self.masterApp.displayList.entries)}", font=("League Spartan", 20), text_color=DarkGreen3)
-        self.entryCounter.pack(side='left', padx=10, pady=0, anchor='n')
+        self.entryCounter.place(relx=0.005, rely=0)
 
         ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
         self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="", anchor='center')
         self.icon.pack(expand=True)
+    
+    def handleRowClick(self, row_num, entry):
+        self.sidebarFrame.destroy() if hasattr(self, 'sidebarFrame') else None  # remove previous sidebar if exists
+        # Make popup sidebar
+        self.sidebarFrame = ctk.CTkFrame(self,
+                                         width=720,
+                                         height=977,
+                                         corner_radius=0,
+                                         fg_color=LightGreen2,
+                                         bg_color=LightGreen1) # bottom
+        self.sidebarFrame.place(x=1920 - 720, y=0)
+        self.sidebarFrame.pack_propagate(False)
+
+        # Title Card
+        self.titleFrame = ctk.CTkFrame(self.sidebarFrame, width=720 - 70, corner_radius=0, fg_color="transparent", bg_color="transparent")
+        self.titleFrame.pack(pady=(68,0), padx=35)
+        self.titleFrame.pack_propagate(False)
+
+        # Title Row
+        self.titleRow = ctk.CTkFrame(self.titleFrame, width=720 - 70, corner_radius=0, fg_color="transparent", bg_color="transparent")
+        self.titleRow.pack(pady=(0,0), padx=0, fill='x')
+        
+        def editButtonCommand():
+            self.sidebarTitle.focus_set()
+        
+        ctkEditIconImage = ctk.CTkImage(light_image=editIconImage, dark_image=editIconImage, size=(35,35))
+        self.editButton = ctk.CTkButton(self.titleRow,
+                                        text="",
+                                        image=ctkEditIconImage,
+                                        height=35,
+                                        width=35,
+                                        fg_color="transparent",
+                                        hover_color=DarkGreen1,
+                                        command=editButtonCommand)
+        self.editButton.pack(padx=0, pady=(8,0), side='left')
+
+        self.sidebarTitle = ctk.CTkEntry(self.titleRow,
+                                  font=("League Spartan Bold", 48),
+                                  text_color=DarkGreen3,
+                                  justify='left',
+                                  fg_color=LightGreen2,
+                                  bg_color="transparent",
+                                  corner_radius=0,
+                                  border_width=0,
+                                  width=600)
+        self.sidebarTitle.pack(pady=0, padx=0, fill='x', side='left')
+        self.sidebarTitle.insert(0, entry.term)
+
+        self.titleInfo = ctk.CTkFrame(self.titleFrame, fg_color="transparent", bg_color="transparent", corner_radius=0, width=720 - 70, height=22)
+        self.titleInfo.pack(pady=(0,0), padx=0, fill='x')
+        self.titleInfo.pack_propagate(False)
+        self.uidInfo = ctk.CTkLabel(self.titleInfo, text=f"UID: {entry.uid}", font=("League Spartan Bold", 24), text_color="black")
+        self.uidInfo.pack(pady=0, padx=0, side='left')
+        self.createdAtInfo = ctk.CTkLabel(self.titleInfo, text=f"Created {entry.createdAt}", font=("League Spartan Bold", 24), text_color="black")
+        self.createdAtInfo.pack(pady=0, padx=(22,0), side='left')
+
+        # Title Buttons
+        self.sidebarButtons = ctk.CTkFrame(self.titleFrame, width=720 - 70, height=65, corner_radius=0, fg_color="transparent", bg_color="transparent")
+        self.sidebarButtons.pack(pady=(20,0), padx=0, fill='x')
+        
+        def sidebarAutoDefButtonCommand():
+            updatedTerm = self.sidebarTitle.get().strip()
+            newDefinition = Helper.wikipediaAPI(updatedTerm)
+            if newDefinition:
+                self.definitionTextbox.focus_set()
+                self.definitionTextbox.delete(1.0, tk.END)
+                self.definitionTextbox.insert(1.0, newDefinition)
+            else:
+                print(f"No definition for {updatedTerm}")
+
+        ctkAutoDefIconImage = ctk.CTkImage(light_image=autoDefIconImage, dark_image=autoDefIconImage, size=(45,45))
+        self.sidebarAutoDefButton = ctk.CTkButton(self.sidebarButtons, 
+                                                  image=ctkAutoDefIconImage,
+                                                  text="",
+                                                  border_color= Pink,
+                                                  border_width=2.5,
+                                                  fg_color=LightPink1,
+                                                  hover_color=LightPink2,
+                                                  height=65,
+                                                  width=65,
+                                                  corner_radius=5,
+                                                  command=sidebarAutoDefButtonCommand)
+        self.sidebarAutoDefButton.pack(padx=0, pady=0, side='left')
+        
+        
+        def sidebarDeleteButtonCommand():
+            self.sidebarFrame.destroy()
+
+            with sqlite3.connect(dbPath) as conn: # mass removal from db
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM master WHERE uid = ?", (entry.uid,))
+                conn.commit()
+
+            self.masterApp.selectedList.entries.clear()
+
+            self.updateUI()
+
+            if self.dictionaryList.entries == []:
+                print("None left")
+                # Reset displayList filter attributes
+                self.masterApp.displayList.filterTags = ""
+                self.masterApp.displayList.requireAllTags = False
+
+                # Reset filter bar visually
+                self.filterBar.selected_indices.clear()
+                self.filterBar.require_all_var.set(False)
+                self.filterBar.selected_text_var.set(self.filterBar.default_text)
+                self.filterBar.refresh_options()
+
+                # Reset search keyword attribute
+                self.masterApp.displayList.searchKeyword = ""
+
+                # Reset search bar visually
+                self.searchBar.clear()  
+
+                # Rebuild the display list again with filters off
+                self.updateUI()
+
+        ctkDeleteActiveIconImage = ctk.CTkImage(light_image=deleteActiveIconImage, dark_image=deleteActiveIconImage, size=(45,45))
+        self.sidebarDeleteButton = ctk.CTkButton(self.sidebarButtons,
+                                                 image=ctkDeleteActiveIconImage,
+                                                 text="",
+                                                 border_color=Red,
+                                                 border_width=2.5,
+                                                 fg_color=LightRed1,
+                                                 hover_color=LightRed2,
+                                                 height=65,
+                                                 width=65,
+                                                 corner_radius=5,
+                                                 command=sidebarDeleteButtonCommand)
+        self.sidebarDeleteButton.pack(padx=(10,0), pady=0, side='left')
+
+        def sidebarDoneButtonCommand():
+            newTerm = self.sidebarTitle.get().strip()
+            newDefinition = self.definitionTextbox.get("1.0", tk.END).strip()
+            newTags = self.tagsTextbox.get("1.0", tk.END)
+            newTags = ' '.join(tag.strip() for tag in newTags.split())
+            entry.edit(newTerm=newTerm, newDefinition=newDefinition, newTags=newTags)
+
+            self.sidebarFrame.destroy()
+            self.updateUI()
+
+        self.sidebarDoneButton = ctk.CTkButton(self.sidebarButtons,
+                                               text="Done",
+                                               font=("League Spartan Bold", 24),
+                                               height=50,
+                                               width=130,
+                                               text_color=ButtonGreen,
+                                               corner_radius=5,
+                                               border_color=ButtonGreen,
+                                               fg_color=Cream,
+                                               hover_color=Cream2,
+                                               border_width=2.5,
+                                               command=sidebarDoneButtonCommand)
+        self.sidebarDoneButton.pack(padx=0, pady=0, side='right')
+
+        def sidebarCancelButtonCommand():
+            self.sidebarFrame.destroy()
+            #self.updateUI()
+
+        self.sidebarCancelButton = ctk.CTkButton(self.sidebarButtons,
+                                               text="Cancel",
+                                               font=("League Spartan Bold", 24),
+                                               height=50,
+                                               width=130,
+                                               text_color=Red,
+                                               corner_radius=5,
+                                               border_color=Red,
+                                               fg_color=Cream,
+                                               hover_color=Cream2,
+                                               border_width=2.5,
+                                               command=sidebarCancelButtonCommand)
+        self.sidebarCancelButton.pack(padx=5, pady=0, side='right')
+        
+        self.titleDefinitionDivider = ctk.CTkFrame(self.sidebarFrame, fg_color=DarkGreen1, height=1.5)
+        self.titleDefinitionDivider.pack(padx=0,pady=0,fill="x")
+
+        self.sidebarDefinitionLabel = ctk.CTkLabel(self.sidebarFrame,
+                                                   text="Definition",
+                                                   font=("League Spartan Bold", 36),
+                                                   text_color=DarkGreen3,
+                                                   anchor='w',
+                                                   justify='left')
+        self.sidebarDefinitionLabel.pack(pady=(10,0), padx=25, fill='x')
+    
+        # Definition Text Box
+        self.definitionTextbox = ctk.CTkTextbox(self.sidebarFrame,
+                                            font=("League Spartan", 26),
+                                            text_color="black",
+                                            fg_color=DarkGreen1,
+                                            corner_radius=5,
+                                            height=400,
+                                            scrollbar_button_color=DarkGreen3,
+                                            scrollbar_button_hover_color=DarkGreen2,
+                                            border_spacing=0,
+                                            border_width=5,
+                                            border_color=DarkGreen1,
+                                            wrap="word")
+        self.definitionTextbox.pack(pady=(10, 0), padx=25, fill='both')
+        self.definitionTextbox.insert("end", entry.definition)
+
+        # Tags Label and Text box
+        self.tagsTextbox = ctk.CTkTextbox(self.sidebarFrame,
+                                            font=("League Spartan", 26),
+                                            text_color="black",
+                                            fg_color=DarkGreen1,
+                                            corner_radius=5,
+                                            height=50,
+                                            scrollbar_button_color=DarkGreen3,
+                                            scrollbar_button_hover_color=DarkGreen2,
+                                            border_spacing=0,
+                                            border_width=5,
+                                            border_color=DarkGreen1,
+                                            wrap="none")
+        self.tagsTextbox.pack(pady=(0, 20), padx=25, fill='both', side='bottom')
+        self.tagsTextbox.insert("end", entry.tags)
+        self.tagsTextbox.bind("<Return>", lambda e: "break")
+        self.tagsTextbox.bind("<Tab>", lambda e: "break")
+
+
+        self.sidebarTagsFrame = ctk.CTkFrame(self.sidebarFrame, width=720 - 70, height=65, corner_radius=0, fg_color="transparent", bg_color="transparent")
+        self.sidebarTagsFrame.pack(pady=(0,5), padx=25, fill='x', side='bottom')
+        ctkTagsIconImage = ctk.CTkImage(light_image=tagIconImage, dark_image=tagIconImage, size=(30,30))
+        self.sidebarTagsIcon = ctk.CTkLabel(self.sidebarTagsFrame,
+                                            image=ctkTagsIconImage,
+                                            text="")
+        self.sidebarTagsIcon.pack(side="left", pady=(8,0), padx=(0,7))
+        self.sidebarTagsLabel = ctk.CTkLabel(self.sidebarTagsFrame,
+                                             text="Tags",
+                                             font=("League Spartan Bold", 36),
+                                             text_color=DarkGreen3,
+                                             justify='left')
+        self.sidebarTagsLabel.pack(side="left", pady=(0,0), padx=0, fill='x')
+
+        self.definitionTagsDivider = ctk.CTkFrame(self.sidebarFrame, fg_color=DarkGreen1, height=1.5)
+        self.definitionTagsDivider.pack(padx=0, pady=(0,7.5), fill="x", side='bottom')
+
+
+        self.sidebarDivider = ctk.CTkFrame(self.sidebarFrame, width=3, corner_radius=0, fg_color=DarkGreen3, height=977)
+        self.sidebarDivider.place(relx=0, rely=0)
 
     def searchBarCommand(self, searchKeyword):
         if searchKeyword != self.masterApp.displayList.searchKeyword: # update search term
@@ -503,6 +745,16 @@ class MainWindow(ctk.CTk):
                             seen.add(tag)
                             orderedTags.append(tag)
         return orderedTags
+
+    def truncateText(self, text: str, maxWidth: int = 663, size: int = 64, weight="bold", font = "League Spartan"):
+            font = ctk.CTkFont(family=font, size=size, weight=weight)
+            if font.measure(text) <= maxWidth:
+                return text
+            while font.measure(f"{text}...") > maxWidth:
+                text = text[:-1]
+            truncated = f"{text}..."
+            return truncated
+
 
 app = App()
 app.start()

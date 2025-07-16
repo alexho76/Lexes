@@ -23,3 +23,7 @@ termIconImage = Image.open(r"assets\term_icon.png").resize((33,21), Image.LANCZO
 definitionIconImage = Image.open(r"assets\definition_icon.png").resize((26,28), Image.LANCZOS)
 tagIconImage = Image.open(r"assets\tag_icon.png").resize((28,28), Image.LANCZOS)
 
+autoDefIconImage = Image.open(r"assets\auto_def_icon.png").resize((45,45), Image.LANCZOS)
+editIconImage = Image.open(r"assets\edit_icon.png").resize((39,39), Image.LANCZOS)
+
+

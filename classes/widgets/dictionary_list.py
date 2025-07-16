@@ -36,11 +36,13 @@ class DictionaryList(ctk.CTkFrame):
                  definition_icon: str = None,
                  tag_icon: str = None,
                  on_selection_change = None,
+                 on_row_click = None,
                  **kwargs):
 
         super().__init__(master, width=width, height=height+1.5, fg_color=header_bg_color, corner_radius=0, **kwargs)
         super().pack_propagate(False)
         self.on_selection_change = on_selection_change
+        self.on_row_click = on_row_click
 
         self.entries = entries
         self.selectedList = selectedList if selectedList is not None else SelectedList()
@@ -318,7 +320,8 @@ class DictionaryList(ctk.CTkFrame):
         checkbox.bind("<Button-1>", lambda e: None)  # Allow normal toggle behavior
 
         def on_row_click(event):
-            print(f"Row {row_num} clicked")
+            if self.on_row_click:
+                self.on_row_click(row_num, entry)
 
         def bind_click_recursive(widget):
             for child in widget.winfo_children():
