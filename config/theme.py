@@ -28,4 +28,5 @@ Grey2 = "#9FA69C"
 Pink = "#FB7FFF"
 LightPink1 = "#E6DCDE"
 LightPink2 = "#DFD3D6"
+ExportBlue = "#7A9DF0"
 

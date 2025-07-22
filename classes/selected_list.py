@@ -24,31 +24,14 @@ class SelectedList:
         self.entries.clear()
     
     # Creates a new CSV at location and writes entry info to rows.
-    # NOTE: CSV FORMAT: is term;definition;tags\n and each exported file will have a unique name.
+    # NOTE: CSV FORMAT: is term;definition;tags\n
     def exportToAnki(self,
                      filePath: str,
-                     fileName: str = None):
-        if fileName is None:
-            fullPathCheck = os.path.join(filePath, "Lexes-Anki.csv")
-            if os.path.exists(fullPathCheck): # "Lexes-Anki.csv" exists
-                copy = 2
-                while os.path.exists(os.path.join(filePath, f"Lexes-Anki-{copy}.csv")): # iterates through potential duplicate file names until one is free
-                    copy += 1
-                fileName = f"Lexes-Anki-{copy}.csv" # ensures unique file names
-            else:
-                fileName = "Lexes-Anki.csv" # if no copies exist
-
-        elif os.path.exists(os.path.join(filePath, fileName)): # "fileName(.csv)" exists
-            baseFileName = fileName[:-4] if fileName.endswith(".csv") else fileName # removes .csv if present
-            copy = 2
-            while os.path.exists(os.path.join(filePath, f"{baseFileName}-{copy}.csv")): # iterates through potential duplicate file names until one is free
-                copy += 1
-            fileName = f"{baseFileName}-{copy}.csv"
-
-        fullPath = os.path.join(filePath, fileName)
+                     includeTags: bool = True):
+        fullPath = filePath
 
         entriesToExport = self.entries.copy() # mutable argument solution
-        entriesToExport = Helper.quickSort(entriesToExport, "dateAscending")
+        entriesToExport = Helper.quickSort(entriesToExport, "dateDescending")
         
         with open(fullPath, mode="w", encoding="utf-8", newline="") as csvFile:
             writer = csv.writer(csvFile, delimiter=';', quoting=csv.QUOTE_MINIMAL) # uses csv library to write
@@ -56,7 +39,11 @@ class SelectedList:
             for entry in entriesToExport:
                 term = entry.term.replace(";", ",") # replaces semi-colons with commas to avoid breakign the CSV delimiter
                 definition = entry.definition.replace(";", ",")
-                tags = entry.tags.replace(";", ",")
+                
+                if includeTags:
+                    tags = entry.tags.replace(";", ",")
+                else:
+                    tags = ""
                 
                 writer.writerow([term, definition, tags])
 
@@ -64,25 +51,8 @@ class SelectedList:
     # NOTE: exported .db table has same format as original .db table, but uid and createdAt columns are left blank for re-creation upon import.
     def exportToDB(self,
                    filePath: str,
-                   fileName: str = None):
-        if fileName is None:
-            fullPathCheck = os.path.join(filePath, "Lexes-Export.db")
-            if os.path.exists(fullPathCheck):
-                copy = 2
-                while os.path.exists(os.path.join(filePath, f"Lexes-Export-{copy}.db")):
-                    copy += 1
-                fileName = f"Lexes-Export-{copy}.db"
-            else:
-                fileName = "Lexes-Export.db"
-
-        elif os.path.exists(os.path.join(filePath, fileName)):
-            baseFileName = fileName[:-3] if fileName.endswith(".db") else fileName
-            copy = 2
-            while os.path.exists(os.path.join(filePath, f"{baseFileName}-{copy}.db")):
-                copy += 1
-            fileName = f"{baseFileName}-{copy}.db"
-
-        fullPath = os.path.join(filePath, fileName)
+                   includeTags: bool = True):
+        fullPath = filePath
 
         entriesToExport = self.entries.copy() # mutable argument solution
         entriesToExport = Helper.quickSort(entriesToExport, "dateAscending")
@@ -99,7 +69,13 @@ class SelectedList:
             """)
 
             for entry in entriesToExport: # exclude uid and createdAt, uses values straight from entry object, not from DB
-                cursor.execute("INSERT INTO master (term, definition, tags) VALUES (?, ?, ?)",
-                            (entry.term, entry.definition, entry.tags.strip()))
+                if includeTags:
+                    tags = entry.tags.strip()
+                else:
+                    tags = ""
+                createdAt = ""
+                
+                cursor.execute("INSERT INTO master (term, definition, tags, createdAt) VALUES (?, ?, ?, ?)",
+                            (entry.term, entry.definition, tags, createdAt))
 
             conn.commit()

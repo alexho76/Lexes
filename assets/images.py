@@ -26,4 +26,9 @@ tagIconImage = Image.open(r"assets\tag_icon.png").resize((28,28), Image.LANCZOS)
 autoDefIconImage = Image.open(r"assets\auto_def_icon.png").resize((45,45), Image.LANCZOS)
 editIconImage = Image.open(r"assets\edit_icon.png").resize((39,39), Image.LANCZOS)
 
+ankiNeutralIconImage = Image.open(r"assets\anki_neutral_icon.png").resize((33,41), Image.LANCZOS)
+ankiActiveIconImage = Image.open(r"assets\anki_active_icon.png").resize((33,41), Image.LANCZOS)
+databaseNeutralIconImage = Image.open(r"assets\database_neutral_icon.png").resize((53,53), Image.LANCZOS)
+databaseActiveIconImage = Image.open(r"assets\database_active_icon.png").resize((53,53), Image.LANCZOS)
 
+folderIconImage = Image.open(r"assets\folder_icon.png").resize((46,36), Image.LANCZOS)

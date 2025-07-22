@@ -2,6 +2,7 @@
 ### Manages the interactions between UI and backend classes and methods. All of the app's logic is contained here.
 
 # Class and Asset Imports
+from tkinter import messagebox
 from config.theme import *
 from config.configurations import *
 from classes.helper import Helper
@@ -15,12 +16,15 @@ from classes.widgets.searchbar_with_icon import SearchBarWithIcon
 from classes.widgets.toggle_checkbox_button import ToggleCheckboxButton
 from classes.widgets.locked_button import LockedButton
 from classes.widgets.dictionary_list import DictionaryList
+from classes.widgets.export_button import ExportButton
+from classes.widgets.file_path_entry import FilePathEntry
 from assets.images import *
 
 # Library Imports
 import sqlite3
 import customtkinter as ctk
 import tkinter as tk
+import tkinter.filedialog as filedialog
 import ctypes
 import tkinter.font as tkFont
 from PIL import Image, ImageTk
@@ -159,7 +163,8 @@ class MainWindow(ctk.CTk):
                                           fg_color=Cream,
                                           border_color=NavigationPrimary,
                                           border_width=2,
-                                          hover_color=Cream2)
+                                          hover_color=Cream2,
+                                          command=self.openExportWindow)
         self.exportButton.pack(side='left', padx=2, pady=9)
         
         self.settingsButton = ctk.CTkButton(self.navigationBar,
@@ -478,6 +483,11 @@ class MainWindow(ctk.CTk):
             newDefinition = self.definitionTextbox.get("1.0", tk.END).strip()
             newTags = self.tagsTextbox.get("1.0", tk.END)
             newTags = ' '.join(tag.strip() for tag in newTags.split())
+
+            if entry.tags == newTags and entry.term == newTerm and entry.definition == newDefinition: # close the sidebar as nothing has changed
+                self.sidebarFrame.destroy()
+                return
+
             entry.edit(newTerm=newTerm, newDefinition=newDefinition, newTags=newTags)
 
             self.sidebarFrame.destroy()
@@ -499,7 +509,6 @@ class MainWindow(ctk.CTk):
 
         def sidebarCancelButtonCommand():
             self.sidebarFrame.destroy()
-            #self.updateUI()
 
         self.sidebarCancelButton = ctk.CTkButton(self.sidebarButtons,
                                                text="Cancel",
@@ -670,10 +679,13 @@ class MainWindow(ctk.CTk):
         topLevel = ctk.CTkToplevel(self)
         topLevel.geometry("1280x720")
         topLevel.title("Add Entry")
+        topLevel.resizable(False, False)
+
         # Make sure it appears above the main window 
         topLevel.lift()
         topLevel.attributes("-topmost", True)
         topLevel.after(10, lambda: topLevel.attributes("-topmost", False))
+
         # Force focus (keyboard + window manager)
         topLevel.focus_force()
         topLevel.grab_set()  # grabs all inputs (kb and mouse)
@@ -683,7 +695,7 @@ class MainWindow(ctk.CTk):
 
         # Term display and entry
         termLabelFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
-        termLabelFrame.pack(padx=35,pady=(20,0), fill="x")
+        termLabelFrame.pack(padx=35,pady=(15,0), fill="x")
 
         ctktermIcon = ctk.CTkImage(dark_image=termIconImage, light_image=termIconImage, size=(46,30))
         termIconLabel = ctk.CTkLabel(termLabelFrame, text="", image=ctktermIcon, compound="left")
@@ -694,12 +706,12 @@ class MainWindow(ctk.CTk):
 
         termEntry = ctk.CTkEntry(background, placeholder_text="e.g. photosynthesis", font=("League Spartan", 36),
                                  placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
-                                 border_width=3)
+                                 border_width=2.5)
         termEntry.pack(padx=35, pady=0, fill="x")
 
         # Definition display, entry, and auto definition button
         definitionLabelFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
-        definitionLabelFrame.pack(padx=35, pady=(20,0), fill="x")
+        definitionLabelFrame.pack(padx=35, pady=(15,0), fill="x")
 
         ctkDefinitionIcon = ctk.CTkImage(dark_image=definitionIconImage, light_image=definitionIconImage, size=(36,36))
         definitionIconLabel = ctk.CTkLabel(definitionLabelFrame, text="", image=ctkDefinitionIcon, compound="left")
@@ -709,18 +721,57 @@ class MainWindow(ctk.CTk):
         definitionLabel.pack(padx=7, pady=(0,0), side='left')
 
         definitionEntry = ctk.CTkTextbox(background, font=("Bahnschrift", 36), text_color=DarkGreen2, fg_color=Cream,
-                                         border_color=DarkGreen3, border_width=3, height=150, wrap="word", scrollbar_button_color=DarkGreen3)
+                                         border_color=DarkGreen3, border_width=2.5, height=150, wrap="word", scrollbar_button_color=DarkGreen3)
 
         definitionEntry.pack(padx=35, pady=0, fill="x")
+        # Add placeholder text to definition entry
+        placeholderText = "e.g. The process by which green plants and some other organisms use sunlight to synthesize nutrients from carbon dioxide and water."
+        placeholderColor = Cream3
+        normalColor = DarkGreen2
 
+        def showPlaceholder():
+            definitionEntry.configure(text_color=placeholderColor)
+            definitionEntry.insert("1.0", placeholderText)
+
+        def hidePlaceholder(event=None):
+            definitionEntry.delete("1.0", tk.END)
+            definitionEntry.configure(text_color=normalColor)
+
+        def onFocusIn(event):
+            if definitionEntry.get("1.0", tk.END).strip() == placeholderText and definitionEntry.cget("text_color") == placeholderColor:
+                hidePlaceholder()
+
+        def onFocusOut(event):
+            if not definitionEntry.get("1.0", tk.END).strip():
+                showPlaceholder()
+
+        definitionEntry.bind("<FocusIn>", onFocusIn)
+        definitionEntry.bind("<FocusOut>", onFocusOut)
+
+        # Show placeholder initially
+        showPlaceholder()
+
+        def autoDefButtonCommand():
+            term = termEntry.get().strip()
+            if term:
+                newDefinition = Helper.wikipediaAPI(term)
+                if newDefinition:
+                    definitionEntry.configure(text_color=DarkGreen2)  # reset text color to normal
+                    definitionEntry.focus_set()
+                    definitionEntry.delete(1.0, tk.END)
+                    definitionEntry.insert(1.0, newDefinition)
+                else:
+                    messagebox.showerror("No Definition Found", f"No definition found for '{term}'. Please enter a definition manually.", parent=topLevel)
+            else:
+                messagebox.showerror("Empty Term", "Please enter a term before auto-defining.", parent=topLevel)
         ctkAutoDefineIcon = ctk.CTkImage(dark_image=autoDefIconImage, light_image=autoDefIconImage, size=(30,30))
-        autoDefineButton = ctk.CTkButton(definitionLabelFrame, text="Auto-Define", font=("League Spartan", 28), command=None, width=200, height=32,
-                                         text_color=Pink, fg_color=Cream, border_color=Pink, border_width=3, hover_color=Cream2, image=ctkAutoDefineIcon, anchor='w')
+        autoDefineButton = ctk.CTkButton(definitionLabelFrame, text="Auto-Define", font=("League Spartan", 28), command=autoDefButtonCommand, width=200, height=32,
+                                         text_color=Pink, fg_color=Cream, border_color=Pink, border_width=2.5, hover_color=Cream2, image=ctkAutoDefineIcon, anchor='w')
         autoDefineButton.pack(padx=15, pady=(8,0), side='left')
 
         # Tag display entry
         tagLabelFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
-        tagLabelFrame.pack(padx=35, pady=(20,0), fill="x")
+        tagLabelFrame.pack(padx=35, pady=(15,0), fill="x")
 
         ctkTagIcon = ctk.CTkImage(dark_image=tagIconImage, light_image=tagIconImage, size=(36,36))
         tagIconLabel = ctk.CTkLabel(tagLabelFrame, text="", image=ctkTagIcon, compound="left")
@@ -731,8 +782,178 @@ class MainWindow(ctk.CTk):
 
         tagEntry = ctk.CTkEntry(background, placeholder_text="e.g. biology science vce", font=("League Spartan", 36),
                                  placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
-                                 border_width=3)
+                                 border_width=2.5)
         tagEntry.pack(padx=35, pady=0, fill="x")
+
+        # Window Navigation Buttons
+        buttonFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        buttonFrame.pack(padx=35, pady=(35,0), fill="x")
+
+        def cancelButtonCommand():
+            topLevel.destroy()
+        cancelButton = ctk.CTkButton(buttonFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
+                                     border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
+        cancelButton.pack(side='right', padx=(0,0), pady=0)
+    
+        def addButtonCommand():
+            term = termEntry.get().strip()
+            definition = definitionEntry.get("1.0", tk.END).strip()
+            tags = tagEntry.get().strip() # still in space separated string format
+            if not term or definition == placeholderText or not definition:
+                messagebox.showerror("Missing Fields", "Please fill in both the term and definition fields.", parent=topLevel)
+                return
+            entry = Entry(term=term, definition=definition, tags=tags)
+            entry.add() # add to database
+
+            self.updateUI() # update the main app UI including the dictionary list, counter, and filter bar
+
+            # Clear the input fields except for tags and focus on term entry
+            termEntry.delete(0, tk.END)
+            definitionEntry.delete(1.0, tk.END)
+            definitionEntry.configure(text_color=placeholderColor)  # reset text color to placeholder
+            definitionEntry.insert(1.0, placeholderText)  # reset to placeholder text
+            termEntry.focus_set()
+
+        addButton = ctk.CTkButton(buttonFrame, text="Add", font=("League Spartan Bold", 24), height=50, width=130, text_color=DarkGreen3, corner_radius=5,
+                                  border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=addButtonCommand)
+        addButton.pack(side='right', padx=(0,5), pady=0)
+
+        # Footer
+        footer = ctk.CTkFrame(background, corner_radius=0, fg_color=LightGreen1, height=80)
+        footer.pack(fill='x', side='bottom', pady=0, padx=0)
+        footer.pack_propagate(False)
+        
+        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
+        footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
+        footerIcon.pack(expand=True)
+    
+    def openExportWindow(self): # Opens the export window
+        ### Popup Window Setup
+        topLevel = ctk.CTkToplevel(self)
+        topLevel.geometry("1280x720")
+        topLevel.title("Export Entries")
+        topLevel.resizable(False, False)
+
+        # Make sure it appears above the main window 
+        topLevel.lift()
+        topLevel.attributes("-topmost", True)
+        topLevel.after(10, lambda: topLevel.attributes("-topmost", False))
+
+        # Force focus (keyboard + window manager)
+        topLevel.focus_force()
+        topLevel.grab_set()  # grabs all inputs (kb and mouse)
+
+        background = ctk.CTkFrame(topLevel, corner_radius=0, fg_color=LightGreen2)
+        background.pack(fill="both", expand=True)
+
+        # Export as label and frame for buttons
+        exportAsLabel = ctk.CTkLabel(background, text="Export entries as:", font=("League Spartan", 48), text_color=DarkGreen2)
+        exportAsLabel.pack(padx=35, pady=(15,0), anchor='nw')
+        
+        exportAsFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        exportAsFrame.pack(padx=35, pady=(0,0), fill="x")
+
+        def toggleExport(buttonName):
+            if buttonName == "Anki Deck":
+                exportAnkiButton.toggle()
+                if exportDBButton.get_state():
+                    exportDBButton.set_state(False)
+            elif buttonName == "Lexes DB":
+                exportDBButton.toggle()
+                if exportAnkiButton.get_state():
+                    exportAnkiButton.set_state(False)
+
+        exportAnkiButton = ExportButton(exportAsFrame, neutral_text="Anki Deck", active_text="Anki Deck", width=220, height=65, corner_radius=5,
+                                                font=("League Spartan", 36), image_neutral=ankiNeutralIconImage, image_active=ankiActiveIconImage, fg_color_neutral=LightGreen2, fg_color_active=ExportBlue,
+                                                text_color_neutral=ExportBlue, text_color_active=LightGreen2, border_color=ExportBlue, image_size=(33,41), callback_command=toggleExport)
+        exportAnkiButton.pack(padx=0, pady=0, side='left')
+
+        exportDBButton = ExportButton(exportAsFrame, neutral_text="Lexes DB", active_text="Lexes DB", width=220, height=65, corner_radius=5,
+                                                font=("League Spartan", 36), image_neutral=databaseNeutralIconImage, image_active=databaseActiveIconImage, fg_color_neutral=LightGreen2, fg_color_active=ExportBlue,
+                                                text_color_neutral=ExportBlue, text_color_active=LightGreen2, border_color=ExportBlue, image_size=(50,50), callback_command=toggleExport)
+        exportDBButton.pack(padx=15, pady=0, side='left')
+
+        # Export File Directory Selection
+        exportDirectoryFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        exportDirectoryFrame.pack(padx=35, pady=(20,0), fill="x")
+
+        exportDirectoryLabel = ctk.CTkLabel(exportDirectoryFrame, text="Export file as:", font=("League Spartan", 48), text_color=DarkGreen2)
+        exportDirectoryLabel.pack(padx=0, pady=0, anchor='nw')
+
+        exportDirectoryEntry = FilePathEntry(exportDirectoryFrame, font=("League Spartan", 36), text_color=Cream3, fg_color=Cream, border_color=DarkGreen3,
+                                             border_width=2.5, placeholder_text="Select file path...", placeholder_text_color=Cream3, icon=folderIconImage, icon_size=(46,36),
+                                             option_one=exportAnkiButton, option_two=exportDBButton)
+        exportDirectoryEntry.pack(padx=0, pady=0, fill="x")
+
+        # Include Tags Option
+        tagFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        tagFrame.pack(padx=35, pady=(25,0), fill="x")
+
+        ctkTagIcon = ctk.CTkImage(dark_image=tagIconImage, light_image=tagIconImage, size=(36,36))
+        tagIconLabel = ctk.CTkLabel(tagFrame, image=ctkTagIcon, text="", fg_color="transparent")
+        tagIconLabel.pack(side="left", padx=0, pady=(0,5))
+
+        tagLabel = ctk.CTkLabel(tagFrame, text="Include tags", font=("League Spartan", 48), text_color=DarkGreen2)
+        tagLabel.pack(side="left", padx=(10,0), pady=(0,15))
+
+        tagCheckbox = ctk.CTkCheckBox(tagFrame, text="", fg_color=DarkGreen2, border_color=DarkGreen2, bg_color=LightGreen2, text_color=DarkGreen2, border_width=3,
+                                      checkbox_height=28, checkbox_width=28, corner_radius=5, hover_color=DarkGreen3, checkmark_color=Cream)
+        tagCheckbox.pack(side="left", padx=(25,0), pady=0)
+
+        # Footer
+        footer = ctk.CTkFrame(background, corner_radius=0, fg_color=LightGreen1, height=80)
+        footer.pack(fill='x', side='bottom', pady=0, padx=0)
+        footer.pack_propagate(False)
+
+        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
+        footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
+        footerIcon.pack(expand=True)
+
+        # Button and Entry Counter Frame
+        bottomFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        bottomFrame.pack(padx=35, pady=0, fill="x", side='bottom')
+
+        entryCounter = ctk.CTkLabel(bottomFrame, text=f"{len(self.masterApp.selectedList.entries)} entries selected", font=("League Spartan", 48), text_color=DarkGreen2)
+        entryCounter.pack(padx=0, pady=(0,20), side='left')
+
+        def cancelButtonCommand():
+            topLevel.destroy()
+        cancelButton = ctk.CTkButton(bottomFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
+                                     border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
+        cancelButton.pack(side='right', padx=(0,0), pady=0)
+
+
+        def exportButtonCommand():
+            if not exportAnkiButton.get_state() and not exportDBButton.get_state():
+                messagebox.showerror("No Export Type Selected", "Please select an export type (Anki Deck or Lexes DB).", parent=topLevel)
+                return
+            if not exportDirectoryEntry.get_path():
+                messagebox.showerror("No File Path Selected", "Please select a file path to export the file to.", parent=topLevel)
+                return
+            if len(self.masterApp.selectedList.entries) == 0: # shouldn't ever happen but just in case
+                messagebox.showerror("No Entries Selected", "Please select entries to export.", parent=topLevel)
+                return
+            # all validations passed, proceed with export
+
+            filePath = exportDirectoryEntry.get_path()
+
+            if filePath.endswith(".csv"): # if exporting to anki deck
+                self.masterApp.selectedList.exportToAnki(filePath=filePath, includeTags=tagCheckbox.get())
+            else:
+                self.masterApp.selectedList.exportToDB(filePath=filePath, includeTags=tagCheckbox.get())
+
+            topLevel.destroy()  # close the export window
+            messagebox.showinfo("Export Successful", f"Successfully exported {len(self.masterApp.selectedList.entries)} entries.", parent=self)
+
+
+
+            
+
+
+        exportButton = ctk.CTkButton(bottomFrame, text="Export", font=("League Spartan Bold", 24), height=50, width=130, text_color=DarkGreen3, corner_radius=5,
+                                  border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=exportButtonCommand)
+        exportButton.pack(side='right', padx=(0,5), pady=0)
+
 
     # Sets Windows display settings scaling to match intended scaling for app
     def applyCustomScaling(self):
@@ -800,5 +1021,5 @@ class MainWindow(ctk.CTk):
 
 
 app = App()
-app.mainWindow.openAddWindow()
+app.mainWindow.openExportWindow()
 app.start()
