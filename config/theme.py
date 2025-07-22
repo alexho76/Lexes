@@ -18,6 +18,7 @@ ButtonGreen = "#57865B"
 
 Cream = "#F2FFDD"
 Cream2 = "#D0D9C2"
+Cream3 = "#CBCDA1"
 
 Transparent = "transparent"
 Grey1 = "#DCE4D8"

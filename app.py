@@ -131,7 +131,7 @@ class MainWindow(ctk.CTk):
                                        border_color=NavigationPrimary,
                                        border_width=2,
                                        hover_color=Cream2,
-                                       command=None)
+                                       command=self.openAddWindow)
         self.addButton.pack(side='left', padx=(9,2), pady=9)
         
         self.importButton = ctk.CTkButton(self.navigationBar,
@@ -665,31 +665,74 @@ class MainWindow(ctk.CTk):
             # Rebuild the display list again with filters off
             self.updateUI()
 
-    def openTopLevel(self): #! temporary function to test TopLevels
-        self.topLevel = ctk.CTkToplevel(self)
-        self.topLevel.geometry("600x400")
-        self.topLevel.title("Add Entry")
-
-        # Make sure it's above the main window
-        self.topLevel.lift()
-        self.topLevel.attributes("-topmost", True)
-        self.topLevel.after(10, lambda: self.topLevel.attributes("-topmost", False))
-
+    def openAddWindow(self): # Opens the add entry window
+        ### Popup Window Setup
+        topLevel = ctk.CTkToplevel(self)
+        topLevel.geometry("1280x720")
+        topLevel.title("Add Entry")
+        # Make sure it appears above the main window 
+        topLevel.lift()
+        topLevel.attributes("-topmost", True)
+        topLevel.after(10, lambda: topLevel.attributes("-topmost", False))
         # Force focus (keyboard + window manager)
-        self.topLevel.focus_force()
-        self.topLevel.grab_set()  # grabs all inputs (kb and mouse)
+        topLevel.focus_force()
+        topLevel.grab_set()  # grabs all inputs (kb and mouse)
 
-        # Test label
-        self.focusLabel = ctk.CTkLabel(self.topLevel, text="Waiting for focus...", font=("Arial", 20))
-        self.focusLabel.pack(pady=20)
+        background = ctk.CTkFrame(topLevel, corner_radius=0, fg_color=LightGreen2)
+        background.pack(fill="both", expand=True)
 
-        # Entry to test keyboard focus
-        entry = ctk.CTkEntry(self.topLevel, placeholder_text="Type here")
-        entry.pack(pady=20)
-        entry.focus_set()
+        # Term display and entry
+        termLabelFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        termLabelFrame.pack(padx=35,pady=(20,0), fill="x")
 
-        self.topLevel.bind("<FocusIn>", lambda e: self.focus_label.configure(text="TopLevel HAS focus!"))
-        self.topLevel.bind("<FocusOut>", lambda e: self.focus_label.configure(text="TopLevel lost focus."))
+        ctktermIcon = ctk.CTkImage(dark_image=termIconImage, light_image=termIconImage, size=(46,30))
+        termIconLabel = ctk.CTkLabel(termLabelFrame, text="", image=ctktermIcon, compound="left")
+        termIconLabel.pack(padx=0, pady=(10,0), side='left')
+        
+        termLabel = ctk.CTkLabel(termLabelFrame, text="Term", font=("League Spartan", 48), text_color=DarkGreen2)
+        termLabel.pack(padx=7, pady=(0,0), side='left')
+
+        termEntry = ctk.CTkEntry(background, placeholder_text="e.g. photosynthesis", font=("League Spartan", 36),
+                                 placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
+                                 border_width=3)
+        termEntry.pack(padx=35, pady=0, fill="x")
+
+        # Definition display, entry, and auto definition button
+        definitionLabelFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        definitionLabelFrame.pack(padx=35, pady=(20,0), fill="x")
+
+        ctkDefinitionIcon = ctk.CTkImage(dark_image=definitionIconImage, light_image=definitionIconImage, size=(36,36))
+        definitionIconLabel = ctk.CTkLabel(definitionLabelFrame, text="", image=ctkDefinitionIcon, compound="left")
+        definitionIconLabel.pack(padx=0, pady=(10,0), side='left')
+
+        definitionLabel = ctk.CTkLabel(definitionLabelFrame, text="Definition", font=("League Spartan", 48), text_color=DarkGreen2)
+        definitionLabel.pack(padx=7, pady=(0,0), side='left')
+
+        definitionEntry = ctk.CTkTextbox(background, font=("Bahnschrift", 36), text_color=DarkGreen2, fg_color=Cream,
+                                         border_color=DarkGreen3, border_width=3, height=150, wrap="word", scrollbar_button_color=DarkGreen3)
+
+        definitionEntry.pack(padx=35, pady=0, fill="x")
+
+        ctkAutoDefineIcon = ctk.CTkImage(dark_image=autoDefIconImage, light_image=autoDefIconImage, size=(30,30))
+        autoDefineButton = ctk.CTkButton(definitionLabelFrame, text="Auto-Define", font=("League Spartan", 28), command=None, width=200, height=32,
+                                         text_color=Pink, fg_color=Cream, border_color=Pink, border_width=3, hover_color=Cream2, image=ctkAutoDefineIcon, anchor='w')
+        autoDefineButton.pack(padx=15, pady=(8,0), side='left')
+
+        # Tag display entry
+        tagLabelFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        tagLabelFrame.pack(padx=35, pady=(20,0), fill="x")
+
+        ctkTagIcon = ctk.CTkImage(dark_image=tagIconImage, light_image=tagIconImage, size=(36,36))
+        tagIconLabel = ctk.CTkLabel(tagLabelFrame, text="", image=ctkTagIcon, compound="left")
+        tagIconLabel.pack(padx=0, pady=(10,0), side='left')
+
+        tagLabel = ctk.CTkLabel(tagLabelFrame, text="Tags (optional)", font=("League Spartan", 48), text_color=DarkGreen2)
+        tagLabel.pack(padx=7, pady=(0,0), side='left')
+
+        tagEntry = ctk.CTkEntry(background, placeholder_text="e.g. biology science vce", font=("League Spartan", 36),
+                                 placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
+                                 border_width=3)
+        tagEntry.pack(padx=35, pady=0, fill="x")
 
     # Sets Windows display settings scaling to match intended scaling for app
     def applyCustomScaling(self):
@@ -757,4 +800,5 @@ class MainWindow(ctk.CTk):
 
 
 app = App()
+app.mainWindow.openAddWindow()
 app.start()
