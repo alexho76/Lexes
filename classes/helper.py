@@ -15,9 +15,10 @@ class Helper:
             url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{q}"
 
             try:
-                response = requests.get(url, verify = None)
+                response = requests.get(url, verify = False)
                 response.raise_for_status()
-            except requests.RequestException:
+            except requests.RequestException as e:
+                print(e)
                 return None
             
             data = response.json()
@@ -48,7 +49,7 @@ class Helper:
             return defaultQuery(q)
 
         # return actual query or error
-        query = query.strip().replace(" ", "_").capitalize() # removes trailing spaces, and replaces spaces with underscores and capitalizes the first letter
+        query = query.strip().replace(" ", "_") # removes trailing spaces, and replaces spaces with underscores
         result = defaultQuery(query)
         if result:
             return result
