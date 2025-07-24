@@ -22,6 +22,7 @@ clickToSelectIconImage = Image.open(r"assets\click_to_select_icon.png").resize((
 termIconImage = Image.open(r"assets\term_icon.png").resize((33,21), Image.LANCZOS)
 definitionIconImage = Image.open(r"assets\definition_icon.png").resize((26,28), Image.LANCZOS)
 tagIconImage = Image.open(r"assets\tag_icon.png").resize((28,28), Image.LANCZOS)
+tagLightIconImage = Image.open(r"assets\tag_light_icon.png").resize((37,37), Image.LANCZOS)
 
 autoDefIconImage = Image.open(r"assets\auto_def_icon.png").resize((45,45), Image.LANCZOS)
 editIconImage = Image.open(r"assets\edit_icon.png").resize((39,39), Image.LANCZOS)
@@ -32,3 +33,5 @@ databaseNeutralIconImage = Image.open(r"assets\database_neutral_icon.png").resiz
 databaseActiveIconImage = Image.open(r"assets\database_active_icon.png").resize((53,53), Image.LANCZOS)
 
 folderIconImage = Image.open(r"assets\folder_icon.png").resize((46,36), Image.LANCZOS)
+entryDelimiterIconImage = Image.open(r"assets\entry_delimiter_icon.png").resize((35,34), Image.LANCZOS)
+termDefinitionDelimiterIconImage = Image.open(r"assets\term_definition_delimiter_icon.png").resize((33,28), Image.LANCZOS)

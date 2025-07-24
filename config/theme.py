@@ -15,6 +15,7 @@ DarkGreen1b = "#C6E1B8"
 DarkGreen2 = "#86AA77"
 DarkGreen3 = "#658657"
 ButtonGreen = "#57865B"
+ScrollbarGreen = "#719662"
 
 Cream = "#F2FFDD"
 Cream2 = "#D0D9C2"

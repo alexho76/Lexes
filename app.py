@@ -149,7 +149,8 @@ class MainWindow(ctk.CTk):
                                           fg_color=Cream,
                                           border_color=NavigationPrimary,
                                           border_width=2,
-                                          hover_color=Cream2)
+                                          hover_color=Cream2,
+                                          command=self.openImportTextWindow)
         self.importButton.pack(side='left', padx=2, pady=9)
         
         self.exportButton = ctk.CTkButton(self.navigationBar,
@@ -414,7 +415,7 @@ class MainWindow(ctk.CTk):
                 self.definitionTextbox.delete(1.0, tk.END)
                 self.definitionTextbox.insert(1.0, newDefinition)
             else:
-                print(f"No definition for {updatedTerm}")
+                messagebox.showerror("No Definition Found", f"No definition found for '{updatedTerm}'. Please enter a definition manually or try a different term.", parent=self.sidebarFrame)
 
         ctkAutoDefIconImage = ctk.CTkImage(light_image=autoDefIconImage, dark_image=autoDefIconImage, size=(45,45))
         self.sidebarAutoDefButton = ctk.CTkButton(self.sidebarButtons, 
@@ -543,7 +544,7 @@ class MainWindow(ctk.CTk):
                                             corner_radius=5,
                                             height=400,
                                             scrollbar_button_color=DarkGreen3,
-                                            scrollbar_button_hover_color=DarkGreen2,
+                                            scrollbar_button_hover_color=ScrollbarGreen,
                                             border_spacing=0,
                                             border_width=5,
                                             border_color=DarkGreen1,
@@ -559,7 +560,7 @@ class MainWindow(ctk.CTk):
                                             corner_radius=5,
                                             height=50,
                                             scrollbar_button_color=DarkGreen3,
-                                            scrollbar_button_hover_color=DarkGreen2,
+                                            scrollbar_button_hover_color=ScrollbarGreen,
                                             border_spacing=0,
                                             border_width=5,
                                             border_color=DarkGreen1,
@@ -642,6 +643,9 @@ class MainWindow(ctk.CTk):
         if not self.masterApp.selectedList.entries:
             return
 
+        if not messagebox.askyesno("Delete Entries", f"Are you sure you want to delete the selected entries ({len(self.masterApp.selectedList.entries)})? This action cannot be undone.", parent=self):
+            return
+
         uidsToDelete = [entry.uid for entry in self.masterApp.selectedList.entries]
 
         with sqlite3.connect(dbPath) as conn: # mass removal from db
@@ -715,13 +719,14 @@ class MainWindow(ctk.CTk):
 
         ctkDefinitionIcon = ctk.CTkImage(dark_image=definitionIconImage, light_image=definitionIconImage, size=(36,36))
         definitionIconLabel = ctk.CTkLabel(definitionLabelFrame, text="", image=ctkDefinitionIcon, compound="left")
-        definitionIconLabel.pack(padx=0, pady=(10,0), side='left')
+        definitionIconLabel.pack(padx=0, pady=(13,0), side='left')
 
         definitionLabel = ctk.CTkLabel(definitionLabelFrame, text="Definition", font=("League Spartan", 48), text_color=DarkGreen2)
         definitionLabel.pack(padx=7, pady=(0,0), side='left')
 
         definitionEntry = ctk.CTkTextbox(background, font=("Bahnschrift", 36), text_color=DarkGreen2, fg_color=Cream,
-                                         border_color=DarkGreen3, border_width=2.5, height=150, wrap="word", scrollbar_button_color=DarkGreen3)
+                                         border_color=DarkGreen3, border_width=2.5, height=150, wrap="word",
+                                         scrollbar_button_color=DarkGreen3, scrollbar_button_hover_color=ScrollbarGreen)
 
         definitionEntry.pack(padx=35, pady=0, fill="x")
         # Add placeholder text to definition entry
@@ -761,7 +766,7 @@ class MainWindow(ctk.CTk):
                     definitionEntry.delete(1.0, tk.END)
                     definitionEntry.insert(1.0, newDefinition)
                 else:
-                    messagebox.showerror("No Definition Found", f"No definition found for '{term}'. Please enter a definition manually.", parent=topLevel)
+                    messagebox.showerror("No Definition Found", f"No definition found for '{term}'. Please enter a definition manually or try a different term.", parent=topLevel)
             else:
                 messagebox.showerror("Empty Term", "Please enter a term before auto-defining.", parent=topLevel)
         ctkAutoDefineIcon = ctk.CTkImage(dark_image=autoDefIconImage, light_image=autoDefIconImage, size=(30,30))
@@ -909,7 +914,7 @@ class MainWindow(ctk.CTk):
         footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
         footerIcon.pack(expand=True)
 
-        # Button and Entry Counter Frame
+        # Button and Entry Counter Frame. Packed above the footer.
         bottomFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
         bottomFrame.pack(padx=35, pady=0, fill="x", side='bottom')
 
@@ -945,15 +950,124 @@ class MainWindow(ctk.CTk):
             topLevel.destroy()  # close the export window
             messagebox.showinfo("Export Successful", f"Successfully exported {len(self.masterApp.selectedList.entries)} entries.", parent=self)
 
-
-
-            
-
-
         exportButton = ctk.CTkButton(bottomFrame, text="Export", font=("League Spartan Bold", 24), height=50, width=130, text_color=DarkGreen3, corner_radius=5,
                                   border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=exportButtonCommand)
         exportButton.pack(side='right', padx=(0,5), pady=0)
 
+    def openImportTextWindow(self): # Opens the import window to import raw pasted text.
+            ### Popup Window Setup
+            topLevel = ctk.CTkToplevel(self)
+            topLevel.geometry("1280x720")
+            topLevel.title("Import Text")
+            topLevel.resizable(False, False)
+
+            # Make sure it appears above the main window 
+            topLevel.lift()
+            topLevel.attributes("-topmost", True)
+            topLevel.after(10, lambda: topLevel.attributes("-topmost", False))
+
+            # Force focus (keyboard + window manager)
+            topLevel.focus_force()
+            topLevel.grab_set()  # grabs all inputs (kb and mouse)
+
+            background = ctk.CTkFrame(topLevel, corner_radius=0, fg_color=LightGreen2)
+            background.pack(fill="both", expand=True)
+
+            # Split the window into two columns.
+            columnFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="pink")
+            columnFrame.pack(padx=25, pady=25, fill="both", expand=True)
+
+            leftColumn = ctk.CTkFrame(columnFrame, corner_radius=0, fg_color="orange", width=1230/2)
+            leftColumn.pack(side='left', padx=(0,25), pady=0, fill='y')
+            leftColumn.pack_propagate(False)
+
+            rightColumn = ctk.CTkFrame(columnFrame, corner_radius=0, fg_color="light blue", width=1230/2)
+            rightColumn.pack(side='right', padx=0, pady=0, fill='y')
+            rightColumn.pack_propagate(False)
+
+            # Left Column: Textbox
+            importTextbox = ctk.CTkTextbox(leftColumn, font=("League Spartan", 20), text_color=DarkGreen2, fg_color=Cream,
+                                           corner_radius=5, height=520, width=574, wrap="word", border_color=DarkGreen3,
+                                           border_width=2.5, scrollbar_button_color=DarkGreen3, scrollbar_button_hover_color=ScrollbarGreen)
+            importTextbox.pack(padx=0, pady=(0,25), fill="both", expand=True)
+
+            # Left Column: Parse Button
+            def parseButtonCommand():
+                pass
+            parseButton = ctk.CTkButton(leftColumn, text="Parse", font=("League Spartan Bold", 24), height=50, width=130,
+                                        text_color=Pink, corner_radius=5, border_color=Pink, fg_color=Cream,
+                                        hover_color=Cream2, border_width=2.5, command=parseButtonCommand)
+            parseButton.pack(side='bottom', padx=0, pady=0)
+
+            # Right Column: Entry delimiter label and selection
+            entryDelimiterFrame = ctk.CTkFrame(rightColumn, corner_radius=0, fg_color="transparent")
+            entryDelimiterFrame.pack(padx=0, pady=0, fill='x')
+
+            ctkEntryDelimiterIcon = ctk.CTkImage(dark_image=entryDelimiterIconImage, light_image=entryDelimiterIconImage, size=(35,34))
+            entryDelimiterIcon = ctk.CTkLabel(entryDelimiterFrame, image=ctkEntryDelimiterIcon, text="", fg_color="transparent")
+            entryDelimiterIcon.pack(side='left', padx=0, pady=0)
+            entryDelimiterLabel = ctk.CTkLabel(entryDelimiterFrame, text="Delimit entries by:", font=("League Spartan", 36), text_color=DarkGreen2)
+            entryDelimiterLabel.pack(padx=(15,0), pady=(0,7), side='left')
+
+            entryDelimiterOptions = ["Line Break (Recommended)", "Semicolon", "Comma"]
+            entryDelimiterDropdown = ctk.CTkOptionMenu(rightColumn, values=entryDelimiterOptions, font=("League Spartan", 36),
+                                                        text_color=Cream3, fg_color=Cream, dropdown_fg_color=Cream, dropdown_text_color=Cream3)
+            entryDelimiterDropdown.pack(padx=(0,30), pady=(0,0), fill='x')
+
+            # Right Column: Term definition delimiter label and selection
+            termDefinitionDelimiterFrame = ctk.CTkFrame(rightColumn, corner_radius=0, fg_color="transparent")
+            termDefinitionDelimiterFrame.pack(padx=0, pady=(40,0), fill='x')
+
+            ctkTermDefinitionDelimiterIcon = ctk.CTkImage(dark_image=termDefinitionDelimiterIconImage, light_image=termDefinitionDelimiterIconImage, size=(35,34))
+            termDefinitionDelimiterIcon = ctk.CTkLabel(termDefinitionDelimiterFrame, image=ctkTermDefinitionDelimiterIcon, text="", fg_color="transparent")
+            termDefinitionDelimiterIcon.pack(side='left', padx=0, pady=0)
+            termDefinitionDelimiterLabel = ctk.CTkLabel(termDefinitionDelimiterFrame, text="Delimit term-definitions by:", font=("League Spartan", 36), text_color=DarkGreen2)
+            termDefinitionDelimiterLabel.pack(padx=(15,0), pady=(0,7), side='left')
+
+            termDefinitionDelimiterOptions = ["Colon", "Hyphen", "Equals"]
+            termDefinitionDelimiterDropdown = ctk.CTkOptionMenu(rightColumn, values=termDefinitionDelimiterOptions, font=("League Spartan", 36),
+                                                                text_color=Cream3, fg_color=Cream, dropdown_fg_color=Cream, dropdown_text_color=Cream3)
+            termDefinitionDelimiterDropdown.pack(padx=(0,30), pady=(0,0), fill='x')
+
+            # Right Column: Mass tags label and entry. (Optional for user input)
+            massTagsFrame = ctk.CTkFrame(rightColumn, corner_radius=0, fg_color="transparent")
+            massTagsFrame.pack(padx=0, pady=(40,0), fill='x')
+
+            ctkMassTagsIcon = ctk.CTkImage(dark_image=tagLightIconImage, light_image=tagLightIconImage, size=(37,37))
+            massTagsIcon = ctk.CTkLabel(massTagsFrame, image=ctkMassTagsIcon, text="", fg_color="transparent")
+            massTagsIcon.pack(side='left', padx=0, pady=0)
+            massTagsLabel = ctk.CTkLabel(massTagsFrame, text="Mass tags (optional):", font=("League Spartan", 36), text_color=DarkGreen2)
+            massTagsLabel.pack(padx=(15,0), pady=(0,7), side='left')
+
+            massTagsEntry = ctk.CTkEntry(rightColumn, placeholder_text="e.g. biology science vce", font=("League Spartan", 36),
+                                         placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
+                                         border_width=2.5)
+            massTagsEntry.pack(padx=(0,30), pady=(0,0), fill='x')
+
+            # Right Column: Navigation Buttons (bottom right)
+            buttonFrame = ctk.CTkFrame(rightColumn, corner_radius=0, fg_color="transparent")
+            buttonFrame.pack(padx=0, pady=0, anchor='se', side='bottom')
+
+            def cancelButtonCommand():
+                topLevel.destroy()
+            cancelButton = ctk.CTkButton(buttonFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
+                                     border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
+            cancelButton.pack(side='right', padx=(0,0), pady=0)
+
+            def importButtonCommand():
+                pass
+            importButton = ctk.CTkButton(buttonFrame, text="Import", font=("League Spartan Bold", 24), height=50, width=130, text_color=DarkGreen3, corner_radius=5,
+                                    border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=importButtonCommand)
+            importButton.pack(side='right', padx=(0,5), pady=0)
+
+            # Footer
+            footer = ctk.CTkFrame(background, corner_radius=0, fg_color=LightGreen1, height=80)
+            footer.pack(fill='x', side='bottom', pady=0, padx=0)
+            footer.pack_propagate(False)
+
+            ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
+            footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
+            footerIcon.pack(expand=True)
 
     # Sets Windows display settings scaling to match intended scaling for app
     def applyCustomScaling(self):
@@ -1021,5 +1135,5 @@ class MainWindow(ctk.CTk):
 
 
 app = App()
-app.mainWindow.openExportWindow()
+app.mainWindow.openImportTextWindow()
 app.start()
