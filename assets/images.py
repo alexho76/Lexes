@@ -35,3 +35,4 @@ databaseActiveIconImage = Image.open(r"assets\database_active_icon.png").resize(
 folderIconImage = Image.open(r"assets\folder_icon.png").resize((46,36), Image.LANCZOS)
 entryDelimiterIconImage = Image.open(r"assets\entry_delimiter_icon.png").resize((35,34), Image.LANCZOS)
 termDefinitionDelimiterIconImage = Image.open(r"assets\term_definition_delimiter_icon.png").resize((33,28), Image.LANCZOS)
+zoomIconImage = Image.open(r"assets\zoom_icon.png").resize((32,32), Image.LANCZOS)

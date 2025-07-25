@@ -265,9 +265,9 @@ class MainWindow(ctk.CTk):
                                             width=238,
                                             height=65,
                                             border_width=0,
-                                            hover_color=DarkGreen1b,
                                             selected_bg_color=DarkGreen3,
                                             selected_text_color=Cream,
+                                            unselected_text_color=DarkGreen2,
                                             default_text="Sort by",
                                             dropdown_bg_color=DarkGreen1b,
                                             on_close_callback=self.sortBarCommand)
@@ -785,7 +785,7 @@ class MainWindow(ctk.CTk):
         tagLabel = ctk.CTkLabel(tagLabelFrame, text="Tags (optional)", font=("League Spartan", 48), text_color=DarkGreen2)
         tagLabel.pack(padx=7, pady=(0,0), side='left')
 
-        tagEntry = ctk.CTkEntry(background, placeholder_text="e.g. biology science vce", font=("League Spartan", 36),
+        tagEntry = ctk.CTkEntry(background, placeholder_text="e.g. nuclear_physics biology vce", font=("League Spartan", 36),
                                  placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
                                  border_width=2.5)
         tagEntry.pack(padx=35, pady=0, fill="x")
@@ -954,8 +954,9 @@ class MainWindow(ctk.CTk):
                                   border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=exportButtonCommand)
         exportButton.pack(side='right', padx=(0,5), pady=0)
 
-    def openImportTextWindow(self): # Opens the import window to import raw pasted text.
-            ### Popup Window Setup
+    # Opens the import window to import raw pasted text.
+    def openImportTextWindow(self):
+            ### Popup Window Setup ###
             topLevel = ctk.CTkToplevel(self)
             topLevel.geometry("1280x720")
             topLevel.title("Import Text")
@@ -970,6 +971,7 @@ class MainWindow(ctk.CTk):
             topLevel.focus_force()
             topLevel.grab_set()  # grabs all inputs (kb and mouse)
 
+            ### UI ###
             background = ctk.CTkFrame(topLevel, corner_radius=0, fg_color=LightGreen2)
             background.pack(fill="both", expand=True)
 
@@ -978,7 +980,7 @@ class MainWindow(ctk.CTk):
             columnFrame.pack(padx=25, pady=25, fill="both", expand=True)
 
             leftColumn = ctk.CTkFrame(columnFrame, corner_radius=0, fg_color="orange", width=1230/2)
-            leftColumn.pack(side='left', padx=(0,25), pady=0, fill='y')
+            leftColumn.pack(side='left', padx=(0,10), pady=0, fill='y')
             leftColumn.pack_propagate(False)
 
             rightColumn = ctk.CTkFrame(columnFrame, corner_radius=0, fg_color="light blue", width=1230/2)
@@ -986,10 +988,52 @@ class MainWindow(ctk.CTk):
             rightColumn.pack_propagate(False)
 
             # Left Column: Textbox
-            importTextbox = ctk.CTkTextbox(leftColumn, font=("League Spartan", 20), text_color=DarkGreen2, fg_color=Cream,
-                                           corner_radius=5, height=520, width=574, wrap="word", border_color=DarkGreen3,
+            importTextbox = ctk.CTkTextbox(leftColumn, font=("League Spartan", 24), text_color=DarkGreen2, fg_color=Cream,
+                                           corner_radius=5, height=475, width=574, wrap="word", border_color=DarkGreen3,
                                            border_width=2.5, scrollbar_button_color=DarkGreen3, scrollbar_button_hover_color=ScrollbarGreen)
-            importTextbox.pack(padx=0, pady=(0,25), fill="both", expand=True)
+            importTextbox.pack(padx=0, pady=0, fill="x")
+
+            placeholderText = "Paste or type raw text..."
+            placeholderColor = Cream3
+            normalColor = DarkGreen2
+
+            ### Functions for placeholder text functionality in importTextbox ###
+            def showPlaceholder():
+                importTextbox.configure(text_color=placeholderColor)
+                importTextbox.delete("1.0", tk.END) # clear the textbox before inserting placeholder text
+                importTextbox.insert("1.0", placeholderText)
+            def hidePlaceholder():
+                importTextbox.delete("1.0", tk.END)
+                importTextbox.configure(text_color=normalColor)
+            def onFocusIn(event):
+                if (importTextbox.get("1.0", tk.END).strip() == placeholderText and
+                    importTextbox.cget("text_color") == placeholderColor):
+                    hidePlaceholder()
+            def onFocusOut(event):
+                if not importTextbox.get("1.0", tk.END).strip():
+                    showPlaceholder()
+            
+            # Bind placeholder events to textbox
+            importTextbox.bind("<FocusIn>", onFocusIn)
+            importTextbox.bind("<FocusOut>", onFocusOut)
+
+            # Initialise the textbox with placeholder text
+            showPlaceholder()
+
+            # Icon and slider for adjusting the font size of the importTextbox (zoom)
+            sliderFrame = ctk.CTkFrame(leftColumn, corner_radius=0, fg_color="transparent")
+            sliderFrame.pack(padx=0, pady=(7.5,0), fill='x')
+
+            ctkZoomIconImage = ctk.CTkImage(light_image=zoomIconImage, dark_image=zoomIconImage, size=(32,32))
+            zoomIcon = ctk.CTkLabel(sliderFrame, image=ctkZoomIconImage, text="", fg_color="transparent")
+            zoomIcon.pack(side='left', padx=(2.5,10), pady=0)
+
+            fontSizeSlider = ctk.CTkSlider(sliderFrame, from_=10, to=32, number_of_steps=22,
+                                           command=lambda value: importTextbox.configure(font=("League Spartan", int(value))),
+                                           fg_color=Cream, button_color=DarkGreen3, button_hover_color=ScrollbarGreen, progress_color=DarkGreen2,
+                                           border_color=DarkGreen3, border_width=2.5, height=15, corner_radius=5)
+            fontSizeSlider.set(24)
+            fontSizeSlider.pack(padx=0, pady=(0,1), fill='x', side='left', expand=True)
 
             # Left Column: Parse Button
             def parseButtonCommand():
@@ -1010,8 +1054,25 @@ class MainWindow(ctk.CTk):
             entryDelimiterLabel.pack(padx=(15,0), pady=(0,7), side='left')
 
             entryDelimiterOptions = ["Line Break (Recommended)", "Semicolon", "Comma"]
-            entryDelimiterDropdown = ctk.CTkOptionMenu(rightColumn, values=entryDelimiterOptions, font=("League Spartan", 36),
-                                                        text_color=Cream3, fg_color=Cream, dropdown_fg_color=Cream, dropdown_text_color=Cream3)
+            entryDelimiterDropdown = SingleSelectComboBox(rightColumn,
+                                                          options=entryDelimiterOptions,
+                                                          font=("League Spartan", 32),
+                                                          dropdown_font=("League Spartan", 24),
+                                                          fg_color=Cream,
+                                                          text_color=Cream3,
+                                                          corner_radius=5,
+                                                          width=285,
+                                                          height=50,
+                                                          border_width=2.5,
+                                                          border_color=DarkGreen3,
+                                                          selected_bg_color=DarkGreen3,
+                                                          selected_text_color=Cream,
+                                                          unselected_text_color=DarkGreen3,
+                                                          default_text="Select delimiter character",
+                                                          dropdown_bg_color=DarkGreen1b,
+                                                          on_close_callback=None,
+                                                          ipadx=(10,0))
+        
             entryDelimiterDropdown.pack(padx=(0,30), pady=(0,0), fill='x')
 
             # Right Column: Term definition delimiter label and selection
@@ -1025,8 +1086,25 @@ class MainWindow(ctk.CTk):
             termDefinitionDelimiterLabel.pack(padx=(15,0), pady=(0,7), side='left')
 
             termDefinitionDelimiterOptions = ["Colon", "Hyphen", "Equals"]
-            termDefinitionDelimiterDropdown = ctk.CTkOptionMenu(rightColumn, values=termDefinitionDelimiterOptions, font=("League Spartan", 36),
-                                                                text_color=Cream3, fg_color=Cream, dropdown_fg_color=Cream, dropdown_text_color=Cream3)
+            
+            termDefinitionDelimiterDropdown = SingleSelectComboBox(rightColumn,
+                                                          options=termDefinitionDelimiterOptions,
+                                                          font=("League Spartan", 32),
+                                                          dropdown_font=("League Spartan", 24),
+                                                          fg_color=Cream,
+                                                          text_color=Cream3,
+                                                          corner_radius=5,
+                                                          width=285,
+                                                          height=50,
+                                                          border_width=2.5,
+                                                          border_color=DarkGreen3,
+                                                          selected_bg_color=DarkGreen3,
+                                                          selected_text_color=Cream,
+                                                          unselected_text_color=DarkGreen3,
+                                                          default_text="Select delimiter character",
+                                                          dropdown_bg_color=DarkGreen1b,
+                                                          on_close_callback=None,
+                                                          ipadx=(10,0))
             termDefinitionDelimiterDropdown.pack(padx=(0,30), pady=(0,0), fill='x')
 
             # Right Column: Mass tags label and entry. (Optional for user input)
@@ -1039,9 +1117,9 @@ class MainWindow(ctk.CTk):
             massTagsLabel = ctk.CTkLabel(massTagsFrame, text="Mass tags (optional):", font=("League Spartan", 36), text_color=DarkGreen2)
             massTagsLabel.pack(padx=(15,0), pady=(0,7), side='left')
 
-            massTagsEntry = ctk.CTkEntry(rightColumn, placeholder_text="e.g. biology science vce", font=("League Spartan", 36),
+            massTagsEntry = ctk.CTkEntry(rightColumn, placeholder_text="e.g. nuclear_physics biology vce", font=("League Spartan", 32),
                                          placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
-                                         border_width=2.5)
+                                         border_width=2.5, height=50)
             massTagsEntry.pack(padx=(0,30), pady=(0,0), fill='x')
 
             # Right Column: Navigation Buttons (bottom right)
@@ -1052,7 +1130,7 @@ class MainWindow(ctk.CTk):
                 topLevel.destroy()
             cancelButton = ctk.CTkButton(buttonFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
                                      border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
-            cancelButton.pack(side='right', padx=(0,0), pady=0)
+            cancelButton.pack(side='right', padx=(0,30), pady=0)
 
             def importButtonCommand():
                 pass

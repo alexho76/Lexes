@@ -14,16 +14,18 @@ class SingleSelectComboBox(ctk.CTkFrame):
                  dropdown_font=None,
                  fg_color="white",
                  border_color="gray",
+                 border_width=1,
                  text_color="black",
                  selected_bg_color="#cce5ff",
                  selected_text_color="#004085",
-                 hover_color="#e6f0ff",
+                 unselected_text_color,
                  corner_radius=8,
                  default_text="Select option ▼",
                  dropdown_bg_color="#C6E1B8",
                  on_close_callback=None,
+                 ipadx=(27,0),
                  **kwargs):
-        super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, **kwargs)
+        super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, border_color=border_color, border_width=border_width, **kwargs)
 
         self.options = options
         self.width = width
@@ -32,14 +34,16 @@ class SingleSelectComboBox(ctk.CTkFrame):
         self.dropdown_font = dropdown_font or ("Arial", 12)
         self.fg_color = fg_color
         self.border_color = border_color
+        self.border_width = border_width
         self.text_color = text_color
         self.selected_bg_color = selected_bg_color
         self.selected_text_color = selected_text_color
-        self.hover_color = hover_color
+        self.unselected_text_color = unselected_text_color
         self.corner_radius = corner_radius
         self.default_text = default_text
         self.dropdown_bg_color = dropdown_bg_color
         self.on_close_callback = on_close_callback
+        self.ipadx = ipadx  # Padding for dropdown options
 
         self.selected_index = None  # Single selection index, None if nothing selected
         self.option_frames = []
@@ -60,7 +64,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
         else:
             self.dropdown_height = 200
 
-        self.configure(border_width=1, border_color=self.border_color)
+        self.configure(border_width=self.border_width, border_color=self.border_color)
 
         self.selected_text_var = tk.StringVar(value=self.default_text)
 
@@ -71,6 +75,8 @@ class SingleSelectComboBox(ctk.CTkFrame):
             height=self.height,
             corner_radius=self.corner_radius,
             fg_color=self.fg_color,
+            border_color=self.border_color,
+            border_width=self.border_width,
         )
         self.main_container.pack(fill="x")
         self.main_container.pack_propagate(False)
@@ -90,7 +96,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
             text_color=self.text_color,
             anchor="w"
         )
-        self.main_label.pack(side="left", fill="x", expand=True, padx=(27, 0), pady=(4,10))
+        self.main_label.pack(side="left", fill="x", expand=True, padx=self.ipadx, pady=(4,10))
 
         # Click binding
         self.main_container.bind("<Button-1>", self._toggle_menu)
@@ -146,7 +152,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
                 row_frame,
                 text=option,
                 font=self.dropdown_font,
-                text_color=self.text_color,
+                text_color=self.unselected_text_color,
                 anchor="w",
                 justify="left",
                 width=self.width - 20,
@@ -181,7 +187,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
             label.configure(text_color=self.selected_text_color)
         else:
             frame.configure(bg=self.dropdown_bg_color)
-            label.configure(text_color=self.text_color)
+            label.configure(text_color=self.unselected_text_color)
 
     def _update_all_options(self):
         for idx in range(len(self.options)):
