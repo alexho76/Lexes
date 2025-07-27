@@ -23,6 +23,7 @@ class FilePathEntry(ctk.CTkFrame):
 
                  option_one: ExportButton, # checkbox toggle 1
                  option_two: ExportButton, # checkbox toggle 2
+                 file_type=None,
                  **kwargs):
         super().__init__(master, fg_color=fg_color, border_color=border_color, border_width=border_width, **kwargs)
 
@@ -43,17 +44,20 @@ class FilePathEntry(ctk.CTkFrame):
 
         self.option_one = option_one
         self.option_two = option_two
+        self.file_type = file_type
 
         self.file_path = ""
 
     def open_dialog(self, event=None):
-        print(f"Anki: {self.option_one.get_state()}\nDB: {self.option_two.get_state()}")
-        if self.option_one.get_state():
-            file_type = ".csv"
-        elif self.option_two.get_state():
-            file_type = ".db"
+        if self.option_one is None and self.option_two is None:
+            file_type = self.file_type if self.file_type else ""
         else:
-            file_type = ""
+            if self.option_one.get_state():
+                file_type = ".csv"
+            elif self.option_two.get_state():
+                file_type = ".db"
+            else:
+                file_type = ""
 
         if file_type == ".csv":
             file_path = filedialog.asksaveasfilename(title="Save As",

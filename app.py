@@ -138,6 +138,21 @@ class MainWindow(ctk.CTk):
                                        command=self.openAddWindow)
         self.addButton.pack(side='left', padx=(9,2), pady=9)
         
+        self.quickAddButton = ctk.CTkButton(self.navigationBar,
+                                            text="Quick Add",
+                                            width=129,
+                                            height=50,
+                                            corner_radius=5,
+                                            anchor='center',
+                                            font=("League Spartan Bold",24),
+                                            text_color=NavigationPrimary,
+                                            fg_color=Cream,
+                                            border_color=NavigationPrimary,
+                                            border_width=2,
+                                            hover_color=Cream2,
+                                            command=self.openImportTextWindow)
+        self.quickAddButton.pack(side='left', padx=2, pady=9)
+        
         self.importButton = ctk.CTkButton(self.navigationBar,
                                           text="Import",
                                           width=129,
@@ -150,7 +165,7 @@ class MainWindow(ctk.CTk):
                                           border_color=NavigationPrimary,
                                           border_width=2,
                                           hover_color=Cream2,
-                                          command=self.openImportTextWindow)
+                                          command=self.openImportDBWindow)
         self.importButton.pack(side='left', padx=2, pady=9)
         
         self.exportButton = ctk.CTkButton(self.navigationBar,
@@ -415,7 +430,9 @@ class MainWindow(ctk.CTk):
                 self.definitionTextbox.delete(1.0, tk.END)
                 self.definitionTextbox.insert(1.0, newDefinition)
             else:
-                messagebox.showerror("No Definition Found", f"No definition found for '{updatedTerm}'. Please enter a definition manually or try a different term.", parent=self.sidebarFrame)
+                messagebox.showerror("No Definition Found",
+                                     f"No definition found for '{updatedTerm}'. Please enter a definition manually or try a different term.",
+                                     parent=self.sidebarFrame)
 
         ctkAutoDefIconImage = ctk.CTkImage(light_image=autoDefIconImage, dark_image=autoDefIconImage, size=(45,45))
         self.sidebarAutoDefButton = ctk.CTkButton(self.sidebarButtons, 
@@ -643,7 +660,9 @@ class MainWindow(ctk.CTk):
         if not self.masterApp.selectedList.entries:
             return
 
-        if not messagebox.askyesno("Delete Entries", f"Are you sure you want to delete the selected entries ({len(self.masterApp.selectedList.entries)})? This action cannot be undone.", parent=self):
+        if not messagebox.askyesno("Delete Entries",
+                                   f"Are you sure you want to delete the selected entries ({len(self.masterApp.selectedList.entries)})? This action cannot be undone.",
+                                   parent=self):
             return
 
         uidsToDelete = [entry.uid for entry in self.masterApp.selectedList.entries]
@@ -766,9 +785,13 @@ class MainWindow(ctk.CTk):
                     definitionEntry.delete(1.0, tk.END)
                     definitionEntry.insert(1.0, newDefinition)
                 else:
-                    messagebox.showerror("No Definition Found", f"No definition found for '{term}'. Please enter a definition manually or try a different term.", parent=topLevel)
+                    messagebox.showerror("No Definition Found",
+                                         f"No definition found for '{term}'. Please enter a definition manually or try a different term.",
+                                         parent=topLevel)
             else:
-                messagebox.showerror("Empty Term", "Please enter a term before auto-defining.", parent=topLevel)
+                messagebox.showwarning("Empty Term",
+                                       "Please enter a term before auto-defining.",
+                                       parent=topLevel)
         ctkAutoDefineIcon = ctk.CTkImage(dark_image=autoDefIconImage, light_image=autoDefIconImage, size=(30,30))
         autoDefineButton = ctk.CTkButton(definitionLabelFrame, text="Auto-Define", font=("League Spartan", 28), command=autoDefButtonCommand, width=200, height=32,
                                          text_color=Pink, fg_color=Cream, border_color=Pink, border_width=2.5, hover_color=Cream2, image=ctkAutoDefineIcon, anchor='w')
@@ -805,7 +828,9 @@ class MainWindow(ctk.CTk):
             definition = definitionEntry.get("1.0", tk.END).strip()
             tags = tagEntry.get().strip() # still in space separated string format
             if not term or definition == placeholderText or not definition:
-                messagebox.showerror("Missing Fields", "Please fill in both the term and definition fields.", parent=topLevel)
+                messagebox.showwarning("Missing Fields",
+                                       "Please fill in both the term and definition fields.",
+                                       parent=topLevel)
                 return
             entry = Entry(term=term, definition=definition, tags=tags)
             entry.add() # add to database
@@ -930,13 +955,19 @@ class MainWindow(ctk.CTk):
 
         def exportButtonCommand():
             if not exportAnkiButton.get_state() and not exportDBButton.get_state():
-                messagebox.showerror("No Export Type Selected", "Please select an export type (Anki Deck or Lexes DB).", parent=topLevel)
+                messagebox.showwarning("No Export Type Selected",
+                                       "Please select an export type (Anki Deck or Lexes DB).",
+                                       parent=topLevel)
                 return
             if not exportDirectoryEntry.get_path():
-                messagebox.showerror("No File Path Selected", "Please select a file path to export the file to.", parent=topLevel)
+                messagebox.showwarning("No File Path Selected",
+                                       "Please select a file path to export the file to.",
+                                       parent=topLevel)
                 return
             if len(self.masterApp.selectedList.entries) == 0: # shouldn't ever happen but just in case
-                messagebox.showerror("No Entries Selected", "Please select entries to export.", parent=topLevel)
+                messagebox.showwarning("No Entries Selected",
+                                       "Please select entries to export.",
+                                       parent=topLevel)
                 return
             # all validations passed, proceed with export
 
@@ -948,7 +979,9 @@ class MainWindow(ctk.CTk):
                 self.masterApp.selectedList.exportToDB(filePath=filePath, includeTags=tagCheckbox.get())
 
             topLevel.destroy()  # close the export window
-            messagebox.showinfo("Export Successful", f"Successfully exported {len(self.masterApp.selectedList.entries)} entries.", parent=self)
+            messagebox.showinfo("Export Successful",
+                                f"Successfully exported {len(self.masterApp.selectedList.entries)} entries.",
+                                parent=self)
 
         exportButton = ctk.CTkButton(bottomFrame, text="Export", font=("League Spartan Bold", 24), height=50, width=130, text_color=DarkGreen3, corner_radius=5,
                                   border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=exportButtonCommand)
@@ -956,6 +989,14 @@ class MainWindow(ctk.CTk):
 
     # Opens the import window to import raw pasted text.
     def openImportTextWindow(self):
+            # Instantiate ImportList object
+            importList = ImportList(filePath="",
+                                    rawText="",
+                                    entryDelimiter="",
+                                    termDefinitionDelimiter="",
+                                    massTags="",
+                                    parsedEntries=[])
+            
             ### Popup Window Setup ###
             topLevel = ctk.CTkToplevel(self)
             topLevel.geometry("1280x720")
@@ -976,20 +1017,20 @@ class MainWindow(ctk.CTk):
             background.pack(fill="both", expand=True)
 
             # Split the window into two columns.
-            columnFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="pink")
-            columnFrame.pack(padx=25, pady=25, fill="both", expand=True)
+            columnFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+            columnFrame.pack(padx=25, pady=(25,15), fill="both", expand=True)
 
-            leftColumn = ctk.CTkFrame(columnFrame, corner_radius=0, fg_color="orange", width=1230/2)
+            leftColumn = ctk.CTkFrame(columnFrame, corner_radius=0, fg_color="transparent", width=1230/2)
             leftColumn.pack(side='left', padx=(0,10), pady=0, fill='y')
             leftColumn.pack_propagate(False)
 
-            rightColumn = ctk.CTkFrame(columnFrame, corner_radius=0, fg_color="light blue", width=1230/2)
+            rightColumn = ctk.CTkFrame(columnFrame, corner_radius=0, fg_color="transparent", width=1230/2)
             rightColumn.pack(side='right', padx=0, pady=0, fill='y')
             rightColumn.pack_propagate(False)
 
             # Left Column: Textbox
             importTextbox = ctk.CTkTextbox(leftColumn, font=("League Spartan", 24), text_color=DarkGreen2, fg_color=Cream,
-                                           corner_radius=5, height=475, width=574, wrap="word", border_color=DarkGreen3,
+                                           corner_radius=5, height=500, width=574, wrap="word", border_color=DarkGreen3,
                                            border_width=2.5, scrollbar_button_color=DarkGreen3, scrollbar_button_hover_color=ScrollbarGreen)
             importTextbox.pack(padx=0, pady=0, fill="x")
 
@@ -1037,7 +1078,71 @@ class MainWindow(ctk.CTk):
 
             # Left Column: Parse Button
             def parseButtonCommand():
-                pass
+                # Check if importTextbox is empty or contains only placeholder text, and if dropdowns are selected
+                if importTextbox.get("1.0", tk.END).strip() == placeholderText or not importTextbox.get("1.0", tk.END).strip():
+                    messagebox.showwarning("Empty Text",
+                                           "Please paste or type raw text to import.",
+                                           parent=topLevel)
+                    return
+                if not entryDelimiterDropdown.get_selected() or not termDefinitionDelimiterDropdown.get_selected():
+                    messagebox.showwarning("Missing Delimiters",
+                                           "Please select both entry and term-definition delimiters.",
+                                           parent=topLevel)
+                    return
+
+                # Get values from the importTextbox and dropdowns
+                rawText = importTextbox.get("1.0", tk.END).strip()
+                entryDelimiter = entryDelimiterDropdown.get_selected()
+                termDefinitionDelimiter = termDefinitionDelimiterDropdown.get_selected()
+                
+                # Setup delimiter value mapping
+                entryDelimiterMap = {
+                    "Line Break (Default)": "\n+",
+                    "Semicolon": ";",
+                    "Comma": ","
+                }
+
+                termDefinitionDelimiterMap = {
+                    "Colon (Default)": ":",
+                    "Hyphen": "-",
+                    "Equals": "="
+                }
+
+                entryDelimiter = entryDelimiterMap.get(entryDelimiter, "\n")  # Default to line break if not selected (but should always be selected since we validated above)
+                termDefinitionDelimiter = termDefinitionDelimiterMap.get(termDefinitionDelimiter, ":")  # Default to colon if not selected
+
+                # Update importList object with new parameters
+                importList.rawText = rawText
+                importList.entryDelimiter = entryDelimiter
+                importList.termDefinitionDelimiter = termDefinitionDelimiter
+
+                # Parse
+                successfulParse, trialParsedEntries = importList.parseText()
+
+                # Clear the importTextbox before inserting parsed entries (regardless of success)
+                importTextbox.delete("1.0", tk.END)
+
+                if successfulParse:
+                    # Update UI with parsed entries (attempted). For each parsed "entry" (really a tuple of strings), add to the importTextbox
+                    # entries delimited by line breaks and term-definition pairs delimited by the selected colon ':' (system-default/recommended)
+                    for entry in trialParsedEntries:
+                        term, definition = entry
+                        importTextbox.insert("end", f"{term}: {definition}\n")
+                    
+                    messagebox.showinfo("Parse Successful",
+                                        f"Successfully parsed {len(trialParsedEntries)} entries.",
+                                        parent=topLevel)
+                else:
+                    # Either a term was missing or a definition was missing (and failed to auto-retrieve), so insert the entries back into the importTextbox
+                    # entries and term-definition pairs delimited by the user's originally selected delimiters (may not be system-default or recommended)
+                    for entry in trialParsedEntries:
+                        term, definition = entry
+                        importTextbox.insert("end", f"{term}{termDefinitionDelimiter}{definition}\n")
+
+                    messagebox.showerror("Parse Incomplete",
+                                         "Some entries were not parsed successfully. Either a term was missing or a definition failed to auto-retrieve. Please check the input textbox and try again.",
+                                         parent=topLevel)
+
             parseButton = ctk.CTkButton(leftColumn, text="Parse", font=("League Spartan Bold", 24), height=50, width=130,
                                         text_color=Pink, corner_radius=5, border_color=Pink, fg_color=Cream,
                                         hover_color=Cream2, border_width=2.5, command=parseButtonCommand)
@@ -1053,7 +1158,7 @@ class MainWindow(ctk.CTk):
             entryDelimiterLabel = ctk.CTkLabel(entryDelimiterFrame, text="Delimit entries by:", font=("League Spartan", 36), text_color=DarkGreen2)
             entryDelimiterLabel.pack(padx=(15,0), pady=(0,7), side='left')
 
-            entryDelimiterOptions = ["Line Break (Recommended)", "Semicolon", "Comma"]
+            entryDelimiterOptions = ["Line Break (Default)", "Semicolon", "Comma"]
             entryDelimiterDropdown = SingleSelectComboBox(rightColumn,
                                                           options=entryDelimiterOptions,
                                                           font=("League Spartan", 32),
@@ -1085,8 +1190,8 @@ class MainWindow(ctk.CTk):
             termDefinitionDelimiterLabel = ctk.CTkLabel(termDefinitionDelimiterFrame, text="Delimit term-definitions by:", font=("League Spartan", 36), text_color=DarkGreen2)
             termDefinitionDelimiterLabel.pack(padx=(15,0), pady=(0,7), side='left')
 
-            termDefinitionDelimiterOptions = ["Colon", "Hyphen", "Equals"]
-            
+            termDefinitionDelimiterOptions = ["Colon (Default)", "Hyphen", "Equals"]
+
             termDefinitionDelimiterDropdown = SingleSelectComboBox(rightColumn,
                                                           options=termDefinitionDelimiterOptions,
                                                           font=("League Spartan", 32),
@@ -1133,7 +1238,50 @@ class MainWindow(ctk.CTk):
             cancelButton.pack(side='right', padx=(0,30), pady=0)
 
             def importButtonCommand():
-                pass
+                # Check if the importTextbox is empty or contains only placeholder text
+                if importTextbox.get("1.0", tk.END).strip() == placeholderText or not importTextbox.get("1.0", tk.END).strip():
+                    messagebox.showwarning("Empty Text",
+                                           "Please paste or type raw text to import.",
+                                           parent=topLevel)
+                    return
+                
+                # Check if all dropdowns have a selected value
+                if not entryDelimiterDropdown.get_selected() or not termDefinitionDelimiterDropdown.get_selected():
+                    proceed = messagebox.askyesno("Missing Delimiters",
+                                           "Delimiters have not been selected. Current operations will use values of:\n- Line Break (Default)\n- Colon (Default)\nDo you want wish to proceed?",
+                                           parent=topLevel)
+                    if proceed == False:
+                        return
+                
+                # Get mass tags if provided
+                importList.massTags = massTagsEntry.get().strip()
+
+                # Get rawText from importTextbox
+                importList.rawText = importTextbox.get("1.0", tk.END).strip()
+
+                # Validate entries (remake from rawText)
+                isValid = importList.validateEntries()
+                print(isValid, len(importList.parsedEntries))  # Debugging output to check validation results
+
+                if not isValid:
+                    messagebox.showerror("Invalid Entries",
+                                         "Some entries are invalid. Please check the raw text and try again.",
+                                         parent=topLevel)
+                    return
+                
+                # Import the validated entries into the database
+                count = importList.importAndClear()
+
+                # Clear importTextbox, close window
+                importTextbox.delete("1.0", tk.END)
+                topLevel.destroy()
+
+                # Update the main app UI, show success message
+                self.updateUI()
+                messagebox.showinfo("Import Successful",
+                                     f"Successfully imported {count} entries.",
+                                     parent=self)
+
             importButton = ctk.CTkButton(buttonFrame, text="Import", font=("League Spartan Bold", 24), height=50, width=130, text_color=DarkGreen3, corner_radius=5,
                                     border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=importButtonCommand)
             importButton.pack(side='right', padx=(0,5), pady=0)
@@ -1146,6 +1294,84 @@ class MainWindow(ctk.CTk):
             ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
             footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
             footerIcon.pack(expand=True)
+    
+    def openImportDBWindow(self): # Opens the import window to import a Lexes DB file.
+        ### Popup Window Setup
+        topLevel = ctk.CTkToplevel(self)
+        topLevel.geometry("1280x720")
+        topLevel.title("Import Database")
+        topLevel.resizable(False, False)
+
+        # Make sure it appears above the main window 
+        topLevel.lift()
+        topLevel.attributes("-topmost", True)
+        topLevel.after(10, lambda: topLevel.attributes("-topmost", False))
+
+        # Force focus (keyboard + window manager)
+        topLevel.focus_force()
+        topLevel.grab_set()  # grabs all inputs (kb and mouse)
+
+        background = ctk.CTkFrame(topLevel, corner_radius=0, fg_color=LightGreen2)
+        background.pack(fill="both", expand=True)
+
+        # Import from label and file directory selection and preview
+        importFromLabel = ctk.CTkLabel(background, text="Import database from:", font=("League Spartan", 48), text_color=DarkGreen2)
+        importFromLabel.pack(padx=35, pady=(15,0), anchor='nw')
+
+        importDirectoryEntry = FilePathEntry(background, font=("League Spartan", 36), text_color=Cream3, fg_color=Cream, border_color=DarkGreen3,
+                                             border_width=2.5, placeholder_text="Select file path...", placeholder_text_color=Cream3, icon=folderIconImage, icon_size=(46,36),
+                                             option_one=None, option_two=None, file_type=".db")
+        importDirectoryEntry.pack(padx=35, pady=0, fill="x")
+
+
+
+
+
+
+
+        # Footer
+        footer = ctk.CTkFrame(background, corner_radius=0, fg_color=LightGreen1, height=80)
+        footer.pack(fill='x', side='bottom', pady=0, padx=0)
+        footer.pack_propagate(False)
+
+        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
+        footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
+        footerIcon.pack(expand=True)
+
+        # Button frame at bottom
+        buttonFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        buttonFrame.pack(side="bottom", fill="x", padx=35, pady=(0, 20))
+
+        cancelButton = ctk.CTkButton(buttonFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130,
+            text_color=Red, corner_radius=5, border_color=Red, fg_color=Cream,
+            hover_color=Cream2, border_width=2.5, command=None)
+        cancelButton.pack(side="right", padx=(0, 0), pady=0)
+
+        importButton = ctk.CTkButton(buttonFrame, text="Import", font=("League Spartan Bold", 24), height=50, width=130,
+            text_color=DarkGreen3, corner_radius=5, border_color=DarkGreen3, fg_color=Cream,
+            hover_color=Cream2, border_width=2.5, command=None)
+        importButton.pack(side="right", padx=(0, 5), pady=0)
+
+        # Mass Tags Label and Entry
+        massTagsFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="Red", width=560)
+        massTagsFrame.pack(padx=0, pady=(0,20))
+
+        massTagsLabelFrame = ctk.CTkFrame(massTagsFrame, corner_radius=0, fg_color="blue")
+        massTagsLabelFrame.pack(padx=0, pady=0, fill='x')
+        
+        ctkMassTagsIcon = ctk.CTkImage(dark_image=tagLightIconImage, light_image=tagLightIconImage, size=(37,37))
+        massTagsIcon = ctk.CTkLabel(massTagsLabelFrame, image=ctkMassTagsIcon, text="", fg_color="transparent")
+        massTagsIcon.pack(side='left', padx=0, pady=0)
+        massTagsLabel = ctk.CTkLabel(massTagsLabelFrame, text="Mass tags (optional):", font=("League Spartan", 36), text_color=DarkGreen2)
+        massTagsLabel.pack(padx=(15,0), pady=(0,7), side='left')
+
+        massTagsEntry = ctk.CTkEntry(massTagsFrame, placeholder_text="e.g. nuclear_physics biology vce", font=("League Spartan", 32),
+                                        placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
+                                        border_width=2.5, height=50, width=578)
+        massTagsEntry.pack(padx=0, pady=(0,0))  
+
+
+
 
     # Sets Windows display settings scaling to match intended scaling for app
     def applyCustomScaling(self):
@@ -1213,5 +1439,5 @@ class MainWindow(ctk.CTk):
 
 
 app = App()
-app.mainWindow.openImportTextWindow()
+app.mainWindow.openImportDBWindow()
 app.start()

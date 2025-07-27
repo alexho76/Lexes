@@ -9,12 +9,12 @@ from .entry import Entry
 
 class ImportList:
     def __init__(self,
-                 filePath: str,
+                 filePath: str = "",
                  rawText: str = "",
                  entryDelimiter: str = "\n",
                  termDefinitionDelimiter: str = ":",
                  massTags: str = "",
-                 parsedEntries: list = None):
+                 parsedEntries: list = []):
         self.rawText = rawText
         self.entryDelimiter = entryDelimiter
         self.termDefinitionDelimiter = termDefinitionDelimiter
@@ -25,7 +25,7 @@ class ImportList:
     # Parses the raw text chunk into entries, then entries into a tuple of (term, definition). Auto-definition if no definition provided. Reworded parsedEntries -> trialParsedEntries to avoid duplicate names.
     # Returns Boolean of successful parse and list of parsed entries as tuples.
     def parseText(self):
-        rawEntries = re.split(r"\n+", self.rawText.strip())
+        rawEntries = re.split(self.entryDelimiter, self.rawText.strip())
         trialParsedEntries = []
         successfulParse = True
 
@@ -35,6 +35,13 @@ class ImportList:
             if len(entry) == 2:
                 term = entry[0].strip()
                 definition = entry[1].strip()
+
+                # Generate definition using Wikipedia API if definition is empty
+                if definition == "":
+                    definition = Helper.wikipediaAPI(term)
+                    if definition is None:
+                        definition = ""
+            
             elif len(entry) == 1:
                 term = entry[0].strip()
                 definition = Helper.wikipediaAPI(term)  # calls Wikipedia API, keeps definition as blank if API request failed
@@ -43,6 +50,7 @@ class ImportList:
             
             if term == "" or definition == "":
                 successfulParse = False
+            
             trialParsedEntries.append((term,definition)) # tuple of (term, definition)
         
         return successfulParse, trialParsedEntries
@@ -74,12 +82,16 @@ class ImportList:
 
     # Adds all entries in self.parsedEntries to DB and clears attributes storing inputs.
     def importAndClear(self):
+        count = len(self.parsedEntries)
         for entry in self.parsedEntries:
             entry.add()
+            print("Adding entry:", entry.term.encode('ascii', errors='replace').decode(), entry.definition.encode('ascii', errors='replace').decode())
         
         self.rawText = ""
         self.parsedEntries.clear()
         # NOTE: DO NOT CLEAR self.entryDelimiter, self.termDefinitionDelimiter, or self.massTags (keeps as a sort of setting)
+
+        return count
     
     # Imports all entries from DB at absolutePath into self.parsedEntries.
     def importDB(self,
