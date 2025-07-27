@@ -4,7 +4,7 @@ from classes.widgets.export_button import ExportButton
 from tkinter import messagebox
 
 
-class FilePathEntry(ctk.CTkFrame):
+class SelectFilePathEntry(ctk.CTkFrame):
     def __init__(self,
                  master,
 
@@ -20,8 +20,7 @@ class FilePathEntry(ctk.CTkFrame):
 
                  placeholder_text,
 
-                 option_one: ExportButton, # checkbox toggle 1
-                 option_two: ExportButton, # checkbox toggle 2
+                 file_type=None,
 
                  on_callback = None,
                  **kwargs):
@@ -42,29 +41,23 @@ class FilePathEntry(ctk.CTkFrame):
         self.icon_label.bind("<Button-1>", self.open_dialog)
         self.path_label.bind("<Button-1>", self.open_dialog)
 
-        self.option_one = option_one
-        self.option_two = option_two
+        self.file_type = file_type
 
         self.file_path = ""
 
         self.on_callback = on_callback
 
     def open_dialog(self, event=None):
-        if self.option_one.get_state():
-            file_type = ".csv"
-        elif self.option_two.get_state():
-            file_type = ".db"
-        else:
-            file_type = ""
+        file_type = self.file_type if self.file_type else ""
 
         if file_type == ".csv":
-            file_path = filedialog.asksaveasfilename(title="Save As",
+            file_path = filedialog.askopenfilename(title="Save As",
                                                     defaultextension=".csv",
                                                     filetypes=[("CSV Files", "*.csv")]) # only shows csv's and selecting a duplicate will overwrite
                         
 
         elif file_type == ".db":
-            file_path = filedialog.asksaveasfilename(title="Save As",
+            file_path = filedialog.askopenfilename(title="Save As",
                                                     defaultextension=".db",
                                                     filetypes=[("SQLite Database Files", "*.db")]) # only shows db's and selecting a duplicate will overwrite
         

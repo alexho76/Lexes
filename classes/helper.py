@@ -80,13 +80,15 @@ class Helper:
                     greater.append(entry)
 
             elif attribute == "dateAscending":
-                if entry.createdAt < pivot.createdAt:
+                # we can pseudosort by UID instead of date, since UID is created in order and will account for entries with the same createdAt date
+                if (entry.createdAt, entry.uid) < (pivot.createdAt, pivot.uid):
                     lesser.append(entry)
                 else:
                     greater.append(entry)
 
             elif attribute == "dateDescending":
-                if entry.createdAt > pivot.createdAt:
+                # we can pseudosort by UID instead of date, since UID is created in order and will account for entries with the same createdAt date
+                if (entry.createdAt, entry.uid) > (pivot.createdAt, pivot.uid):
                     lesser.append(entry)
                 else:
                     greater.append(entry)

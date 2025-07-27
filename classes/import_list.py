@@ -94,17 +94,16 @@ class ImportList:
         return count
     
     # Imports all entries from DB at absolutePath into self.parsedEntries.
-    def importDB(self,
-                 absolutePath: str):
-        with sqlite3.connect(absolutePath) as conn:
+    def importDB(self):
+        with sqlite3.connect(self.filePath) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM master")
             rows = cursor.fetchall()
 
         for row in rows:
-            term = row[1]
-            definition = row[2]
-            tags = row[3] or ""
+            term = row[0]
+            definition = row[1]
+            tags = row[2] or ""
 
             combinedTags = f"{self.massTags.strip()} {tags.strip()}".strip()
 

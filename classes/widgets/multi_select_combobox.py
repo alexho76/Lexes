@@ -17,7 +17,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
                  text_color="black",
                  selected_bg_color="#cce5ff",
                  selected_text_color="#004085",
-                 hover_color="#e6f0ff",
+                 require_frame_color="#e6f0ff",
                  corner_radius=8,
                  default_text="Select options ▼",
                  dropdown_bg_color="#C6E1B8",
@@ -35,7 +35,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.text_color = text_color
         self.selected_bg_color = selected_bg_color
         self.selected_text_color = selected_text_color
-        self.hover_color = hover_color
+        self.require_frame_color = require_frame_color
         self.corner_radius = corner_radius
         self.default_text = default_text
         self.dropdown_bg_color = dropdown_bg_color
@@ -103,32 +103,62 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.popup.overrideredirect(True)
         self.popup.configure(bg=self.dropdown_bg_color)
 
-
         self.outer_frame = tk.Frame(self.popup, bg=self.dropdown_bg_color)
-        self.outer_frame.pack(padx=0, pady=0)
+        self.outer_frame.pack(padx=0, pady=0, fill="both", expand=True)
 
-        self.require_frame = tk.Frame(self.outer_frame, bg=self.selected_bg_color, height=20)
-        self.require_frame.pack(fill="x")
+        # Require frame (header) with ctk.CTkFrame
+        self.require_frame = ctk.CTkFrame(self.outer_frame, fg_color=self.selected_bg_color, height=25, corner_radius=0)
+        self.require_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
 
+        # Left: Require all tags? checkbox
         self.require_all_var = tk.BooleanVar(value=False)
-        self.require_checkbox = ctk.CTkCheckBox(
-            self.require_frame,
-            text="Require all?",
-            variable=self.require_all_var,
-            checkbox_height=15,
-            checkbox_width=15,
-            font=("Bahnschrift", 12),
-            text_color=self.selected_text_color,
-            fg_color=self.dropdown_bg_color,
-            hover_color=self.text_color,
-            border_color=self.text_color,
-            checkmark_color='white',
-            border_width=1,
-            state="disabled",
-            text_color_disabled="#9FA69C"
-        )
-        self.require_checkbox.pack(anchor="w", padx=10, pady=(2,0))
+        self.require_checkbox = ctk.CTkCheckBox(self.require_frame,
+                                                text="Require all tags?",
+                                                variable=self.require_all_var,
+                                                checkbox_height=15,
+                                                checkbox_width=15,
+                                                font=("Bahnschrift", 12),
+                                                text_color=self.selected_text_color,
+                                                fg_color=self.dropdown_bg_color,
+                                                hover_color=self.text_color,
+                                                border_color=self.text_color,
+                                                checkmark_color='white',
+                                                border_width=1,
+                                                state="disabled",
+                                                text_color_disabled="#9FA69C")
+        self.require_checkbox.grid(row=0, column=0, sticky="w", padx=10, pady=0)
 
+        # Right: None label and checkbox
+        self.no_tags_var = tk.BooleanVar(value=False)
+        self.no_tags_frame = ctk.CTkFrame(self.require_frame, fg_color="transparent", corner_radius=0)
+        self.no_tags_frame.grid(row=0, column=1, sticky="e", padx=5, pady=0)
+
+        self.no_tags_checkbox = ctk.CTkCheckBox(self.no_tags_frame,
+                                                text="",
+                                                variable=self.no_tags_var,
+                                                checkbox_height=15,
+                                                checkbox_width=15,
+                                                width=0,
+                                                fg_color=self.dropdown_bg_color,
+                                                hover_color=self.text_color,
+                                                border_color=self.text_color,
+                                                checkmark_color='white',
+                                                border_width=1,
+                                                state="normal")
+        self.no_tags_checkbox.pack(side="right", pady=(4,0))
+
+        self.no_tags_label = ctk.CTkLabel(self.no_tags_frame,
+                                          text="None",
+                                          font=("Bahnschrift", 12),
+                                          text_color=self.selected_text_color,
+                                          bg_color="transparent",)
+        self.no_tags_label.pack(side="right", pady=0, padx=(0,7.5))
+
+        # Make the left column expand, right column hugs the edge
+        self.require_frame.grid_columnconfigure(0, weight=1)
+        self.require_frame.grid_columnconfigure(1, weight=0)
+
+        # Canvas and scrollbar (main scroll area)
         self.canvas = tk.Canvas(
             self.outer_frame,
             bg=self.dropdown_bg_color,
@@ -136,10 +166,14 @@ class MultiSelectComboBox(ctk.CTkFrame):
             width=self.width,
             height=self.dropdown_height,
         )
-        self.canvas.pack(side="left", fill="both", expand=True)
+        scrollbar = ctk.CTkScrollbar(self.outer_frame, orientation="vertical", command=self.canvas.yview,
+                                      fg_color="transparent", button_color="#658657", button_hover_color="#719662")
 
-        scrollbar = tk.Scrollbar(self.outer_frame, orient="vertical", command=self.canvas.yview)
-        scrollbar.pack(side="right", fill="y")
+        self.canvas.grid(row=1, column=0, sticky="nsew")
+        scrollbar.grid(row=1, column=1, sticky="ns")
+
+        self.outer_frame.grid_rowconfigure(1, weight=1)
+        self.outer_frame.grid_columnconfigure(0, weight=1)
 
         self.canvas.configure(yscrollcommand=scrollbar.set)
 
@@ -160,7 +194,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
             row_frame.pack_propagate(False)
 
             # Truncate text if necessary
-            max_label_width = self.width - 20
+            max_label_width = self.width - 30
             truncated_text = self._truncate_text(option, max_label_width, self.measure_font)
 
             label = ctk.CTkLabel(
@@ -246,7 +280,10 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.dropdown_icon.configure(text="▼")
 
         if self.on_close_callback:
-            self.on_close_callback(self.get_selected())
+            if self.no_tags_var.get():
+                self.on_close_callback(None)
+            else:
+                self.on_close_callback(self.get_selected())
 
         self.prevent_reopen = True
         self.after(150, lambda: setattr(self, 'prevent_reopen', False))
@@ -268,10 +305,23 @@ class MultiSelectComboBox(ctk.CTkFrame):
 
         # Enable or disable the checkbox
         if count == 0:
+            # Disable require checkbox if no tags selected
             self.require_checkbox.configure(state="disabled")
             self.require_all_var.set(False)  # optional: uncheck when disabled
-        else:
+
+            # Enable "None" checkbox if no tags selected
+            self.no_tags_checkbox.configure(state="normal")
+            self.no_tags_label.configure(text_color='white')
+
+        else: # count > 0
+            # Enable require checkbox if any tags selected
             self.require_checkbox.configure(state="normal")
+
+            # Disable "None" checkbox if any tags selected
+            self.no_tags_checkbox.configure(state="disabled")
+            self.no_tags_var.set(False)  # optional: uncheck when disabled
+            self.no_tags_label.configure(text_color="#9FA69C")
+
 
     def _truncate_text(self, text: str, max_width_px: int, font) -> str:
         ellipsis = "..."

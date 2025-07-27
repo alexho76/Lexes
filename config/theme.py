@@ -20,6 +20,7 @@ ScrollbarGreen = "#719662"
 Cream = "#F2FFDD"
 Cream2 = "#D0D9C2"
 Cream3 = "#CBCDA1"
+Cream4 = "#D3D4B3"
 
 Transparent = "transparent"
 Grey1 = "#DCE4D8"

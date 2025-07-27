@@ -61,11 +61,9 @@ class SelectedList:
             cursor = conn.cursor()
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS master (
-                uid INTEGER PRIMARY KEY AUTOINCREMENT,
-                term TEXT NOT NULL,
+                term TEXT PRIMARY KEY NOT NULL,
                 definition TEXT NOT NULL,
-                tags TEXT,
-                createdAt TEXT NOT NULL)
+                tags TEXT)
             """)
 
             for entry in entriesToExport: # exclude uid and createdAt, uses values straight from entry object, not from DB
@@ -73,9 +71,8 @@ class SelectedList:
                     tags = entry.tags.strip()
                 else:
                     tags = ""
-                createdAt = ""
-                
-                cursor.execute("INSERT INTO master (term, definition, tags, createdAt) VALUES (?, ?, ?, ?)",
-                            (entry.term, entry.definition, tags, createdAt))
+
+                cursor.execute("INSERT INTO master (term, definition, tags) VALUES (?, ?, ?)",
+                            (entry.term, entry.definition, tags))
 
             conn.commit()

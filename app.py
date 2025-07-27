@@ -18,6 +18,7 @@ from classes.widgets.locked_button import LockedButton
 from classes.widgets.dictionary_list import DictionaryList
 from classes.widgets.export_button import ExportButton
 from classes.widgets.file_path_entry import FilePathEntry
+from classes.widgets.select_file_path_entry import SelectFilePathEntry
 from assets.images import *
 
 # Library Imports
@@ -29,7 +30,7 @@ import ctypes
 import tkinter.font as tkFont
 from PIL import Image, ImageTk
 import platform
-import time
+import os
 
 class App:
     if platform.system() == "Windows": # fullscreen the app
@@ -261,7 +262,7 @@ class MainWindow(ctk.CTk):
                                              corner_radius=50,
                                              height=65,
                                              border_width=0,
-                                             hover_color=DarkGreen1b,
+                                             require_frame_color=DarkGreen3,
                                              selected_bg_color=DarkGreen3,
                                              selected_text_color=Cream,
                                              width=400,
@@ -619,16 +620,24 @@ class MainWindow(ctk.CTk):
             return
 
     def filterBarCommand(self, selectedTags):
-        selectedTags = " ".join(selectedTags)
-
-        if selectedTags != self.masterApp.displayList.filterTags or self.filterBar.require_all_selected() != self.masterApp.displayList.requireAllTags: # update filter tags
-            self.masterApp.displayList.filterTags = selectedTags
-            self.masterApp.displayList.requireAllTags = self.filterBar.require_all_selected()
-            
-            # update ui
+        if selectedTags is None: # option is "No tags" (show entries with no tags)
+            self.masterApp.displayList.filterTags = None
+            self.masterApp.displayList.requireAllTags = False
             self.updateDictionaryUI()
-        else: # selected tags unchanged so do nothing
-            return
+        else:
+            selectedTags = " ".join(selectedTags)
+
+            if (selectedTags != self.masterApp.displayList.filterTags or 
+                self.filterBar.require_all_selected() != self.masterApp.displayList.requireAllTags): # update filter tags if something has changed
+                
+                self.masterApp.displayList.filterTags = selectedTags
+                self.masterApp.displayList.requireAllTags = self.filterBar.require_all_selected()
+                
+                # update ui
+                self.updateDictionaryUI()
+            
+            else: # selected tags unchanged so do nothing
+                return
 
     def sortBarCommand(self, selectedAttribute):
         if selectedAttribute != self.masterApp.displayList.sortAttribute: # update sort attribute
@@ -911,7 +920,7 @@ class MainWindow(ctk.CTk):
         exportDirectoryLabel.pack(padx=0, pady=0, anchor='nw')
 
         exportDirectoryEntry = FilePathEntry(exportDirectoryFrame, font=("League Spartan", 36), text_color=Cream3, fg_color=Cream, border_color=DarkGreen3,
-                                             border_width=2.5, placeholder_text="Select file path...", placeholder_text_color=Cream3, icon=folderIconImage, icon_size=(46,36),
+                                             border_width=2.5, placeholder_text="Select file path...", icon=folderIconImage, icon_size=(46,36),
                                              option_one=exportAnkiButton, option_two=exportDBButton)
         exportDirectoryEntry.pack(padx=0, pady=0, fill="x")
 
@@ -1313,21 +1322,115 @@ class MainWindow(ctk.CTk):
 
         background = ctk.CTkFrame(topLevel, corner_radius=0, fg_color=LightGreen2)
         background.pack(fill="both", expand=True)
+        
+        # Initiate importList object
+        importList = ImportList(filePath="",
+                                massTags="",
+                                parsedEntries=[])
+        
+        def truncateText(text, maxPixels, font):
+            ellipsis = "..."
+            ellipsisWidth = font.measure(ellipsis)
+
+            if font.measure(text) <= maxPixels:
+                return text
+
+            for i in range(len(text), 0, -1):
+                subText = text[:i]
+                if font.measure(subText) + ellipsisWidth <= maxPixels:
+                    return subText + ellipsis
+
+            return ellipsis  # fallback if even a single char is too wide (but shouldn't happen)
+        
+        termWidth = 220 # Max width for term column
+        definitionWidth = 660 # Max width for definition column
+        tagsWidth = 330 # Max width for tags column
+        # Function to populate preview rows
+        def populatePreviewBox(entries):
+            entries = entries[:100] # Limit to first 100 entries for performance
+
+            # Clear previous rows (except header)
+            for widget in previewScrollable.winfo_children()[3:]:
+                widget.destroy()
+            # Add new rows
+            for i, (term, definition, tags) in enumerate(entries):
+                ctkRowFont = ctk.CTkFont(family=rowFont[0], size=rowFont[1])
+
+                truncatedTerm = truncateText(str(term), termWidth - 50, ctkRowFont)
+                truncatedDefinition = truncateText(str(definition), definitionWidth - 50, ctkRowFont)
+                truncatedTags = truncateText(str(tags), tagsWidth - 50, ctkRowFont)
+
+                ctk.CTkLabel(previewScrollable, text=truncatedTerm, font=rowFont, text_color=rowColor,
+                             anchor="w", width=termWidth).grid(row=i, column=0, sticky="w", padx=(8, 8))
+                ctk.CTkLabel(previewScrollable, text=truncatedDefinition, font=rowFont, text_color=rowColor,
+                             anchor="w", width=definitionWidth).grid(row=i, column=1, sticky="w", padx=(8, 8))
+                ctk.CTkLabel(previewScrollable, text=truncatedTags, font=rowFont, text_color=rowColor,
+                             anchor="w", width=tagsWidth).grid(row=i, column=2, sticky="w", padx=(8, 8))
+
+        # Hook up to file selection entry (call this function when a file is selected)
+        def onFileSelected(filepath):
+            fileName = os.path.basename(filepath)
+            chosenFile.configure(text=fileName)  # Update the label with the selected file name
+
+            # Read the database file at filepath and extract entries
+            with sqlite3.connect(filepath) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT term, definition, tags FROM master")
+                entries = cursor.fetchall()
+
+                populatePreviewBox(entries)
+                previewScrollable._parent_canvas.yview_moveto(0)
 
         # Import from label and file directory selection and preview
         importFromLabel = ctk.CTkLabel(background, text="Import database from:", font=("League Spartan", 48), text_color=DarkGreen2)
         importFromLabel.pack(padx=35, pady=(15,0), anchor='nw')
 
-        importDirectoryEntry = FilePathEntry(background, font=("League Spartan", 36), text_color=Cream3, fg_color=Cream, border_color=DarkGreen3,
-                                             border_width=2.5, placeholder_text="Select file path...", placeholder_text_color=Cream3, icon=folderIconImage, icon_size=(46,36),
-                                             option_one=None, option_two=None, file_type=".db")
+        importDirectoryEntry = SelectFilePathEntry(background, font=("League Spartan", 36), text_color=Cream3, fg_color=Cream, border_color=DarkGreen3,
+                                             border_width=2.5, placeholder_text="Select file path...", icon=folderIconImage, icon_size=(46,36),
+                                             file_type=".db", on_callback=onFileSelected)
         importDirectoryEntry.pack(padx=35, pady=0, fill="x")
 
+        # Preview Box Frame
+        previewBoxFrame = ctk.CTkFrame(background, corner_radius=8, fg_color=Cream, border_color=DarkGreen3, border_width=2.5, height=195)
+        previewBoxFrame.pack(padx=35, pady=(20,0), fill="x")
+        previewBoxFrame.pack_propagate(False)  # Keep fixed height
 
+        # Colours and fonts
+        headerFont = ("Bahnschrift Bold", 16)
+        headerColor = Cream3
+        rowFont = ("Bahnschrift", 16)
+        rowColor = Cream4
 
+        # Header frame (external to the scrollable frame)
+        headerFrame = ctk.CTkFrame(previewBoxFrame, corner_radius=0, fg_color="transparent")
+        headerFrame.pack(fill="x", padx=2.5, pady=(2.5,0))
 
+        termHeader = ctk.CTkLabel(headerFrame, text="Term", font=headerFont, text_color=headerColor, anchor="w", width=termWidth-12)
+        termHeader.grid(row=0, column=0, sticky="w", padx=8, pady=0)
+        termHeader.grid_propagate(False)
 
+        definitionHeader = ctk.CTkLabel(headerFrame, text="Definition", font=headerFont, text_color=headerColor, anchor="w", width=definitionWidth-38)
+        definitionHeader.grid(row=0, column=1, sticky="w", padx=8, pady=0)
+        definitionHeader.grid_propagate(False)
 
+        tagsHeader = ctk.CTkLabel(headerFrame, text="Tags", font=headerFont, text_color=headerColor, anchor="w", width=tagsWidth)
+        tagsHeader.grid(row=0, column=2, sticky="w", padx=8, pady=0)
+        tagsHeader.grid_propagate(False)
+
+        # Scrollable Frame inside Preview Box
+        previewScrollable = ctk.CTkScrollableFrame(previewBoxFrame, fg_color="transparent", width=10, height=210, corner_radius=0,
+                                                   scrollbar_button_color=Cream3, scrollbar_button_hover_color=Cream4, scrollbar_fg_color="transparent")
+        previewScrollable.pack(expand=True, fill="both", padx=2.5, pady=2.5)
+
+        # Configure column weights for even distribution
+        previewScrollable.grid_columnconfigure(0, weight=2)
+        previewScrollable.grid_columnconfigure(1, weight=6)
+        previewScrollable.grid_columnconfigure(2, weight=3)
+        
+        chosenFileLabel = ctk.CTkLabel(background, text="Chosen File:", font=("Bahnschrift", 24), text_color=DarkGreen2)
+        chosenFileLabel.pack(padx=35, pady=(5,0), anchor='nw')
+        chosenFile = ctk.CTkLabel(background, text="", font=("Bahnschrift", 24), text_color=DarkGreen2)
+        chosenFile.pack(padx=35, pady=0, anchor='nw')
 
         # Footer
         footer = ctk.CTkFrame(background, corner_radius=0, fg_color=LightGreen1, height=80)
@@ -1338,25 +1441,93 @@ class MainWindow(ctk.CTk):
         footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
         footerIcon.pack(expand=True)
 
-        # Button frame at bottom
-        buttonFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
-        buttonFrame.pack(side="bottom", fill="x", padx=35, pady=(0, 20))
+        # Bottom Frame for buttons and mass tagging
+        bottomFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        bottomFrame.pack(padx=35, pady=(0,20), fill="x", side='bottom')
 
+        # Button frame
+        buttonFrame = ctk.CTkFrame(bottomFrame, corner_radius=0, fg_color="transparent")
+        buttonFrame.pack(side="right", fill="x", padx=0, pady=0, anchor='s')
+
+        def cancelButtonCommand():
+            topLevel.destroy()
         cancelButton = ctk.CTkButton(buttonFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130,
             text_color=Red, corner_radius=5, border_color=Red, fg_color=Cream,
-            hover_color=Cream2, border_width=2.5, command=None)
+            hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
         cancelButton.pack(side="right", padx=(0, 0), pady=0)
+
+        def importButtonCommand():
+            # Check if the Database file meets requirements:
+            # - File path is not empty
+            if not importDirectoryEntry.get_path():
+                messagebox.showwarning("No File Path Selected",
+                                       "Please select a file path to import database from.",
+                                       parent=topLevel)
+                return
+            
+            # - Table is called master
+            with sqlite3.connect(importDirectoryEntry.get_path()) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='master'")
+                if not cursor.fetchone():
+                    messagebox.showerror("Invalid Database",
+                                         "The selected database does not contain a 'master' table. Please select a valid Lexes database file.",
+                                         parent=topLevel)
+                    return
+
+            # - Contains columns: term, definition, tags (in that order)
+            with sqlite3.connect(importDirectoryEntry.get_path()) as conn:
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA table_info(master)")
+                columns = [col[1] for col in cursor.fetchall()]
+                if not all(col in columns for col in ["term", "definition", "tags"]):
+                    messagebox.showerror("Invalid Database",
+                                         "The selected database does not contain the required columns: term, definition, tags. Please select a valid Lexes database file.",
+                                         parent=topLevel)
+                    return
+            
+            # - Contains at least one entry
+            with sqlite3.connect(importDirectoryEntry.get_path()) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM master")
+                count = cursor.fetchone()[0]
+                if count == 0:
+                    messagebox.showerror("Empty Database",
+                                         "The selected database is empty. Please select a valid Lexes database file.",
+                                         parent=topLevel)
+                    return
+
+            # If we reach here, all validations passed
+            
+            # Update importList with the file path and mass tags
+            importList.filePath = importDirectoryEntry.get_path().strip()
+            importList.massTags = massTagsEntry.get().strip()
+            
+            # Add DB entries to importList.parsedEntries
+            importList.importDB()
+
+            # Import the validated entries into the database
+            count = importList.importAndClear()
+
+            # Clear importTextbox, close window
+            topLevel.destroy()
+
+            # Update the main app UI, show success message
+            self.updateUI()
+            messagebox.showinfo("Import Successful",
+                                    f"Successfully imported {count} entries.",
+                                    parent=self)
 
         importButton = ctk.CTkButton(buttonFrame, text="Import", font=("League Spartan Bold", 24), height=50, width=130,
             text_color=DarkGreen3, corner_radius=5, border_color=DarkGreen3, fg_color=Cream,
-            hover_color=Cream2, border_width=2.5, command=None)
+            hover_color=Cream2, border_width=2.5, command=importButtonCommand)
         importButton.pack(side="right", padx=(0, 5), pady=0)
 
         # Mass Tags Label and Entry
-        massTagsFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="Red", width=560)
-        massTagsFrame.pack(padx=0, pady=(0,20))
+        massTagsFrame = ctk.CTkFrame(bottomFrame, corner_radius=0, fg_color="transparent", width=560)
+        massTagsFrame.pack(padx=0, pady=0, side='left')
 
-        massTagsLabelFrame = ctk.CTkFrame(massTagsFrame, corner_radius=0, fg_color="blue")
+        massTagsLabelFrame = ctk.CTkFrame(massTagsFrame, corner_radius=0, fg_color="transparent")
         massTagsLabelFrame.pack(padx=0, pady=0, fill='x')
         
         ctkMassTagsIcon = ctk.CTkImage(dark_image=tagLightIconImage, light_image=tagLightIconImage, size=(37,37))
@@ -1368,7 +1539,7 @@ class MainWindow(ctk.CTk):
         massTagsEntry = ctk.CTkEntry(massTagsFrame, placeholder_text="e.g. nuclear_physics biology vce", font=("League Spartan", 32),
                                         placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
                                         border_width=2.5, height=50, width=578)
-        massTagsEntry.pack(padx=0, pady=(0,0))  
+        massTagsEntry.pack(padx=0, pady=(0,0))
 
 
 
@@ -1438,6 +1609,6 @@ class MainWindow(ctk.CTk):
             return truncated
 
 
+# App start logic
 app = App()
-app.mainWindow.openImportDBWindow()
 app.start()

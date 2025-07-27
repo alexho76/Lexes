@@ -31,6 +31,14 @@ class DisplayList:
             cursor.execute("SELECT * FROM master")
             rows = cursor.fetchall()
 
+        if self.filterTags is None: # gives entries with no tags
+            for row in rows:
+                # row[3] is the tags field
+                if row[3].strip() == "":
+                    entry = Entry(uid=row[0], term=row[1], definition=row[2], tags=row[3], createdAt=row[4])
+                    self.entries.append(entry)
+            return  # Done with this special case, don't process further
+                
         filterTags = [tag for tag in re.split(r"\s+", self.filterTags.strip())
                       if tag != ""] # filter tags from " a  b  c " to ["a", "b", "c"]
         
