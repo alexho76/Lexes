@@ -465,7 +465,6 @@ class DictionaryList(ctk.CTkFrame):
 
     def _create_overflow_tag_box(self, container: ctk.CTkFrame, unused_tags: List[str]):
         def on_button_click(event=None):
-            print("button")
             self._toggle_overflow_popup(tag_button, unused_tags)
             return "break"
 

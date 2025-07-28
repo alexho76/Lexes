@@ -4,7 +4,7 @@
 # Class and Asset Imports
 from tkinter import messagebox
 from config.theme import *
-from config.configurations import *
+from config.configurations import * # imports DBPATH
 from classes.helper import Helper
 from classes.entry import Entry
 from classes.display_list import DisplayList
@@ -43,35 +43,6 @@ class App:
     def initaliseUI(self):
         self.setupDB()
 
-        # Initalise displayList and selectedList
-        self.entries = [Entry(term="fundamental forces", definition="In physics, fundamental forces (or fundamental interactions) are the basic forces in nature that cannot be reduced to more basic interactions. They are the forces that govern how objects and particles interact and how certain particles decay. There are four known fundamental forces: gravity, electromagnetism, the strong nuclear force, and the weak nuclear force.", tags="physics nuclear_physics forces vce"),
-            Entry(term="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii,", definition="abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde abcde", tags="iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii biology plants energy skibble science chemistry science2 science3"),
-            Entry(term="Einstein's Theory of General Relativity (Classical Mechanics) AKA General Relativity", definition="A theory of relativity that states that the speed of light is the same in all frames of reference. Einstein discovered this theory in 1905 when he was working on the photoelectric effect.", tags="physics quantum_theory science"),
-            Entry(term="Entropy", definition="A measure of the disorder or randomness in a closed system, important in thermodynamics.", tags="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ science physics chemical_science_exam_study"),
-            Entry(term="Mitochondria", definition="Organelles known as the powerhouse of the cell; generate most of the cell's supply of ATP.", tags="biology cell energy"),
-            Entry(term="Quantum Mechanics", definition="A fundamental theory in physics describing nature at the smallest scales.", tags="physics quantum_theory science"),
-            
-            Entry(term="Algorithm", definition="A step-by-step procedure for solving a problem or accomplishing some end.",
-                    tags="computer_science_aaaaabbbcc programming algorit science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
-            
-            Entry(term="Ecosystem", definition="A biological community of interacting organisms and their physical environment.", tags="biology     environment ecology computer_scienc1e programming logic algorithms science mathematics science procedural process programming_definition computer_science2 programming_definition2 science2 computer_science3 programming_definition3 science3"),
-            Entry(term="Thermodynamics", definition="The study of the behavior of matter and energy.", tags="physics thermodynamics science"),
-            Entry(term="Electrochemistry", definition="The study of the behavior of matter and energy.", tags="physics chemistry science")]
-        
-        for i in range(50):
-            self.entries.append(Entry(term=f"Term {i}", definition=f"Definition {i}", tags=f"Tag {i}"))
-        
-        # clear all rows from database
-        with sqlite3.connect(dbPath) as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM master")
-            # clear uid counter
-            cursor.execute("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'master'")
-
-        for entry in self.entries:
-            # add entry to database
-            entry.add()
-
         self.displayList = DisplayList()
         self.displayList.build()
         self.selectedList = SelectedList()
@@ -83,7 +54,7 @@ class App:
         self.mainWindow.mainloop()
 
     def setupDB(self):
-        with sqlite3.connect(dbPath) as conn:
+        with sqlite3.connect(DBPATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS master (
@@ -453,7 +424,7 @@ class MainWindow(ctk.CTk):
         def sidebarDeleteButtonCommand():
             self.sidebarFrame.destroy()
 
-            with sqlite3.connect(dbPath) as conn: # mass removal from db
+            with sqlite3.connect(DBPATH) as conn: # mass removal from db
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM master WHERE uid = ?", (entry.uid,))
                 conn.commit()
@@ -676,7 +647,7 @@ class MainWindow(ctk.CTk):
 
         uidsToDelete = [entry.uid for entry in self.masterApp.selectedList.entries]
 
-        with sqlite3.connect(dbPath) as conn: # mass removal from db
+        with sqlite3.connect(DBPATH) as conn: # mass removal from db
             cursor = conn.cursor()
             cursor.executemany("DELETE FROM master WHERE uid = ?", [(uid,) for uid in uidsToDelete])
             conn.commit()
@@ -1588,7 +1559,7 @@ class MainWindow(ctk.CTk):
         seen = set()
         orderedTags = []
 
-        with sqlite3.connect(dbPath) as conn:
+        with sqlite3.connect(DBPATH) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT tags FROM master ORDER BY uid")  # or createdAt
             for (tagString,) in cursor.fetchall():

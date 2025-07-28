@@ -1,10 +1,30 @@
-### Selected List Class
-### Used to store a list of selected Entry objects. Can perform actions on selected Entry objects such as deleting or exporting.
+"""
+File: classes/selected_list.py
 
-import os
+Purpose:
+    Defines the SelectedList class, which is used to manage a list of selected Entry objects.
+    Can perform actions on selected Entry objects such as unselecting, deleting, and exporting to CSV or database files.
+
+Contains:
+    - SelectedList class with methods for managing selected entries.
+    - Methods:
+        - unselectAll: Unselects all entries in the selected list.
+        - deleteAll: Deletes all selected entries from the database and clears the selected list.
+        - exportToAnki: Exports selected entries to an Anki-compatible CSV file.
+        - exportToDB: Exports selected entries to a new SQLite database file.
+
+Naming Conventions:
+    - Class names are in PascalCase (SelectedList).
+    - Method names are in camelCase (unselectAll, deleteAll, exportToAnki, exportToDB).
+    - Attributes are in camelCase (entries).
+    - General code follows camelCase.
+"""
+### Module Imports ###
 import sqlite3
-from .helper import Helper
 import csv
+
+### Local Class Imports ###
+from .helper import Helper
 
 class SelectedList:
     def __init__(self,
@@ -13,21 +33,21 @@ class SelectedList:
     
     # NOTE: Takes selectedList object as parameter.
     def unselectAll(self,
-                    selectedList: 'SelectedList'):
+                    selectedList: 'SelectedList') -> None:
         for entry in self.entries:
             entry.unselect(selectedList)
 
-    # Deletes all selected entries from DB. Clears selectedList.entries afterwards as delete() doesn't 'remove' object itself. 
-    def deleteAll(self):
+    # Deletes all selected entries from DB and clears self.entries.
+    def deleteAll(self) -> None:
         for entry in self.entries:
             entry.delete()
         self.entries.clear()
     
     # Creates a new CSV at location and writes entry info to rows.
-    # NOTE: CSV FORMAT: is term;definition;tags\n
+    # NOTE: ANKI FORMAT: term;definition;tags
     def exportToAnki(self,
                      filePath: str,
-                     includeTags: bool = True):
+                     includeTags: bool = True) -> None:
         fullPath = filePath
 
         entriesToExport = self.entries.copy() # mutable argument solution
@@ -37,7 +57,7 @@ class SelectedList:
             writer = csv.writer(csvFile, delimiter=';', quoting=csv.QUOTE_MINIMAL) # uses csv library to write
 
             for entry in entriesToExport:
-                term = entry.term.replace(";", ",") # replaces semi-colons with commas to avoid breakign the CSV delimiter
+                term = entry.term.replace(";", ",") # replaces semi-colons with commas to avoid breaking the CSV delimiter
                 definition = entry.definition.replace(";", ",")
                 
                 if includeTags:
@@ -51,7 +71,7 @@ class SelectedList:
     # NOTE: exported .db table has same format as original .db table, but uid and createdAt columns are left blank for re-creation upon import.
     def exportToDB(self,
                    filePath: str,
-                   includeTags: bool = True):
+                   includeTags: bool = True) -> None:
         fullPath = filePath
 
         entriesToExport = self.entries.copy() # mutable argument solution

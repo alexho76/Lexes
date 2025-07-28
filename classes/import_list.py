@@ -1,11 +1,31 @@
-### Import List Class
-### Used to format a list of raw text of terms and/or definitions into valid Entry objects which can be imported into the database.
+"""
+File: classes/import_list.py
 
+Purpose:
+    Defines the ImportList class, which is used to format and process a list of raw text (of terms and definitions)
+    into valid Entry objects that can be imported into the Lexes app's database. Handles parsing, validation, and batch importing of entries.
+
+Contains:
+    - ImportList class with methods for parsing text, validating entries, and importing them into the database.
+    - Methods:
+        - parseText: Parses the raw text into term-definition tuples, generating definitions using the Wikipedia API if needed.
+        - validateEntries: Validates the format of the parsed entries and populates parsedEntries if valid, ready for import.
+        - importAndClear: Imports the validated entries into the database and resets the appropriate attributes.
+
+Naming Conventions:
+    - Class names are in PascalCase (ImportList).
+    - Method names are in camelCase (parseText, validateEntries, importAndClear, importDB).
+    - Attributes are in camelCase (rawText, entryDelimiter, termDefinitionDelimiter, massTags, parsedEntries, filePath).
+    - General code follows camelCase.
+"""
+
+### Module Imports ###
 import re
 import sqlite3
+
+### Local Class Imports ###
 from .helper import Helper
 from .entry import Entry
-
 
 class ImportList:
     def __init__(self,
@@ -14,7 +34,7 @@ class ImportList:
                  entryDelimiter: str = "\n",
                  termDefinitionDelimiter: str = ":",
                  massTags: str = "",
-                 parsedEntries: list = []):
+                 parsedEntries: list[Entry] = None):
         self.rawText = rawText
         self.entryDelimiter = entryDelimiter
         self.termDefinitionDelimiter = termDefinitionDelimiter
@@ -22,9 +42,10 @@ class ImportList:
         self.parsedEntries = parsedEntries if parsedEntries is not None else [] # mutable argument solution
         self.filePath = filePath
 
-    # Parses the raw text chunk into entries, then entries into a tuple of (term, definition). Auto-definition if no definition provided. Reworded parsedEntries -> trialParsedEntries to avoid duplicate names.
-    # Returns Boolean of successful parse and list of parsed entries as tuples.
-    def parseText(self):
+    # Parses the raw text chunk into entries (term, definition) tuples. Generates definitions via Wikipedia API if needed.
+    # Returns Boolean of successful parse and list of parsed entries as tuples all in a tuple.
+    # NOTE: Reworded parsedEntries -> trialParsedEntries to avoid duplicate names.
+    def parseText(self) -> tuple[bool, list[tuple[str, str]]]:
         rawEntries = re.split(self.entryDelimiter, self.rawText.strip())
         trialParsedEntries = []
         successfulParse = True
@@ -50,15 +71,15 @@ class ImportList:
             
             if term == "" or definition == "":
                 successfulParse = False
-            
-            trialParsedEntries.append((term,definition)) # tuple of (term, definition)
-        
+
+            trialParsedEntries.append((term, definition)) # tuple of (term, definition)
+
         return successfulParse, trialParsedEntries
 
-    # Checks if text is correctly formatted (entries by line break, term and definition by colon). Returns Boolean, and appends Entry objects to self.parsedEntries list if successful.
-    def validateEntries(self):
+    # Validates text format (one entry per line, term and definition separated by colon). Populates self.parsedEntries with Entry objects if successful.
+    # Returns True if all entries are valid, False otherwise.
+    def validateEntries(self) -> bool:
         self.parsedEntries.clear()
-
         entriesToValidate = re.split(r"\n+", self.rawText.strip())
 
         for entryToValidate in entriesToValidate:
@@ -81,11 +102,14 @@ class ImportList:
         return True
 
     # Adds all entries in self.parsedEntries to DB and clears attributes storing inputs.
-    def importAndClear(self):
+    # Returns the number of entries added.
+    def importAndClear(self) -> int:
         count = len(self.parsedEntries)
+        
         for entry in self.parsedEntries:
             entry.add()
-            print("Adding entry:", entry.term.encode('ascii', errors='replace').decode(), entry.definition.encode('ascii', errors='replace').decode())
+            # debugging line to see what is being added (optional)
+            # print("Adding entry:", entry.term.encode('ascii', errors='replace').decode(), entry.definition.encode('ascii', errors='replace').decode())
         
         self.rawText = ""
         self.parsedEntries.clear()
@@ -94,17 +118,18 @@ class ImportList:
         return count
     
     # Imports all entries from DB at absolutePath into self.parsedEntries.
-    def importDB(self):
+    def importDB(self) -> None:
         with sqlite3.connect(self.filePath) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM master")
             rows = cursor.fetchall()
 
-        for row in rows:
+        for row in rows: # Reads each row from DB
             term = row[0]
             definition = row[1]
             tags = row[2] or ""
 
+            # Adds massTags to row's pre-existing tags
             combinedTags = f"{self.massTags.strip()} {tags.strip()}".strip()
 
             entry = Entry(term=term, definition=definition, tags=combinedTags)

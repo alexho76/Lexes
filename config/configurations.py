@@ -1,5 +1,15 @@
-### Configurations
-### App-wide accessible configurations/settings for the program
+"""
+File: config/configurations.py
 
-# Default database path
-dbPath = r"database\lexes.db"
+Purpose:
+    Stores constant app-wide configurations and settings for the program.
+
+Contains:
+    - DBPATH: Default database path for the application.
+
+Naming Conventions:
+    - Constants are in UPPERCASE (DBPATH).
+"""
+
+### Constants ###
+DBPATH = r"database\lexes.db" # Default database path for the application.
