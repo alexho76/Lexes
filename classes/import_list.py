@@ -13,10 +13,10 @@ Contains:
         - importAndClear: Imports the validated entries into the database and resets the appropriate attributes.
 
 Naming Conventions:
-    - Class names are in PascalCase (ImportList).
-    - Method names are in camelCase (parseText, validateEntries, importAndClear, importDB).
-    - Attributes are in camelCase (rawText, entryDelimiter, termDefinitionDelimiter, massTags, parsedEntries, filePath).
-    - General code follows camelCase.
+    - Class names: PascalCase (ImportList).
+    - Method names: camelCase (parseText, validateEntries, importAndClear, importDB).
+    - Attributes: camelCase (rawText, entryDelimiter, termDefinitionDelimiter, massTags, parsedEntries, filePath).
+    - General code: camelCase.
 """
 
 ### Module Imports ###

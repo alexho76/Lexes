@@ -13,11 +13,11 @@ Contains:
     - Methods for utility: selecting, unselecting, and automatic definition generation.
 
 Naming Conventions:
-    - Class names are in PascalCase (Entry).
-    - Method names are in camelCase (add, edit, delete, select, unselect, autoGenerate).
-    - Attributes are in camelCase (uid, term, definition, tags, createdAt).
-    - Constants are in UPPERCASE (DBPATH).
-    - General code follows camelCase.
+    - Class names: PascalCase (Entry).
+    - Method names: camelCase (add, edit, delete, select, unselect, autoGenerate).
+    - Attributes: camelCase (uid, term, definition, tags, createdAt).
+    - Constants: UPPERCASE (DBPATH).
+    - General code: camelCase.
 """
 
 ### Module Imports ###

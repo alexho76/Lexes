@@ -8,7 +8,7 @@ Contains:
     - DBPATH: Default database path for the application.
 
 Naming Conventions:
-    - Constants are in UPPERCASE (DBPATH).
+    - Constants: UPPERCASE (DBPATH).
 """
 
 ### Constants ###

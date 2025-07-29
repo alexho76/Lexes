@@ -13,8 +13,8 @@ Contains:
         - Special Colours (Pinks and Export Blue)
 
 Naming Conventions:
-    - Colours are named in PascalCase and named to reflect their usage or tone.
-    - Variations of colours are suffixed with numbers (e.g., LightGreen1, LightGreen2).
+    - Colours: PascalCase and named to reflect their usage or tone.
+    - Variations of colours: PascalCase suffixed with numbers (e.g., LightGreen1, LightGreen2).
 """
 
 ### Navigation Colours ###
@@ -51,4 +51,3 @@ Pink = "#FB7FFF"
 LightPink1 = "#E6DCDE"
 LightPink2 = "#DFD3D6"
 ExportBlue = "#7A9DF0"
-

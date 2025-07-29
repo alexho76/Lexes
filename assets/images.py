@@ -18,7 +18,7 @@ Contains:
     - Delimiter icons for entries and term/definition separation
 
 Naming Conventions:
-    - All PIL.Image objects named using camelCase, and start with their description and end with "Icon" and/or "Image".
+    - All PIL.Image objects: camelCase and start with their description and end with "Icon" and/or "Image".
 """
 
 from PIL import Image
@@ -62,4 +62,3 @@ folderIconImage = Image.open(r"assets\folder_icon.png").resize((46,36), Image.LA
 ### Delimiter Icons ###
 entryDelimiterIconImage = Image.open(r"assets\entry_delimiter_icon.png").resize((35,34), Image.LANCZOS)
 termDefinitionDelimiterIconImage = Image.open(r"assets\term_definition_delimiter_icon.png").resize((33,28), Image.LANCZOS)
-

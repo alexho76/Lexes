@@ -14,11 +14,11 @@ Contains:
     - Sorting by various attributes (alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending).
 
 Naming Conventions:
-    - Class names are in PascalCase (DisplayList).
-    - Method names are in camelCase (filter, search, sort, selectAll).
-    - Attributes are in camelCase (entries, filterTags, requireAllTags, searchKeyword, sortAttribute).
-    - Constants are in UPPERCASE (DBPATH).
-    - General code follows camelCase.
+    - Class names: PascalCase (DisplayList).
+    - Method names: camelCase (filter, search, sort, selectAll).
+    - Attributes: camelCase (entries, filterTags, requireAllTags, searchKeyword, sortAttribute).
+    - Constants: UPPERCASE (DBPATH).
+    - General code: camelCase.
 """
 
 ### Module Imports ###

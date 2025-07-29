@@ -110,8 +110,8 @@ class MainWindow(ctk.CTk):
                                        command=self.openAddWindow)
         self.addButton.pack(side='left', padx=(9,2), pady=9)
         
-        self.quickAddButton = ctk.CTkButton(self.navigationBar,
-                                            text="Quick Add",
+        self.bulkAddButton = ctk.CTkButton(self.navigationBar,
+                                            text="Bulk Add",
                                             width=129,
                                             height=50,
                                             corner_radius=5,
@@ -123,7 +123,7 @@ class MainWindow(ctk.CTk):
                                             border_width=2,
                                             hover_color=Cream2,
                                             command=self.openImportTextWindow)
-        self.quickAddButton.pack(side='left', padx=2, pady=9)
+        self.bulkAddButton.pack(side='left', padx=2, pady=9)
         
         self.importButton = ctk.CTkButton(self.navigationBar,
                                           text="Import",
@@ -980,7 +980,7 @@ class MainWindow(ctk.CTk):
             ### Popup Window Setup ###
             topLevel = ctk.CTkToplevel(self)
             topLevel.geometry("1280x720")
-            topLevel.title("Import Text")
+            topLevel.title("Bulk Add Entries")
             topLevel.resizable(False, False)
 
             # Make sure it appears above the main window 
@@ -1341,16 +1341,18 @@ class MainWindow(ctk.CTk):
         # Hook up to file selection entry (call this function when a file is selected)
         def onFileSelected(filepath):
             fileName = os.path.basename(filepath)
-            chosenFile.configure(text=fileName)  # Update the label with the selected file name
 
             # Read the database file at filepath and extract entries
             with sqlite3.connect(filepath) as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT term, definition, tags FROM master")
                 entries = cursor.fetchall()
+                count = len(entries)
 
                 populatePreviewBox(entries)
                 previewScrollable._parent_canvas.yview_moveto(0)
+
+            chosenFile.configure(text=f"{fileName} ({count} entries)")  # Update the label with the selected file name
 
         # Import from label and file directory selection and preview
         importFromLabel = ctk.CTkLabel(background, text="Import database from:", font=("League Spartan", 48), text_color=DarkGreen2)

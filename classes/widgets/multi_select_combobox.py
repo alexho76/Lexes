@@ -1,7 +1,29 @@
-### Multi-Select Combobox Custom Widget
-### Dropdown/Combobox widget which allows user to select multiple options.
-### Naming Convention: snake_case
+"""
+File: classes/widgets/multi_select_combobox.py
 
+Purpose:
+    Defines the MultiSelectComboBox custom widget for the Lexes app. This widget provides a dropdown/combobox
+    that allows users to select multiple options simultaneously, with support for changing selection requirements.
+
+Contains:
+    - MultiSelectComboBox class: A CTkFrame-based widget containing a dropdown list with checkboxes, "Require all tags" and "None" toggles,
+    tooltips for truncated text, and scrollable options.
+    - Methods for showing/hiding the dropdown, updating selection visuals, refreshing options, and retrieving selected values.
+
+Naming Conventions:
+    - Class names: PascalCase (MultiSelectComboBox)
+    - Public method names: snake_case (get_selected, require_all_selected, refresh_options)
+    - Private method names: snake_case, prefixed with an underscore (e.g., _toggle_menu, _create_menu_popup)
+    - Attributes: snake_case (option_frames, option_labels, selected_indices, etc.)
+    - General code: snake_case. NOTE: Custom widgets use snake_case while the rest of the codebase uses camelCase.
+
+Usage:
+    Use MultiSelectComboBox to provide a flexible dropdown that enables multi-selection for tags, categories, or other options.
+    Supports dynamic option refresh and "require all" and "None" logic for advanced workflows.
+    MultiSelectComboBox used for tag dropdown in Main Window.
+"""
+
+### Module Imports ###
 import tkinter as tk
 import customtkinter as ctk
 
@@ -23,8 +45,12 @@ class MultiSelectComboBox(ctk.CTkFrame):
                  dropdown_bg_color="#C6E1B8",
                  on_close_callback=None,
                  **kwargs):
+        """
+        Initialise the MultiSelectComboBox widget with custom styles, options, and callbacks.
+        """
         super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, **kwargs)
 
+        ### Config and State ###
         self.options = options
         self.width = width
         self.height = height
@@ -48,45 +74,40 @@ class MultiSelectComboBox(ctk.CTkFrame):
 
         self.measure_font = ctk.CTkFont(family=self.dropdown_font[0], size=self.dropdown_font[1])
 
+        # Dynamically set dropdown height based on number of options
         numOptions = len(self.options)
-        if numOptions < 5: # sets the height of the dropdown
+        if numOptions < 5:
             self.dropdown_height = 40 * numOptions + 25
-        else: # max of 5 rows displayed -> 200 pixels of height
+        else: # Max height for 5 rows  displayed
             self.dropdown_height = 200 + 25
 
         self.configure(border_width=1, border_color=self.border_color)
 
         self.selected_text_var = tk.StringVar(value=self.default_text)
 
-        # Main container with rounded corners
-        self.main_container = ctk.CTkFrame(
-            self,
-            width=self.width,
-            height=self.height,
-            corner_radius=self.corner_radius,
-            fg_color=self.fg_color,
-        )
+        ### Main Container (Rounded) ###
+        self.main_container = ctk.CTkFrame(self,
+                                           width=self.width,
+                                           height=self.height,
+                                           corner_radius=self.corner_radius,
+                                           fg_color=self.fg_color)
         self.main_container.pack(fill="x")
         self.main_container.pack_propagate(False)
 
-        self.dropdown_icon = ctk.CTkLabel(
-            self.main_container,
-            text="▼",
-            font=self.font,
-            text_color=self.text_color
-        )
+        self.dropdown_icon = ctk.CTkLabel(self.main_container,
+                                          text="▼",
+                                          font=self.font,
+                                          text_color=self.text_color)
         self.dropdown_icon.pack(side="right", padx=(0, 25), pady=(4,10))
 
-        self.main_label = ctk.CTkLabel(
-            self.main_container,
-            textvariable=self.selected_text_var,
-            font=self.font,
-            text_color=self.text_color,
-            anchor="w"
-        )
+        self.main_label = ctk.CTkLabel(self.main_container,
+                                       textvariable=self.selected_text_var,
+                                       font=self.font,
+                                       text_color=self.text_color,
+                                       anchor="w")
         self.main_label.pack(side="left", fill="x", expand=True, padx=(27, 0), pady=(4,10))
 
-        # Click binding
+        ### Click binding to open/close the dropdown ###
         self.main_container.bind("<Button-1>", self._toggle_menu) # left click
         self.dropdown_icon.bind("<Button-1>", self._toggle_menu)
         self.main_label.bind("<Button-1>", self._toggle_menu)
@@ -95,9 +116,14 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.inner_frame = None
         self.is_menu_open = False
 
+        ### Build Dropdown Popup ###
         self._create_menu_popup()
 
-    def _create_menu_popup(self):
+    def _create_menu_popup(self) -> None:
+        """
+        Private Method
+        Creates the dropdown popup window and populates it with option frames, checkboxes, and labels.
+        """
         self.popup = tk.Toplevel(self)
         self.popup.withdraw()
         self.popup.overrideredirect(True)
@@ -106,11 +132,11 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.outer_frame = tk.Frame(self.popup, bg=self.dropdown_bg_color)
         self.outer_frame.pack(padx=0, pady=0, fill="both", expand=True)
 
-        # Require frame (header) with ctk.CTkFrame
+        ### 'Require All Tags?' and 'None' Frame (Header) ###
         self.require_frame = ctk.CTkFrame(self.outer_frame, fg_color=self.selected_bg_color, height=25, corner_radius=0)
         self.require_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
 
-        # Left: Require all tags? checkbox
+        # Left: Require All Tags? Checkbox
         self.require_all_var = tk.BooleanVar(value=False)
         self.require_checkbox = ctk.CTkCheckBox(self.require_frame,
                                                 text="Require all tags?",
@@ -158,16 +184,14 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.require_frame.grid_columnconfigure(0, weight=1)
         self.require_frame.grid_columnconfigure(1, weight=0)
 
-        # Canvas and scrollbar (main scroll area)
-        self.canvas = tk.Canvas(
-            self.outer_frame,
-            bg=self.dropdown_bg_color,
-            highlightthickness=0,
-            width=self.width,
-            height=self.dropdown_height,
-        )
+        ### Canvas and Scrollbar ###
+        self.canvas = tk.Canvas(self.outer_frame,
+                                bg=self.dropdown_bg_color,
+                                highlightthickness=0,
+                                width=self.width,
+                                height=self.dropdown_height)
         scrollbar = ctk.CTkScrollbar(self.outer_frame, orientation="vertical", command=self.canvas.yview,
-                                      fg_color="transparent", button_color="#658657", button_hover_color="#719662")
+                                     fg_color="transparent", button_color="#658657", button_hover_color="#719662")
 
         self.canvas.grid(row=1, column=0, sticky="nsew")
         scrollbar.grid(row=1, column=1, sticky="ns")
@@ -178,16 +202,15 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.canvas.configure(yscrollcommand=scrollbar.set)
 
         self.inner_frame = tk.Frame(self.canvas, bg=self.dropdown_bg_color, width=self.width)
-        self.inner_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        )
+        self.inner_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
         self.canvas.create_window((0, 0), window=self.inner_frame, anchor="nw")
 
+        ### Scroll Bindings ###
         self.canvas.bind("<Enter>", lambda e: self._bind_mousewheel())
         self.canvas.bind("<Leave>", lambda e: self._unbind_mousewheel())
 
+        ### Create option rows with checkboxes and labels ###
         for i, option in enumerate(self.options):
             row_frame = tk.Frame(self.inner_frame, bg=self.dropdown_bg_color, width=self.width, height=40)
             row_frame.pack(fill="x", anchor="w", pady=0)
@@ -197,15 +220,13 @@ class MultiSelectComboBox(ctk.CTkFrame):
             max_label_width = self.width - 30
             truncated_text = self._truncate_text(option, max_label_width, self.measure_font)
 
-            label = ctk.CTkLabel(
-                row_frame,
-                text=truncated_text,
-                font=self.dropdown_font,
-                text_color=self.text_color,
-                anchor="w",
-                justify="left",
-                width=self.width - 20,
-            )
+            label = ctk.CTkLabel(row_frame,
+                                 text=truncated_text,
+                                 font=self.dropdown_font,
+                                 text_color=self.text_color,
+                                 anchor="w",
+                                 justify="left",
+                                 width=self.width - 20)
             label.pack(side="left", fill="x", expand=True, padx=10, pady=0)
 
             # Add tooltip if text was truncated
@@ -220,15 +241,21 @@ class MultiSelectComboBox(ctk.CTkFrame):
                 self._update_option_visual(idx)
                 self._on_select()
 
+            # Bind click for selection
             row_frame.bind("<Button-1>", lambda e, idx=i: toggle_selection(idx))
             label.bind("<Button-1>", lambda e, idx=i: toggle_selection(idx))
 
             self.option_frames.append(row_frame)
             self.option_labels.append(label)
 
+        # Focus out binding to close the popup
         self.popup.bind("<FocusOut>", self._on_popup_focus_out)
 
-    def _update_option_visual(self, idx):
+    def _update_option_visual(self, idx) -> None:
+        """
+        Private Method
+        Updates the appearance of the option at index idx based on whether it is selected.
+        """
         selected = idx in self.selected_indices
         frame = self.option_frames[idx]
         label = self.option_labels[idx]
@@ -240,31 +267,49 @@ class MultiSelectComboBox(ctk.CTkFrame):
             frame.configure(bg=self.dropdown_bg_color)
             label.configure(text_color=self.text_color)
 
-    def _bind_mousewheel(self):
+    def _bind_mousewheel(self) -> None:
+        """
+        Private Method
+        Enables mouse wheel scrolling for the dropdown canvas.
+        """
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
         self.canvas.bind_all("<Button-4>", self._on_mousewheel)
         self.canvas.bind_all("<Button-5>", self._on_mousewheel)
 
-    def _unbind_mousewheel(self):
+    def _unbind_mousewheel(self) -> None:
+        """
+        Private Method
+        Disables mouse wheel scrolling for the dropdown canvas.
+        """
         self.canvas.unbind_all("<MouseWheel>")
         self.canvas.unbind_all("<Button-4>")
         self.canvas.unbind_all("<Button-5>")
 
-    def _on_mousewheel(self, event):
+    def _on_mousewheel(self, event) -> None:
+        """
+        Private Method
+        Handles mouse wheel scroll events for the dropdown canvas.
+        """
         if event.num == 4 or event.delta > 0:
             self.canvas.yview_scroll(-1, "units")
         elif event.num == 5 or event.delta < 0:
             self.canvas.yview_scroll(1, "units")
 
-    def _toggle_menu(self, event=None):
+    def _toggle_menu(self, event=None) -> None:
+        """
+        Private Method
+        Toggles the dropdown menu open or closed.
+        """
         if self.is_menu_open:
             self._hide_menu()
         elif not self.prevent_reopen:
             self._show_menu()
 
-
-
-    def _show_menu(self):
+    def _show_menu(self) -> None:
+        """
+        Private Method
+        Displays the dropdown menu and focuses the popup.
+        """
         x = self.winfo_rootx()
         y = self.winfo_rooty() + self.winfo_height()
         self.popup.geometry(f"{self.width}x{self.dropdown_height}+{x}+{y}")
@@ -274,25 +319,39 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.is_menu_open = True
         self.dropdown_icon.configure(text="▲")
 
-    def _hide_menu(self):
+    def _hide_menu(self) -> None:
+        """
+        Private Method
+        Hides the dropdown menu and updates state.
+        """
         self.popup.withdraw()
         self.is_menu_open = False
         self.dropdown_icon.configure(text="▼")
 
+        # Call the close callback if provided
         if self.on_close_callback:
             if self.no_tags_var.get():
                 self.on_close_callback(None)
             else:
                 self.on_close_callback(self.get_selected())
 
+        # Prevent immediate reopening (prevents flickering)
         self.prevent_reopen = True
         self.after(150, lambda: setattr(self, 'prevent_reopen', False))
 
-    def _on_popup_focus_out(self, event=None):
+    def _on_popup_focus_out(self, event=None) -> None:
+        """
+        Private Method
+        Handles popup losing focus (closes menu).
+        """
         if self.is_menu_open:
             self._hide_menu()
 
-    def _on_select(self):
+    def _on_select(self) -> None:
+        """
+        Private Method
+        Updates selection state, visual feedback, and toggles checkboxes as needed.
+        """
         count = len(self.selected_indices)
 
         # Update label text
@@ -324,6 +383,11 @@ class MultiSelectComboBox(ctk.CTkFrame):
 
 
     def _truncate_text(self, text: str, max_width_px: int, font) -> str:
+        """
+        Private Method
+        Truncates text with ellipsis if it exceeds max_width_px in the given font.
+        Returns string text either regular or truncated with ellipsis.
+        """
         ellipsis = "..."
         ellipsis_width = font.measure(ellipsis)
 
@@ -338,7 +402,11 @@ class MultiSelectComboBox(ctk.CTkFrame):
         return ellipsis  # fallback if even a single char is too wide
 
 
-    def _add_tooltip(self, widget, text):
+    def _add_tooltip(self, widget, text) -> None:
+        """
+        Private Method
+        Adds a tooltip to the given widget displaying the full text when hovered.
+        """
         tooltip = tk.Toplevel(widget)
         tooltip.withdraw()
         tooltip.overrideredirect(True)
@@ -346,27 +414,49 @@ class MultiSelectComboBox(ctk.CTkFrame):
         label.pack()
 
         def show_tooltip(event):
+            """
+            Show tooltip near the widget when hovered.
+            """
             tooltip.geometry(f"+{event.x_root + 10}+{event.y_root + 10}")
             tooltip.deiconify()
 
         def hide_tooltip(event):
+            """
+            Hide tooltip when mouse leaves the widget.
+            """
             tooltip.withdraw()
 
+        # Bind hover events to show/hide tooltip when entering/leaving the widget
         widget.bind("<Enter>", show_tooltip)
         widget.bind("<Leave>", hide_tooltip)
 
-
-    def get_selected(self):
-        return [self.options[i].strip() for i in sorted(self.selected_indices)]
-
-    def _on_enter_press(self, event=None):
+    def _on_enter_press(self, event=None) -> None:
+        """
+        Private Method
+        Handles pressing Enter key to close dropdown.
+        """
         if self.is_menu_open:
             self._hide_menu()
 
-    def require_all_selected(self):
+    def get_selected(self) -> list:
+        """
+        Public Method
+        Returns a list of selected options as strings.
+        """
+        return [self.options[i].strip() for i in sorted(self.selected_indices)]
+
+    def require_all_selected(self) -> bool:
+        """
+        Public Method
+        Returns True if "Require all tags?" is checked, else False.
+        """
         return self.require_all_var.get()
 
-    def refresh_options(self):
+    def refresh_options(self) -> None:
+        """
+        Public Method
+        Refreshes the option list in the dropdown, preserving previous selection.
+        """
         # Save current selected tags (indices)
         preserved_indices = set(self.selected_indices)
         preserved_require_all = self.require_all_var.get()
@@ -387,15 +477,13 @@ class MultiSelectComboBox(ctk.CTkFrame):
             max_label_width = self.width - 25
             truncated_text = self._truncate_text(option, max_label_width, self.measure_font)
 
-            label = ctk.CTkLabel(
-                row_frame,
-                text=truncated_text,
-                font=self.dropdown_font,
-                text_color=self.text_color,
-                anchor="w",
-                justify="left",
-                width=self.width - 20,
-            )
+            label = ctk.CTkLabel(row_frame,
+                                 text=truncated_text,
+                                 font=self.dropdown_font,
+                                 text_color=self.text_color,
+                                 anchor="w",
+                                 justify="left",
+                                 width=self.width - 20)
             label.pack(side="left", fill="x", expand=True, padx=10, pady=0)
 
             # Add tooltip if text was truncated
@@ -403,6 +491,9 @@ class MultiSelectComboBox(ctk.CTkFrame):
                 self._add_tooltip(label, option)
 
             def toggle_selection(idx=i):
+                """
+                Toggle selection of the option at the given index.
+                """
                 if idx in self.selected_indices:
                     self.selected_indices.remove(idx)
                 else:
@@ -410,6 +501,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
                 self._update_option_visual(idx)
                 self._on_select()
 
+            # Bind click for selection
             row_frame.bind("<Button-1>", lambda e, idx=i: toggle_selection(idx))
             label.bind("<Button-1>", lambda e, idx=i: toggle_selection(idx))
 
@@ -437,5 +529,3 @@ class MultiSelectComboBox(ctk.CTkFrame):
             self.require_checkbox.configure(state="disabled")
             self.require_all_var.set(False)
             self.selected_text_var.set(self.default_text)
-        
-    

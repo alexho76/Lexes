@@ -14,11 +14,12 @@ Contains:
         - exportToDB: Exports selected entries to a new SQLite database file.
 
 Naming Conventions:
-    - Class names are in PascalCase (SelectedList).
-    - Method names are in camelCase (unselectAll, deleteAll, exportToAnki, exportToDB).
-    - Attributes are in camelCase (entries).
-    - General code follows camelCase.
+    - Class names: PascalCase (SelectedList).
+    - Method names: camelCase (unselectAll, deleteAll, exportToAnki, exportToDB).
+    - Attributes: camelCase (entries).
+    - General code: camelCase.
 """
+
 ### Module Imports ###
 import sqlite3
 import csv

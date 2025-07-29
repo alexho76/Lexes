@@ -1,16 +1,42 @@
-# dictionary_list.py
+"""
+File: classes/widgets/dictionary_list.py
 
+Purpose:
+    Defines the DictionaryList widget for displaying and managing a list of dictionary entries within the Lexes app.
+    This widget allows for viewing, selecting, and interacting with entries, including tag display, checkbox select, lazy loading, and row click callbacks.
+    Handles dynamic row rendering, scrolling, and user selection callbacks.
+
+Contains:
+    - DictionaryList class, a CTkFrame-based widget for entry display and selection.
+    - Private methods for widget setup, row creation, tag rendering, truncation, and popup/overflow handling.
+    - Public methods for populating the list with entries, selecting all entries, unselecting all entries.
+
+Naming Conventions:
+    - Class names: PascalCase (DictionaryList).
+    - Public method names: snake_case (populate, select_all, unselect_all).
+    - Private method names: snake_case, prefixed with an underscore (e.g., _setup_widgets, _create_row).
+    - Attributes: snake_case (entries, self.on_selection_change, row_height).
+    - General code: snake_case. NOTE: Custom widgets use snake_case while the rest of the codebase uses camelCase.
+
+Usage:
+    Use DictionaryList to display a list of dictionary entries with interactive features like selection, tag display, and row click handling
+    with ability for integration with complex operations like lazy loading and dynamic row rendering, and search/sort/filter.
+    DictionaryList used for dictionary list display in Main Window.
+"""
+
+### Module Imports ###
 import tkinter as tk
 import customtkinter as ctk
+
+### Local Class Imports ###
 from classes.entry import Entry
 from classes.selected_list import SelectedList
 from classes.display_list import DisplayList
-from typing import List, Union, Tuple
-from PIL import Image, ImageTk
 
 class DictionaryList(ctk.CTkFrame):
+    
     def __init__(self, master=None,
-                 entries: List[Entry] = [],
+                 entries: list[Entry] = [],
                  selectedList: SelectedList = None,
                  width: int = 1920,
                  height: int = 644,
@@ -38,15 +64,22 @@ class DictionaryList(ctk.CTkFrame):
                  on_selection_change = None,
                  on_row_click = None,
                  **kwargs):
-
+        """
+        Initialise the DictionaryList frame and UI config.
+            - Sets up fonts, colors, icons, dimensions, and other UI elements.
+            - Builds all widgets and binds events.
+            - Populates the list with entries on start.
+        """
         super().__init__(master, width=width, height=height+1.5, fg_color=header_bg_color, corner_radius=0, **kwargs)
         super().pack_propagate(False)
         self.on_selection_change = on_selection_change
         self.on_row_click = on_row_click
 
+        ### Entry and SelectedList setup ###
         self.entries = entries
         self.selectedList = selectedList if selectedList is not None else SelectedList()
 
+        ## Layout, Font, Dimensions, and Colour setup ###
         self.width = width
         self.height = height
         self.row_height = row_height
@@ -69,33 +102,45 @@ class DictionaryList(ctk.CTkFrame):
 
         self.scroll_speed = scroll_speed
 
+        ### Icon Images ###
         self.overflow_icon = ctk.CTkImage(light_image=overflow_icon, dark_image=overflow_icon, size=(34,9))
         self.select_icon = ctk.CTkImage(light_image=select_icon, dark_image=select_icon, size=(31,31))
         self.term_icon = ctk.CTkImage(light_image=term_icon, dark_image=term_icon, size=(33,19))
         self.definition_icon = ctk.CTkImage(light_image=definition_icon, dark_image=definition_icon, size=(26,28))
         self.tag_icon = ctk.CTkImage(light_image=tag_icon, dark_image=tag_icon, size=(28,28))
 
+        ### Internal Tracking Variables ###
         self.selected_vars = {}
         self.visible_rows = {}
 
+        ### Font Setup ###
         self.font_term = ctk.CTkFont(family="League Spartan", size=self.term_font_size)
         self.font_definition = ctk.CTkFont(family="Bahnschrift", size=self.definition_font_size)
         self.font_tag = ctk.CTkFont(family="League Spartan", size=self.tag_font_size)
         self.header_font = ctk.CTkFont(family="League Spartan", size=28)
 
+        ### Column Widths ###
         self.checkbox_width = 45
         self.term_width = 558
         self.definition_width = 552
         self.tags_width = 765
 
+        # Widget Setup ###
         self._setup_widgets()
         self.pack_propagate(False)
         self.populate()
 
+        ### Bind Events ###
         self.canvas.bind("<Configure>", self._on_canvas_resize)
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
 
-    def _setup_widgets(self):
+    ### Private Methods ###
+    def _setup_widgets(self) -> None:
+        """
+        Private Method
+        Build and pack all main UI widgets: header, canvas, scrollbar, and row frame.
+        """
+        ### Header Row ###
         self.header_frame = ctk.CTkFrame(self, fg_color=self.header_bg_color, height=42, corner_radius=0)
         self.header_frame.pack(fill="x", side="top", padx=0, pady=0)
         self.header_frame.pack_propagate(False)
@@ -106,7 +151,6 @@ class DictionaryList(ctk.CTkFrame):
 
         self.checkbox_header = ctk.CTkLabel(self.header_frame, text="", width=self.checkbox_width, fg_color=self.header_bg_color, image=self.select_icon)
         self.checkbox_header.pack(side="left", padx=0, pady=0)
-
         self.checkbox_term_header_divider = ctk.CTkFrame(self.header_frame, fg_color=self.divider_color, width=1.5)
         self.checkbox_term_header_divider.pack(side="left",padx=0,pady=0,fill="y")
 
@@ -128,6 +172,7 @@ class DictionaryList(ctk.CTkFrame):
                                         anchor="w", fg_color=self.header_bg_color, text_color=self.header_text_color)
         self.tags_header.pack(side="left", padx=(0,0), pady=(0,4))
 
+        ### Main Canvas and Scrollbar ###
         self.canvas_frame = ctk.CTkFrame(self, fg_color=self.header_bg_color,corner_radius=0)
         self.canvas_frame.pack(fill="both", expand=True, padx=0, pady=(0,0))
 
@@ -138,18 +183,22 @@ class DictionaryList(ctk.CTkFrame):
         self.scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="vertical", command=self._on_scroll, corner_radius=50, bg_color="#C6E1B8",
                                           fg_color='transparent', button_color=self.tag_text_color, button_hover_color="#719662")
         self.scrollbar.pack(side="right", fill="y")
-
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
+        ### Rows Frame inside Canvas ###
         self.rows_frame = ctk.CTkFrame(self.canvas, fg_color=self.header_bg_color, corner_radius=0)
         self.rows_frame.bind("<Configure>", self._on_frame_configure)
         self.canvas_window = self.canvas.create_window((0, 0), window=self.rows_frame, anchor="nw")
 
+        ### Mousewheel binding for scrolling in Canvas ###
         self.canvas.bind("<Enter>", lambda e: self.canvas.bind_all("<MouseWheel>", self._on_mousewheel))
         self.canvas.bind("<Leave>", lambda e: self.canvas.unbind_all("<MouseWheel>"))
 
-
-    def _on_mousewheel(self, event):
+    def _on_mousewheel(self, event) -> None:
+        """
+        Private Method
+        Handles mouse wheel scrolling event for the canvas. Destroys popups if open so that popups close upon scroll.
+        """
         direction = -1 if event.delta > 0 else 1
         scroll_units = int(direction * self.scroll_speed)
         if scroll_units == 0:
@@ -157,14 +206,23 @@ class DictionaryList(ctk.CTkFrame):
         self.canvas.yview_scroll(scroll_units, "units")
         self._update_visible_rows()
 
+        # Remove popup if open
         if hasattr(self, "popup") and self.popup.winfo_exists():
             self._safe_destroy_popup()
 
-    def _on_scroll(self, *args):
+    def _on_scroll(self, *args) -> None:
+        """
+        Private Method
+        Handles manual scrollbar scrolling event for the canvas.
+        """
         self.canvas.yview(*args)
         self._update_visible_rows()
 
-    def _on_frame_configure(self, event):
+    def _on_frame_configure(self, event) -> None:
+        """
+        Private Method
+        Updates scroll region of the canvas to encompass the entire rows frame when it is resized (new rows added).
+        """
         total_height = len(self.entries) * self.row_height
 
         self.canvas.update_idletasks()
@@ -172,54 +230,62 @@ class DictionaryList(ctk.CTkFrame):
         self.canvas.configure(scrollregion=(0, 0, self.width, frame_height))
 
         self._update_visible_rows()
-        
     
-    def _on_canvas_resize(self, event):
+    def _on_canvas_resize(self, event) -> None:
+        """
+        Private Method
+        Updates the visible rows when the canvas is resized by the user.
+        """
         self._update_visible_rows()
 
-    def _update_visible_rows(self):
+    def _update_visible_rows(self) -> None:
+        """
+        Private Method
+        Lazy-loads visible rows only in canvas viewport, destroying rows that leave the frame of view and creating new ones for those that come into view.
+        """
         y0 = self.canvas.canvasy(0)
         y1 = y0 + self.canvas.winfo_height()
-
         first_row = max(0, int(y0 // self.row_height))
         last_row = min(len(self.entries), int(y1 // self.row_height) + 1)
 
-        # Remove rows no longer visible
+        # Remove rows not visible
         for idx in list(self.visible_rows.keys()):
             if idx < first_row or idx >= last_row:
                 info = self.visible_rows.pop(idx)
                 info['frame'].destroy()
                 self.canvas.delete(info['canvas_window_id'])
 
-        # Add visible rows
+        # Add newly visible rows
         for idx in range(first_row, last_row):
             if idx not in self.visible_rows:
                 entry = self.entries[idx]
                 row_frame = self._create_row(idx + 1, entry, visible_mode=True, selected_var=self.selected_vars[idx])
-                canvas_window_id = self.canvas.create_window(
-                    0, idx * self.row_height,
-                    window=row_frame,
-                    anchor="nw",
-                    width=self.width
-                )
+                canvas_window_id = self.canvas.create_window(0, idx * self.row_height,
+                                                             window=row_frame,
+                                                             anchor="nw",
+                                                             width=self.width)
                 self.visible_rows[idx] = {'frame': row_frame, 'canvas_window_id': canvas_window_id}
 
-
-    def _create_row(self, row_num: int, entry: Entry, visible_mode=False, selected_var=None):
+    def _create_row(self, row_num: int, entry: Entry, visible_mode=False, selected_var=None) -> ctk.CTkFrame:
+        """
+        Private Method
+        Creates a single row widget for an entry, including checkbox, term, definition, and tags.
+        Handles selection state, click events, and dynamic row colour.
+        """
         row_type = (row_num - 1) % 2
-
         if selected_var is None:
             selected_var = tk.IntVar(value=0)
             if not visible_mode:
                 self.selected_vars.append(selected_var)
 
-        # Determine initial bg color based on selection
+        # Set initial bg color based on selection state and row type
         is_selected = selected_var.get() == 1
         if is_selected:
             bg_color = self.selected_row_color_1 if row_type == 0 else self.selected_row_color_2
         else:
             bg_color = self.row_bg_colors[row_type]
 
+        # Build the row frame and columns
         row_frame = ctk.CTkFrame(self.canvas, fg_color=bg_color, height=self.row_height, corner_radius=0)
         row_frame.pack_propagate(False)
         if not visible_mode:
@@ -236,17 +302,17 @@ class DictionaryList(ctk.CTkFrame):
         checkbox_term_divider = ctk.CTkFrame(row_frame, fg_color=self.divider_color, width=1.5)
         checkbox_term_divider.pack(side="left", padx=0, pady=0, fill="y")
 
-        term_label = ctk.CTkLabel(
-            row_frame,
-            text=self._truncate_text(entry.term, self.term_width, self.font_term),
-            font=self.font_term,
-            width=self.term_width,
-            fg_color=bg_color,
-            text_color=self.main_text_color,
-            anchor="w"
-        )
+        # Term Column (truncated)
+        term_label = ctk.CTkLabel(row_frame,
+                                  text=self._truncate_text(entry.term, self.term_width, self.font_term),
+                                  font=self.font_term,
+                                  width=self.term_width,
+                                  fg_color=bg_color,
+                                  text_color=self.main_text_color,
+                                  anchor="w")
         term_label.pack(side="left", padx=10, pady=(0, 7))
 
+        # Definition column (multi-line truncation)
         lines = self._truncate_multiline_text(entry.definition, self.definition_width, self.font_definition, 3).split("\n")
         definition_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, width=self.definition_width, height=self.row_height, corner_radius=0)
         definition_frame.pack_propagate(False)
@@ -254,17 +320,16 @@ class DictionaryList(ctk.CTkFrame):
 
         ctkLines = []
         for line in lines:
-            label = ctk.CTkLabel(
-                definition_frame,
-                text=line,
-                font=("Bahnschrift", 24),
-                fg_color=bg_color,
-                text_color=self.main_text_color,
-                anchor="w"
-            )
+            label = ctk.CTkLabel(definition_frame,
+                                 text=line,
+                                 font=("Bahnschrift", 24),
+                                 fg_color=bg_color,
+                                 text_color=self.main_text_color,
+                                 anchor="w")
             label.pack(anchor="w", pady=0)
             ctkLines.append(label)
 
+        # Tags Column
         tags_frame = ctk.CTkFrame(row_frame, fg_color=bg_color, height=self.row_height, width=self.tags_width, corner_radius=5)
         tags_frame.pack_propagate(False)
         tags_frame.pack(side="left", padx=(10, 0), pady=0)
@@ -273,6 +338,9 @@ class DictionaryList(ctk.CTkFrame):
         self._render_tags(tags_frame, tags_list)
 
         def update_row_colors():
+            """
+            Updates colors for all background widgets in a row when selection is toggled (based on row type).
+            """
             selected = selected_var.get() == 1
 
             if selected:
@@ -280,14 +348,7 @@ class DictionaryList(ctk.CTkFrame):
             else:
                 new_bg = self.row_bg_colors[row_type]
 
-            widgets_to_update = [
-                row_frame,
-                checkbox_column_frame,
-                term_label,
-                definition_frame,
-                tags_frame,
-                *ctkLines
-            ]
+            widgets_to_update = [row_frame, checkbox_column_frame, term_label, definition_frame, tags_frame, *ctkLines] # include all widgets in the row and unpacks ctkLines
 
             for widget in widgets_to_update:
                 try:
@@ -296,8 +357,10 @@ class DictionaryList(ctk.CTkFrame):
                 except Exception as e:
                     print(f"[WARN] Failed to update color for widget: {e}")
 
-
         def on_checkbox_toggle(*args):
+            """
+            Called when the checkbox is toggled. Updates selection state and triggers callbacks.
+            """
             is_selected = selected_var.get() == 1
             if is_selected:
                 entry.select(self.selectedList)
@@ -313,31 +376,45 @@ class DictionaryList(ctk.CTkFrame):
 
 
         def toggle_checkbox(event):
+            """
+            Toggles the checkbox state when the checkbox column is clicked.
+            """
             selected_var.set(0 if selected_var.get() else 1)
             return "break"
 
+        # Bind click events to the row and checkbox
         checkbox_column_frame.bind("<Button-1>", toggle_checkbox)
-        checkbox.bind("<Button-1>", lambda e: None)  # Allow normal toggle behavior
+        checkbox.bind("<Button-1>", lambda e: None)  # Prevent checkbox from toggling on click
 
         def on_row_click(event):
+            """
+            Handles click events for the row (excluding checkbox).
+            Triggers the on_row_click callback, which is later used for displaying the sidebar popup for individual entries.
+            """
             if self.on_row_click:
                 self.on_row_click(row_num, entry)
 
         def bind_click_recursive(widget):
+            """
+            Recursively binds click events to all child widgets in the row frame except checkboxes and buttons.
+            """
             for child in widget.winfo_children():
                 if isinstance(child, (ctk.CTkCheckBox, ctk.CTkButton)):
                     continue
                 child.bind("<Button-1>", on_row_click)
                 bind_click_recursive(child)
 
-        row_frame.bind("<Button-1>", on_row_click)
-        bind_click_recursive(row_frame)
+        row_frame.bind("<Button-1>", on_row_click) # Bind row click to the row frame
+        bind_click_recursive(row_frame) # Bind click events to all child widgets
 
         update_row_colors()
-        return row_frame
-
+        return row_frame # Return the row frame for future packing into the canvas
 
     def _truncate_text(self, text: str, max_width_px: int, font) -> str:
+        """
+        Private Method
+        Truncates text with ellipsis if it exceeds the maximum pixel width.
+        """
         ellipsis = "..."
         ellipsis_width = font.measure(ellipsis)
 
@@ -349,17 +426,22 @@ class DictionaryList(ctk.CTkFrame):
             if font.measure(sub_text) + ellipsis_width <= max_width_px:
                 return sub_text + ellipsis
 
-        return ellipsis  # fallback if even a single char is too wide
+        return ellipsis  # fallback if even a single character is too big
 
     def _truncate_multiline_text(self, text: str, max_width_px: int, font, max_lines: int = 3) -> str:
+        """
+        Private Method
+        Truncates multi-line text to fit within a specified width and maximum number of lines, adding ellipsis if it overflows.
+        Handles word splitting for long words that single-handedly exceed the width of a line.
+        Returns the truncated text as a single string with newline characters.
+        """
         ellipsis = "..."
         ellipsis_w = font.measure(ellipsis)
         lines = []
         current = ""
-
         words = text.split()
+        
         i = 0
-
         while i < len(words) and len(lines) < max_lines:
             word = words[i]
             last_line = len(lines) + 1 == max_lines
@@ -405,6 +487,12 @@ class DictionaryList(ctk.CTkFrame):
         return "\n".join(lines)
 
     def _truncate_tag_text(self, text: str, max_width: int) -> str:
+        """
+        Private Method
+        Truncates tag text with ellipsis if it exceeds the maximum width.
+        Used when creating tag boxes to ensure they fit within the available space.
+        Returns the truncated text string with ellipsis if necessary.
+        """
         ellipsis = "..."
         font = ctk.CTkFont(family="League Spartan", size=16)
         if font.measure(text) <= max_width:
@@ -414,7 +502,12 @@ class DictionaryList(ctk.CTkFrame):
                 return text[:i] + ellipsis
         return ellipsis
 
-    def _render_tags(self, container: ctk.CTkFrame, tags_list: List[str]):
+    def _render_tags(self, container: ctk.CTkFrame, tags_list: list[str]) -> None:
+        """
+        Private Method
+        Renders tag boxes into the tag column.
+        Uses overflow boxes if tags exceed available width.
+        """
         for w in container.winfo_children():
             w.destroy()
 
@@ -451,11 +544,14 @@ class DictionaryList(ctk.CTkFrame):
             self._create_overflow_tag_box(container, tags_list)
 
 
-    def _create_tag_box(self, container: ctk.CTkFrame, text: str):
+    def _create_tag_box(self, container: ctk.CTkFrame, text: str) -> None:
+        """
+        Private Method
+        Creates a single tag box widget with a label inside.
+        """
         tag_frame = ctk.CTkFrame(container, fg_color=self.tag_box_bg_color,
                                 corner_radius=5)
         tag_frame.pack(side="left", padx=(0, 8), pady=(self.row_height - self.tag_font_size - 16)//2)
-
         tag_label = ctk.CTkLabel(tag_frame, text=text,
                                 font=self.font_tag,
                                 fg_color=self.tag_box_bg_color,
@@ -463,28 +559,33 @@ class DictionaryList(ctk.CTkFrame):
                                 anchor="center")
         tag_label.pack(pady=(0, 6), padx=8)
 
-    def _create_overflow_tag_box(self, container: ctk.CTkFrame, unused_tags: List[str]):
+    def _create_overflow_tag_box(self, container: ctk.CTkFrame, unused_tags: list[str]) -> None:
+        """
+        Private Method
+        Creates an overflow tag box (button) that opens a dropdown with unused tags (tags that didn't fit in the tags column).
+        """
         def on_button_click(event=None):
             self._toggle_overflow_popup(tag_button, unused_tags)
             return "break"
 
-        tag_button = ctk.CTkButton(
-            container,
-            text="",
-            image = self.overflow_icon,
-            font=self.font_tag,
-            fg_color=self.tag_box_bg_color,
-            text_color=self.tag_text_color,
-            corner_radius=5,
-            hover_color="#E6F3D2",
-            width=30,
-            height=50
-        )
+        tag_button = ctk.CTkButton(container,
+                                   text="",
+                                   image = self.overflow_icon,
+                                   font=self.font_tag,
+                                   fg_color=self.tag_box_bg_color,
+                                   text_color=self.tag_text_color,
+                                   corner_radius=5,
+                                   hover_color="#E6F3D2",
+                                   width=30,
+                                   height=50)
         tag_button.pack(side="left", padx=0, pady=0)
-    
         tag_button.bind("<Button-1>", on_button_click)
 
-    def _create_overflow_tag_dropdown(self, unused_tags_list):
+    def _create_overflow_tag_dropdown(self, unused_tags_list) -> None:
+        """
+        Private Method
+        Creates a popup dropdown listing overflow (unused) tags when the overflow button is clicked.
+        """
         self._safe_destroy_popup()
 
         self.popup = tk.Toplevel(self)
@@ -498,15 +599,13 @@ class DictionaryList(ctk.CTkFrame):
         tag_height = 23
         popup_height = min(len(unused_tags_list), max_visible_tags) * tag_height
 
-        self.popup_canvas = tk.Canvas(
-            outer_frame,
-            bg=self.tag_box_bg_color,
-            highlightthickness=0,
-            width=200,
-            height=popup_height,
-            bd=0,
-            yscrollincrement=tag_height
-        )
+        self.popup_canvas = tk.Canvas(outer_frame,
+                                      bg=self.tag_box_bg_color,
+                                      highlightthickness=0,
+                                      width=200,
+                                      height=popup_height,
+                                      bd=0,
+                                      yscrollincrement=tag_height)
         self.popup_canvas.pack(side="left", fill="both", expand=True)
 
         self.inner_frame = tk.Frame(self.popup_canvas, bg=self.tag_box_bg_color, width=200)
@@ -519,30 +618,39 @@ class DictionaryList(ctk.CTkFrame):
             row_frame.pack(fill="x", anchor="w", pady=0)
             row_frame.pack_propagate(False)
 
-            label = ctk.CTkLabel(
-                row_frame,
-                text=self._truncate_tag_text(tag, 180),
-                font=("League Spartan", 16),
-                text_color=self.tag_text_color,
-                anchor="w",
-                justify="left",
-                width=180,
-            )
+            label = ctk.CTkLabel(row_frame,
+                                 text=self._truncate_tag_text(tag, 180),
+                                 font=("League Spartan", 16),
+                                 text_color=self.tag_text_color,
+                                 anchor="w",
+                                 justify="left",
+                                 width=180)
             if self._truncate_tag_text(tag, 180) != tag:
                 self._add_tooltip(label, tag)
             label.pack(side="left", fill="x", expand=True, padx=10)
 
-        def _on_popup_mousewheel(event):
+        def on_popup_mousewheel(event):
+            """
+            Handles mouse wheel scrolling in the popup canvas.
+            Allows scrolling through the tag list using the mouse wheel.
+            """
             direction = -1 if event.delta > 0 else 1
             self.popup_canvas.yview_scroll(direction, "units")
             return "break"
 
-        self.popup_canvas.bind("<Enter>", lambda e: self.popup_canvas.bind_all("<MouseWheel>", _on_popup_mousewheel))
+        # Bind mouse wheel events to the popup canvas
+        self.popup_canvas.bind("<Enter>", lambda e: self.popup_canvas.bind_all("<MouseWheel>", on_popup_mousewheel))
         self.popup_canvas.bind("<Leave>", lambda e: self.popup_canvas.unbind_all("<MouseWheel>"))
 
+        # Bind click outside to close the popup
         self._bind_popup_outside_click()
 
-    def _toggle_overflow_popup(self, widget, unused_tags):
+    def _toggle_overflow_popup(self, widget, unused_tags) -> None:
+        """
+        Private Method
+        Toggles the overflow popup.
+        Dynamically positions the popup either above or below depending on available space.
+        """
         if hasattr(self, "popup") and self.popup.winfo_exists():
             self._safe_destroy_popup()
         else:
@@ -552,7 +660,6 @@ class DictionaryList(ctk.CTkFrame):
             widget.update_idletasks()
             self.popup.update_idletasks()
 
-            # Get screen dimensions
             screen_width = self.winfo_screenwidth()
             screen_height = self.winfo_screenheight()
 
@@ -591,13 +698,25 @@ class DictionaryList(ctk.CTkFrame):
             self.popup.deiconify()
             self.popup.lift()
 
-    def _safe_destroy_popup(self):
+    def _safe_destroy_popup(self) -> None:
+        """
+        Private Method
+        Safely destroys the popup if it exists.
+        """
         if hasattr(self, "popup") and self.popup.winfo_exists():
             self.popup.destroy()
         self._unbind_popup_outside_click()
 
-    def _bind_popup_outside_click(self):
+    def _bind_popup_outside_click(self) -> None:
+        """
+        Private Method
+        Binds a click event outside the popup to close it.
+        """
         def on_click_outside(event):
+            """
+            Handles click events outside the popup.
+            Destroys the popup if the click is outside its bounds.
+            """
             if hasattr(self, "popup") and self.popup.winfo_exists():
                 x1 = self.popup.winfo_rootx()
                 y1 = self.popup.winfo_rooty()
@@ -608,12 +727,21 @@ class DictionaryList(ctk.CTkFrame):
         self._outside_click_handler = on_click_outside
         self.winfo_toplevel().bind_all("<Button-1>", self._outside_click_handler)
 
-    def _unbind_popup_outside_click(self):
+    def _unbind_popup_outside_click(self) -> None:
+        """
+        Private Method
+        Unbinds the click handler for outside the popup dropdown to prevent memory leaks.
+        """
         if hasattr(self, "_outside_click_handler"):
             self.winfo_toplevel().unbind_all("<Button-1>")
             del self._outside_click_handler
         
-    def _add_tooltip(self, widget, text):
+    def _add_tooltip(self, widget, text) -> None:
+        """
+        Private Method
+        Adds a tooltip to a widget that displays additional information when hovered over.
+        Used for tag labels in overflow tag box dropdown to show full tag text if truncated even further.
+        """
         tooltip = tk.Toplevel(widget)
         tooltip.withdraw()
         tooltip.overrideredirect(True)
@@ -630,9 +758,12 @@ class DictionaryList(ctk.CTkFrame):
         widget.bind("<Enter>", show_tooltip)
         widget.bind("<Leave>", hide_tooltip)
     
-    # Instance Methods
-    def populate(self):
-        # Destroy all visible rows + canvas windows
+    ### Public Methods ###
+    def populate(self) -> None:
+        """
+        Public Method
+        Populates the dictionary list with entries, destroying any existing rows and creating new ones.
+        """
         for idx, info in self.visible_rows.items():
             info['frame'].destroy()
             self.canvas.delete(info['canvas_window_id'])
@@ -648,15 +779,22 @@ class DictionaryList(ctk.CTkFrame):
 
         self._update_visible_rows()
 
-    
-    def select_all(self):
+    def select_all(self) -> None:
+        """
+        Public Method
+        Selects all entries in the dictionary list, updating their selection state and their row colours.
+        """
         for idx, entry in enumerate(self.entries):
             if entry not in self.selectedList.entries:
                 entry.select(self.selectedList)
             self.selected_vars[idx].set(1)
         self._update_visible_rows()
 
-    def unselect_all(self):
+    def unselect_all(self) -> None:
+        """
+        Public Method
+        Unselects all entries in the dictionary list, updating their selection state and their row colours.
+        """
         for idx, entry in enumerate(self.entries):
             entry.unselect(self.selectedList)
             self.selected_vars[idx].set(0)

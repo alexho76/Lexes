@@ -12,9 +12,9 @@ Contains:
         - quickSort: Sorts a list of entries based on specified attributes.
 
 Naming Conventions:
-    - Class names are in PascalCase (Helper).
-    - Method names are in camelCase (wikipediaAPI, quickSort).
-    - General code follows camelCase.
+    - Class names: PascalCase (Helper).
+    - Method names: camelCase (wikipediaAPI, quickSort).
+    - General code: camelCase.
 """
 
 ### Module Imports ###
@@ -119,4 +119,3 @@ class Helper:
         sortedLesser = Helper.quickSort(lesser, attribute)
         sortedGreater = Helper.quickSort(greater, attribute)
         return sortedLesser + [pivot] + sortedGreater
-
