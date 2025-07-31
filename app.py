@@ -1,3 +1,9 @@
+### Program: Lexes
+### Author: Alexander Ho (ho-0084@mhs.vic.edu.au)
+### Date Created: 25/06/2025
+### Date Finished: TBA  
+### Description: Personal dictionary and flashcard creation solution for students. Created for VCE Software Development 3&4 SAT.
+
 ### App Class
 ### Manages the interactions between UI and backend classes and methods. All of the app's logic is contained here.
 
@@ -1583,5 +1589,6 @@ class MainWindow(ctk.CTk):
 
 
 # App start logic
-app = App()
-app.start()
+if __name__ == "__main__":
+    app = App()
+    app.start()
