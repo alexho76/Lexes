@@ -1,21 +1,61 @@
-### Program: Lexes
-### Author: Alexander Ho (ho-0084@mhs.vic.edu.au)
-### Date Created: 25/06/2025
-### Date Finished: TBA  
-### Description: Personal dictionary and flashcard creation solution for students. Created for VCE Software Development 3&4 SAT.
+"""
+Program: Lexes
+Author: Alexander Ho (ho-0084@mhs.vic.edu.au / alexanderh6886@gmail.com)
+Date Created: 25/06/2025
+Date Last Modified: 31/07/2025  
+Description: Personal dictionary and flashcard creation solution for students. Created for VCE Software Development 3&4 SAT. See README.md for more information.
 
-### App Class
-### Manages the interactions between UI and backend classes and methods. All of the app's logic is contained here.
+File: app.py
 
-# Class and Asset Imports
+Purpose:
+    This file contains all main application logic, including the UI and backend integration.
+    It is the single entry point for running the Lexes application.
+
+Contains:
+    - App class: Responsible for initialising the UI and managing backend interactions and events.
+    - MainWindow class: Handles all UI construction, event callbacks, and page logic for the Main Window.
+    - Methods within MainWindow for handling external popup windows (Add, Import, Export, etc.).
+
+Naming Conventions:
+    - Class names: PascalCase (App, MainWindow).
+    - Method names: camelCase (initialiseUI, start, setupDB).
+    - Attributes: camelCase (displayList, selectedList, mainWindow).
+    - Constants: UPPERCASE (DBPATH).
+    - General code: camelCase.
+
+Usage:
+    Run this file directly to launch the Lexes application: 'python app.py'.
+    All UI and main logic is contained here. No external main.py is required.
+"""
+
+### External Module/Library Imports ###
+# CustomTkinter and Tkinter for UI
+import customtkinter as ctk
+import tkinter as tk
 from tkinter import messagebox
+
+# SQLite3 for database interactions
+import sqlite3
+
+# Other libraries for system interactions
+import ctypes
+import platform
+import os
+
+### Local Class & Assets Imports ###
+# Config and Assets Imports
 from config.theme import *
 from config.configurations import * # imports DBPATH
+from assets.images import *
+
+# Backend Class Imports
 from classes.helper import Helper
 from classes.entry import Entry
 from classes.display_list import DisplayList
 from classes.selected_list import SelectedList
 from classes.import_list import ImportList
+
+# Widget Imports
 from classes.widgets.multi_select_combobox import MultiSelectComboBox
 from classes.widgets.single_select_combobox import SingleSelectComboBox
 from classes.widgets.searchbar_with_icon import SearchBarWithIcon
@@ -25,41 +65,37 @@ from classes.widgets.dictionary_list import DictionaryList
 from classes.widgets.export_button import ExportButton
 from classes.widgets.file_path_entry import FilePathEntry
 from classes.widgets.select_file_path_entry import SelectFilePathEntry
-from assets.images import *
-
-# Library Imports
-import sqlite3
-import customtkinter as ctk
-import tkinter as tk
-import tkinter.filedialog as filedialog
-import ctypes
-import tkinter.font as tkFont
-from PIL import Image, ImageTk
-import platform
-import os
 
 class App:
+    """
+    Main application class. Hdandles initialisation of UI and setup of backend database.
+    """
     if platform.system() == "Windows": # fullscreen the app
         from ctypes import windll, byref, sizeof, c_int
         windll.shcore.SetProcessDpiAwareness(2)
     
-    def __init__(self):
-        self.initaliseUI()
-
-    def initaliseUI(self):
+    def __init__(self) -> None:
+        """
+        Setups up the database, instantiates backend classes (DisplayList, SelectedList), and initialises the Main Window.
+        """
         self.setupDB()
-
         self.displayList = DisplayList()
         self.displayList.build()
         self.selectedList = SelectedList()
+        self.mainWindow = MainWindow(self) # instantiates main window
 
-        # Initialise UI
-        self.mainWindow = MainWindow(self)
-    
-    def start(self):
+    def start(self) -> None:
+        """
+        Starts the Main Application's customTkinter main loop to start the UI running and event handling.
+        """
         self.mainWindow.mainloop()
 
-    def setupDB(self):
+    def setupDB(self) -> None:
+        """
+        Initialises the SQLite database by either creating a new database file or connecting to an existing one.
+        If a database file with the path of DBPATH exists, it will connect to it.
+        Otherwise, it will create a new database file and a table named 'master' with the specified columns.
+        """
         with sqlite3.connect(DBPATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -73,30 +109,39 @@ class App:
             conn.commit()
 
 class MainWindow(ctk.CTk):
-    def __init__(self, masterApp, **kwargs):
+    """
+    Main application window class. Builds the UI and handles all main page logic and event callbacks.
+    All auxiliary popup windows (Add, Import, Export, etc.) are children of this main window.
+    """
+    def __init__(self, masterApp, **kwargs) -> None:
+        """
+        Initialises the main window with customTkinter settings, sets the window to fullscreen, and creates the main UI elements.
+        """
         super().__init__(**kwargs)
+        ### CustomTkinter System Settings to Improve Scaling and Fit to Screen Size ###
         self.attributes("-fullscreen", True)
         user32 = ctypes.windll.user32
         screenWidth = user32.GetSystemMetrics(0)
         screenHeight = user32.GetSystemMetrics(1)
         self.applyCustomScaling()
 
+        ### Root Window Settings ###
         self.masterApp = masterApp
         self.geometry(f"{screenWidth}x{screenHeight}")
         self.title("Lexes - Main Window")
 
-        # Menubar
-        self.menubar = tk.Menu(self)
-        self.config(menu=self.menubar)
-        self.fileMenu = tk.Menu(self.menubar, tearoff=0)
-        self.fileMenu.add_command(label="Save")
-        self.menubar.add_cascade(label="File", menu=self.fileMenu)
+        # # Menubar
+        # self.menubar = tk.Menu(self)
+        # self.config(menu=self.menubar)
+        # self.fileMenu = tk.Menu(self.menubar, tearoff=0)
+        # self.fileMenu.add_command(label="Save")
+        # self.menubar.add_cascade(label="File", menu=self.fileMenu)
 
-        # Background Frame (behind all UI elements)
+        # Background Frame
         self.background = ctk.CTkFrame(self, corner_radius=0, fg_color=LightGreen1)
         self.background.pack(fill='both', expand=True)
 
-        # Navigation Bar with Buttons
+        # Navigation Bar (with Buttons)
         self.navigationBar = ctk.CTkFrame(self.background, corner_radius=0, height=68, fg_color=LightGreen2)
         self.navigationBar.pack(side='top', fill='x')
 
@@ -298,7 +343,7 @@ class MainWindow(ctk.CTk):
                                                  command=self.deleteSelectedButtonCommand)
         self.deleteSelectedButton.pack(side='right', padx=(0,93))
 
-        # Dictionary List Test
+        # Dictionary List
         self.dictionaryList = DictionaryList(self.background,
                                              entries=self.masterApp.displayList.entries,
                                              selectedList=self.masterApp.selectedList,
@@ -328,21 +373,34 @@ class MainWindow(ctk.CTk):
                                              on_selection_change=self.onEntrySelectionChanged,
                                              on_row_click=self.handleRowClick)
         self.dictionaryList.pack(pady=(15,0))
+    
+        # Footer with Slogan and Entry Counter
+        self.footer = ctk.CTkFrame(self.background, fg_color=LightGreen1)
+        self.footer.pack(fill='both', side='bottom', pady=0, padx=0, expand=True)
 
-        # Footer with Logo (will be across all pages)
-        self.footer = ctk.CTkFrame(self.background, fg_color=LightGreen1, height=83)
-        self.footer.pack(fill='x', side='bottom', pady=0, padx=0)
-        self.footer.pack_propagate(False)
-
-        self.entryCounter = ctk.CTkLabel(self.footer, text=f"# Entries: {len(self.masterApp.displayList.entries)}", font=("League Spartan", 20), text_color=DarkGreen3)
-        self.entryCounter.place(relx=0.005, rely=0)
-
-        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
-        self.icon = ctk.CTkLabel(self.footer, image=ctkIconImage, text="", anchor='center')
+        ctkSloganImage = ctk.CTkImage(light_image=sloganXYImage, dark_image=sloganXYImage, size=(224,73))
+        self.icon = ctk.CTkLabel(self.footer, image=ctkSloganImage, text="", anchor='center')
         self.icon.pack(expand=True)
     
-    def handleRowClick(self, row_num, entry):
+        self.entryCounter = ctk.CTkLabel(self.footer, text=f"Entries: {len(self.masterApp.selectedList.entries)}/{len(self.masterApp.displayList.entries)}", font=("League Spartan", 20), text_color=DarkGreen3)
+        self.entryCounter.place(relx=0.005, rely=0)
+
+    def updateCounter(self) -> None:
+        """
+        Updates the entry counter label to reflect the current number of selected entries and total entries.
+        """
+        # Add a delay to ensure the UI updates correctly
+        self.entryCounter.after(5, lambda: self.entryCounter.configure(text=f"Entries: {len(self.masterApp.selectedList.entries)}/{len(self.masterApp.displayList.entries)}"))
+
+    def handleRowClick(self, row_num, entry) -> None:
+        """
+        Callback for when a row in the dictionary list is clicked.
+        Creates a sidebar with the entry's details and allows editing.
+        Side bar features a title, UID, created date, and text boxes for definition and tags.
+        Buttons for actions such as auto-defining, deleting, and saving changes or cancelling.
+        """
         self.sidebarFrame.destroy() if hasattr(self, 'sidebarFrame') else None  # remove previous sidebar if exists
+        
         # Make popup sidebar
         self.sidebarFrame = ctk.CTkFrame(self,
                                          width=720,
@@ -362,7 +420,11 @@ class MainWindow(ctk.CTk):
         self.titleRow = ctk.CTkFrame(self.titleFrame, width=720 - 70, corner_radius=0, fg_color="transparent", bg_color="transparent")
         self.titleRow.pack(pady=(0,0), padx=0, fill='x')
         
-        def editButtonCommand():
+        def editButtonCommand() -> None:
+            """
+            Just focuses into the title entry field.
+            Title is always editable, but this allows the user to click the edit button to focus into the title entry, making it easier to edit.
+            """
             self.sidebarTitle.focus_set()
         
         ctkEditIconImage = ctk.CTkImage(light_image=editIconImage, dark_image=editIconImage, size=(35,35))
@@ -400,14 +462,19 @@ class MainWindow(ctk.CTk):
         self.sidebarButtons = ctk.CTkFrame(self.titleFrame, width=720 - 70, height=65, corner_radius=0, fg_color="transparent", bg_color="transparent")
         self.sidebarButtons.pack(pady=(20,0), padx=0, fill='x')
         
-        def sidebarAutoDefButtonCommand():
+        def sidebarAutoDefButtonCommand() -> None:
+            """
+            Retrieves the definition from Wikipedia for the current term in the sidebar title.
+            If a definition is found, it updates the definition textbox.
+            Else, it shows an error message.
+            """
             updatedTerm = self.sidebarTitle.get().strip()
-            newDefinition = Helper.wikipediaAPI(updatedTerm)
+            newDefinition = Helper.wikipediaAPI(updatedTerm) # get definition from wikipedia
             if newDefinition:
                 self.definitionTextbox.focus_set()
                 self.definitionTextbox.delete(1.0, tk.END)
                 self.definitionTextbox.insert(1.0, newDefinition)
-            else:
+            else: # no definition found
                 messagebox.showerror("No Definition Found",
                                      f"No definition found for '{updatedTerm}'. Please enter a definition manually or try a different term.",
                                      parent=self.sidebarFrame)
@@ -426,8 +493,11 @@ class MainWindow(ctk.CTk):
                                                   command=sidebarAutoDefButtonCommand)
         self.sidebarAutoDefButton.pack(padx=0, pady=0, side='left')
         
-        
-        def sidebarDeleteButtonCommand():
+        def sidebarDeleteButtonCommand() -> None:
+            """
+            Destroys the sidebar frame and deletes the entry from the database.
+            Clears selectedList entries and updates the display list.
+            """
             self.sidebarFrame.destroy()
 
             with sqlite3.connect(DBPATH) as conn: # mass removal from db
@@ -440,7 +510,11 @@ class MainWindow(ctk.CTk):
             self.updateUI()
 
             if self.dictionaryList.entries == []:
-                print("None left")
+                """
+                No more entries remaining reset the displayList to default filter parameters and display.
+                Checks only the dictinaryList. There may still be entries in the database.
+                """
+            
                 # Reset displayList filter attributes
                 self.masterApp.displayList.filterTags = ""
                 self.masterApp.displayList.requireAllTags = False
@@ -474,7 +548,12 @@ class MainWindow(ctk.CTk):
                                                  command=sidebarDeleteButtonCommand)
         self.sidebarDeleteButton.pack(padx=(10,0), pady=0, side='left')
 
-        def sidebarDoneButtonCommand():
+        def sidebarDoneButtonCommand() -> None:
+            """
+            Saves the changes made in the sidebar to the entry.
+            If no changes are made, it simply closes the sidebar.
+            If changes are made, it updates the entry in the database and refreshes the UI.
+            """
             newTerm = self.sidebarTitle.get().strip()
             newDefinition = self.definitionTextbox.get("1.0", tk.END).strip()
             newTags = self.tagsTextbox.get("1.0", tk.END)
@@ -503,7 +582,10 @@ class MainWindow(ctk.CTk):
                                                command=sidebarDoneButtonCommand)
         self.sidebarDoneButton.pack(padx=0, pady=0, side='right')
 
-        def sidebarCancelButtonCommand():
+        def sidebarCancelButtonCommand() -> None:
+            """
+            Closes the sidebar without saving any changes.
+            """
             self.sidebarFrame.destroy()
 
         self.sidebarCancelButton = ctk.CTkButton(self.sidebarButtons,
@@ -562,9 +644,9 @@ class MainWindow(ctk.CTk):
                                             wrap="none")
         self.tagsTextbox.pack(pady=(0, 20), padx=25, fill='both', side='bottom')
         self.tagsTextbox.insert("end", entry.tags)
+        # Prevent newlines and tab characters in the tags textbox (excess whitespace characters)
         self.tagsTextbox.bind("<Return>", lambda e: "break")
         self.tagsTextbox.bind("<Tab>", lambda e: "break")
-
 
         self.sidebarTagsFrame = ctk.CTkFrame(self.sidebarFrame, width=720 - 70, height=65, corner_radius=0, fg_color="transparent", bg_color="transparent")
         self.sidebarTagsFrame.pack(pady=(0,5), padx=25, fill='x', side='bottom')
@@ -583,20 +665,28 @@ class MainWindow(ctk.CTk):
         self.definitionTagsDivider = ctk.CTkFrame(self.sidebarFrame, fg_color=DarkGreen1, height=1.5)
         self.definitionTagsDivider.pack(padx=0, pady=(0,7.5), fill="x", side='bottom')
 
-
         self.sidebarDivider = ctk.CTkFrame(self.sidebarFrame, width=3, corner_radius=0, fg_color=DarkGreen3, height=977)
         self.sidebarDivider.place(relx=0, rely=0)
 
-    def searchBarCommand(self, searchKeyword):
+    def searchBarCommand(self, searchKeyword) -> None:
+        """
+        Callback for when the search bar is used.
+        Updates the displayList's searchKeyword attribute if it has changed and refreshes the dictionary UI.
+        """
         if searchKeyword != self.masterApp.displayList.searchKeyword: # update search term
             self.masterApp.displayList.searchKeyword = searchKeyword
             
-            # update ui
             self.updateDictionaryUI()
-        else: # selected attribute unchanged so do nothing
+        else: # search keyword unchanged so do nothing
             return
 
-    def filterBarCommand(self, selectedTags):
+    def filterBarCommand(self, selectedTags) -> None:
+        """
+        Callback for when the filter bar is used.
+        Updates the displayList's filterTags and requireAllTags attributes based on the selected tags if they have changed.
+        If no tags are selected, it resets the filterTags to None and requireAllTags to False.
+        Refreshes the dictionary UI to reflect the changes.
+        """
         if selectedTags is None: # option is "No tags" (show entries with no tags)
             self.masterApp.displayList.filterTags = None
             self.masterApp.displayList.requireAllTags = False
@@ -610,22 +700,29 @@ class MainWindow(ctk.CTk):
                 self.masterApp.displayList.filterTags = selectedTags
                 self.masterApp.displayList.requireAllTags = self.filterBar.require_all_selected()
                 
-                # update ui
                 self.updateDictionaryUI()
             
             else: # selected tags unchanged so do nothing
                 return
 
-    def sortBarCommand(self, selectedAttribute):
+    def sortBarCommand(self, selectedAttribute) -> None:
+        """
+        Callback for when the sort bar is used.
+        Updates the displayList's sortAttribute attribute based on the selected attribute if it has changed.
+        Refreshes the dictionary UI to reflect the changes.
+        """
         if selectedAttribute != self.masterApp.displayList.sortAttribute: # update sort attribute
             self.masterApp.displayList.sortAttribute = selectedAttribute
             
-            # update ui
             self.updateDictionaryUI()
         else: # selected attribute unchanged so do nothing
             return
-    
-    def selectAllToggleCommand(self):
+
+    def selectAllToggleCommand(self) -> None:
+        """
+        Callback for when the select all toggle is used.
+        Selects or unselects all entries in the dictionary list.
+        """
         if self.selectAllToggle.get_state():
             self.dictionaryList.select_all()
         else:
@@ -633,16 +730,30 @@ class MainWindow(ctk.CTk):
         
         self.updateDeleteButtonState()
 
-    def onEntrySelectionChanged(self):
+    def onEntrySelectionChanged(self) -> None:
+        """
+        Callback for when the entry selection changes.
+        Updates the delete button state and the entry counter.
+        """
         self.updateDeleteButtonState()
-    
-    def updateDeleteButtonState(self):
+        self.updateCounter()  # Update the entry counter when selection changes
+
+    def updateDeleteButtonState(self) -> None:
+        """
+        Updates the state of the delete button based on the current selection.
+        If selected entries exist, the button is enabled; otherwise, it is locked.
+        This method is called whenever the selection changes in the dictionary list.
+        """
         if len(self.masterApp.selectedList.entries) > 0:
             self.deleteSelectedButton.unlock()
         else:
             self.deleteSelectedButton.lock()
 
-    def deleteSelectedButtonCommand(self):
+    def deleteSelectedButtonCommand(self) -> None:
+        """
+        Callback for when the delete selected button is pressed.
+        Deletes the currently selected entries from the database and updates the UI.
+        """
         if not self.masterApp.selectedList.entries:
             return
 
@@ -653,7 +764,7 @@ class MainWindow(ctk.CTk):
 
         uidsToDelete = [entry.uid for entry in self.masterApp.selectedList.entries]
 
-        with sqlite3.connect(DBPATH) as conn: # mass removal from db
+        with sqlite3.connect(DBPATH) as conn: # mass removal from db instead of individual deletes (entry.delete() method)
             cursor = conn.cursor()
             cursor.executemany("DELETE FROM master WHERE uid = ?", [(uid,) for uid in uidsToDelete])
             conn.commit()
@@ -663,7 +774,10 @@ class MainWindow(ctk.CTk):
         self.updateUI()
 
         if self.dictionaryList.entries == []:
-            print("None left")
+            """
+            No more entries remaining reset the displayList to default filter parameters and display.
+            Checks only the dictinaryList. There may still be entries in the database.
+            """
             # Reset displayList filter attributes
             self.masterApp.displayList.filterTags = ""
             self.masterApp.displayList.requireAllTags = False
@@ -683,8 +797,13 @@ class MainWindow(ctk.CTk):
             # Rebuild the display list again with filters off
             self.updateUI()
 
-    def openAddWindow(self): # Opens the add entry window
-        ### Popup Window Setup
+    def openAddWindow(self) -> None:
+        """
+        Opens a new window for adding a dictionary entry.
+        The window contains fields for term, definition, and tags.
+        It includes buttons for auto-defining the term, saving the entry, and cancelling.
+        """
+        ### Popup Window Setup ###
         topLevel = ctk.CTkToplevel(self)
         topLevel.geometry("1280x720")
         topLevel.title("Add Entry")
@@ -734,24 +853,41 @@ class MainWindow(ctk.CTk):
                                          scrollbar_button_color=DarkGreen3, scrollbar_button_hover_color=ScrollbarGreen)
 
         definitionEntry.pack(padx=35, pady=0, fill="x")
+
         # Add placeholder text to definition entry
         placeholderText = "e.g. The process by which green plants and some other organisms use sunlight to synthesize nutrients from carbon dioxide and water."
         placeholderColor = Cream3
         normalColor = DarkGreen2
 
-        def showPlaceholder():
+        def showPlaceholder() -> None:
+            """
+            Method to manually program placeholder text in the definition entry.
+            Sets the text color to the placeholder color and inserts the placeholder text to the definition entry.
+            """
             definitionEntry.configure(text_color=placeholderColor)
             definitionEntry.insert("1.0", placeholderText)
 
-        def hidePlaceholder(event=None):
+        def hidePlaceholder(event=None) -> None:
+            """
+            Method to manually program placeholder text in the definition entry.
+            Hides placeholder text and sets the text color to normal.
+            """
             definitionEntry.delete("1.0", tk.END)
             definitionEntry.configure(text_color=normalColor)
 
-        def onFocusIn(event):
+        def onFocusIn(event) -> None:
+            """
+            When the definition entry gains focus, check if it shows placeholder text.
+            If it does, hide the placeholder text.
+            """
             if definitionEntry.get("1.0", tk.END).strip() == placeholderText and definitionEntry.cget("text_color") == placeholderColor:
                 hidePlaceholder()
 
-        def onFocusOut(event):
+        def onFocusOut(event) -> None:
+            """
+            When the definition entry loses focus, check if it is empty.
+            If it is empty, show the placeholder text.
+            """
             if not definitionEntry.get("1.0", tk.END).strip():
                 showPlaceholder()
 
@@ -761,7 +897,13 @@ class MainWindow(ctk.CTk):
         # Show placeholder initially
         showPlaceholder()
 
-        def autoDefButtonCommand():
+        def autoDefButtonCommand() -> None:
+            """
+            Automatically defines the term entered by the user.
+            Retrieves the definition from Wikipedia using the Helper class.
+            If a definition is found, it updates the definition entry with the new definition.
+            If no definition is found, it shows an error message.
+            """
             term = termEntry.get().strip()
             if term:
                 newDefinition = Helper.wikipediaAPI(term)
@@ -803,27 +945,33 @@ class MainWindow(ctk.CTk):
         buttonFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
         buttonFrame.pack(padx=35, pady=(35,0), fill="x")
 
-        def cancelButtonCommand():
+        def cancelButtonCommand() -> None:
+            """
+            Closes the add entry window without saving any changes.
+            """
             topLevel.destroy()
         cancelButton = ctk.CTkButton(buttonFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
                                      border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
         cancelButton.pack(side='right', padx=(0,0), pady=0)
-    
-        def addButtonCommand():
+
+        def addButtonCommand() -> None:
+            """
+            Adds the new entry to the database using fields from the UI (term, definition, tags).
+            """
             term = termEntry.get().strip()
             definition = definitionEntry.get("1.0", tk.END).strip()
             tags = tagEntry.get().strip() # still in space separated string format
-            if not term or definition == placeholderText or not definition:
+            if (not term) or (definition == placeholderText) or (not definition):
                 messagebox.showwarning("Missing Fields",
                                        "Please fill in both the term and definition fields.",
                                        parent=topLevel)
                 return
             entry = Entry(term=term, definition=definition, tags=tags)
-            entry.add() # add to database
+            entry.add()
 
             self.updateUI() # update the main app UI including the dictionary list, counter, and filter bar
 
-            # Clear the input fields except for tags and focus on term entry
+            # Clear the input fields except for tags and focus on term entry (for convenience of adding multiple entries)
             termEntry.delete(0, tk.END)
             definitionEntry.delete(1.0, tk.END)
             definitionEntry.configure(text_color=placeholderColor)  # reset text color to placeholder
@@ -842,9 +990,14 @@ class MainWindow(ctk.CTk):
         ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
         footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
         footerIcon.pack(expand=True)
-    
-    def openExportWindow(self): # Opens the export window
-        ### Popup Window Setup
+
+    def openExportWindow(self) -> None:
+        """
+        Opens a new window for exporting entries.
+        The window allows the user to select the export format (Anki Deck or Lexes DB),
+        specify the export file path, and choose whether to include tags.
+        """
+        ### Popup Window Setup ###
         topLevel = ctk.CTkToplevel(self)
         topLevel.geometry("1280x720")
         topLevel.title("Export Entries")
@@ -869,15 +1022,30 @@ class MainWindow(ctk.CTk):
         exportAsFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
         exportAsFrame.pack(padx=35, pady=(0,0), fill="x")
 
-        def toggleExport(buttonName):
-            if buttonName == "Anki Deck":
+        def toggleExport(buttonName) -> None:
+            """
+            Toggles the export options for each button based on their respective states and function input.
+            """
+            exportDirectoryEntry.reset()  # Reset the file path entry when toggling export options
+            
+            if buttonName == "Anki Deck": # toggle Anki Deck export
                 exportAnkiButton.toggle()
-                if exportDBButton.get_state():
+                if exportDBButton.get_state(): # if Lexes DB export is active, deactivate it
                     exportDBButton.set_state(False)
-            elif buttonName == "Lexes DB":
+
+            elif buttonName == "Lexes DB": # toggle Lexes DB export
                 exportDBButton.toggle()
-                if exportAnkiButton.get_state():
+                if exportAnkiButton.get_state(): # if Anki Deck export is active, deactivate it
                     exportAnkiButton.set_state(False)
+            
+            # if both buttons are inactive, change colours of export directory entry to represent deactivation
+            if not exportAnkiButton.get_state() and not exportDBButton.get_state():
+                exportDirectoryEntry.change_text_color("#C1C9BD")
+                exportDirectoryEntry.configure(fg_color=Grey1)
+            # if both buttons are active, reset export directory entry colours
+            else:
+                exportDirectoryEntry.change_text_color(Cream3)
+                exportDirectoryEntry.configure(fg_color=Cream)
 
         exportAnkiButton = ExportButton(exportAsFrame, neutral_text="Anki Deck", active_text="Anki Deck", width=220, height=65, corner_radius=5,
                                                 font=("League Spartan", 36), image_neutral=ankiNeutralIconImage, image_active=ankiActiveIconImage, fg_color_neutral=LightGreen2, fg_color_active=ExportBlue,
@@ -900,6 +1068,8 @@ class MainWindow(ctk.CTk):
                                              border_width=2.5, placeholder_text="Select file path...", icon=folderIconImage, icon_size=(46,36),
                                              option_one=exportAnkiButton, option_two=exportDBButton)
         exportDirectoryEntry.pack(padx=0, pady=0, fill="x")
+        exportDirectoryEntry.change_text_color("#C1C9BD")
+        exportDirectoryEntry.configure(fg_color=Grey1)
 
         # Include Tags Option
         tagFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
@@ -932,25 +1102,34 @@ class MainWindow(ctk.CTk):
         entryCounter = ctk.CTkLabel(bottomFrame, text=f"{len(self.masterApp.selectedList.entries)} entries selected", font=("League Spartan", 48), text_color=DarkGreen2)
         entryCounter.pack(padx=0, pady=(0,20), side='left')
 
-        def cancelButtonCommand():
+        def cancelButtonCommand() -> None:
+            """
+            Closes the export window without saving changes.
+            """
             topLevel.destroy()
         cancelButton = ctk.CTkButton(bottomFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
                                      border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
         cancelButton.pack(side='right', padx=(0,0), pady=0)
 
-
-        def exportButtonCommand():
-            if not exportAnkiButton.get_state() and not exportDBButton.get_state():
+        def exportButtonCommand() -> None:
+            """
+            Initiates the export process based on the selected options.
+            Validates the selected export type, file path, and ensures entries are selected before proceeding.
+            If any validation fails, it shows a warning message.
+            If all validations pass, it calls the appropriate export method on the selectedList.
+            Closes the export window and shows a success message.
+            """
+            if not exportAnkiButton.get_state() and not exportDBButton.get_state(): # no export type selected
                 messagebox.showwarning("No Export Type Selected",
                                        "Please select an export type (Anki Deck or Lexes DB).",
                                        parent=topLevel)
                 return
-            if not exportDirectoryEntry.get_path():
+            if not exportDirectoryEntry.get_path(): # no file path selected
                 messagebox.showwarning("No File Path Selected",
                                        "Please select a file path to export the file to.",
                                        parent=topLevel)
                 return
-            if len(self.masterApp.selectedList.entries) == 0: # shouldn't ever happen but just in case
+            if len(self.masterApp.selectedList.entries) == 0: # (shouldn't ever happen but just in case)
                 messagebox.showwarning("No Entries Selected",
                                        "Please select entries to export.",
                                        parent=topLevel)
@@ -959,12 +1138,12 @@ class MainWindow(ctk.CTk):
 
             filePath = exportDirectoryEntry.get_path()
 
-            if filePath.endswith(".csv"): # if exporting to anki deck
+            if filePath.endswith(".csv"): # exporting to anki deck
                 self.masterApp.selectedList.exportToAnki(filePath=filePath, includeTags=tagCheckbox.get())
-            else:
+            else: # exporting to lexes db
                 self.masterApp.selectedList.exportToDB(filePath=filePath, includeTags=tagCheckbox.get())
 
-            topLevel.destroy()  # close the export window
+            topLevel.destroy() # close the export window
             messagebox.showinfo("Export Successful",
                                 f"Successfully exported {len(self.masterApp.selectedList.entries)} entries.",
                                 parent=self)
@@ -973,8 +1152,12 @@ class MainWindow(ctk.CTk):
                                   border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=exportButtonCommand)
         exportButton.pack(side='right', padx=(0,5), pady=0)
 
-    # Opens the import window to import raw pasted text.
-    def openImportTextWindow(self):
+    def openImportTextWindow(self) -> None:
+            """
+            Opens the import window to import raw pasted text (also known as bulk add entries).
+            The window allows the user to paste or type raw text, select entry and term-definition delimiters.
+            The text can get parsed into individual entries based on the delimiters and definitions can be auto-generated using Wikipedia.
+            """
             # Instantiate ImportList object
             importList = ImportList(filePath="",
                                     rawText="",
@@ -1020,6 +1203,7 @@ class MainWindow(ctk.CTk):
                                            border_width=2.5, scrollbar_button_color=DarkGreen3, scrollbar_button_hover_color=ScrollbarGreen)
             importTextbox.pack(padx=0, pady=0, fill="x")
 
+            # Placeholder for importTextbox
             placeholderText = "Paste or type raw text..."
             placeholderColor = Cream3
             normalColor = DarkGreen2
@@ -1063,13 +1247,19 @@ class MainWindow(ctk.CTk):
             fontSizeSlider.pack(padx=0, pady=(0,1), fill='x', side='left', expand=True)
 
             # Left Column: Parse Button
-            def parseButtonCommand():
-                # Check if importTextbox is empty or contains only placeholder text, and if dropdowns are selected
+            def parseButtonCommand() -> None:
+                """
+                Validates the input in the importTextbox and the selected delimiters from the dropdowns.
+                Parses the text from the importTextbox and adds reinserts entries into the importTextbox.
+                Can generate definitions automatically using Wikipedia if the term is missing a definition.
+                """
+                # Check if importTextbox is empty or contains only placeholder text
                 if importTextbox.get("1.0", tk.END).strip() == placeholderText or not importTextbox.get("1.0", tk.END).strip():
                     messagebox.showwarning("Empty Text",
-                                           "Please paste or type raw text to import.",
+                                           "Please paste or type raw text to parse and import.",
                                            parent=topLevel)
                     return
+                # Check if dropdowns are selected
                 if not entryDelimiterDropdown.get_selected() or not termDefinitionDelimiterDropdown.get_selected():
                     messagebox.showwarning("Missing Delimiters",
                                            "Please select both entry and term-definition delimiters.",
@@ -1102,15 +1292,16 @@ class MainWindow(ctk.CTk):
                 importList.entryDelimiter = entryDelimiter
                 importList.termDefinitionDelimiter = termDefinitionDelimiter
 
-                # Parse
                 successfulParse, trialParsedEntries = importList.parseText()
 
                 # Clear the importTextbox before inserting parsed entries (regardless of success)
                 importTextbox.delete("1.0", tk.END)
 
                 if successfulParse:
-                    # Update UI with parsed entries (attempted). For each parsed "entry" (really a tuple of strings), add to the importTextbox
-                    # entries delimited by line breaks and term-definition pairs delimited by the selected colon ':' (system-default/recommended)
+                    """
+                    Update UI with parsed entries (attempted). For each parsed "entry" (really a tuple of strings), add to the importTextbox
+                    entries delimited by line breaks and term-definition pairs delimited by the selected colon ':' (system-default/recommended)
+                    """
                     for entry in trialParsedEntries:
                         term, definition = entry
                         importTextbox.insert("end", f"{term}: {definition}\n")
@@ -1119,14 +1310,16 @@ class MainWindow(ctk.CTk):
                                         f"Successfully parsed {len(trialParsedEntries)} entries.",
                                         parent=topLevel)
                 else:
-                    # Either a term was missing or a definition was missing (and failed to auto-retrieve), so insert the entries back into the importTextbox
-                    # entries and term-definition pairs delimited by the user's originally selected delimiters (may not be system-default or recommended)
+                    """
+                    Either a term was missing or a definition was missing (and failed to auto-retrieve), so insert the entries back into the importTextbox
+                    entries and term-definition pairs delimited by the user's originally selected delimiters (may not be system-default or recommended)
+                    """
                     for entry in trialParsedEntries:
                         term, definition = entry
                         importTextbox.insert("end", f"{term}{termDefinitionDelimiter}{definition}\n")
 
                     messagebox.showerror("Parse Incomplete",
-                                         "Some entries were not parsed successfully. Either a term was missing or a definition failed to auto-retrieve. Please check the input textbox and try again.",
+                                         "Some entries could not be parsed. Either a term or a definition is missing. Please review your input and try again.",
                                          parent=topLevel)
 
             parseButton = ctk.CTkButton(leftColumn, text="Parse", font=("League Spartan Bold", 24), height=50, width=130,
@@ -1217,13 +1410,22 @@ class MainWindow(ctk.CTk):
             buttonFrame = ctk.CTkFrame(rightColumn, corner_radius=0, fg_color="transparent")
             buttonFrame.pack(padx=0, pady=0, anchor='se', side='bottom')
 
-            def cancelButtonCommand():
+            def cancelButtonCommand() -> None:
+                """
+                Closes the import window without saving any changes.
+                """
                 topLevel.destroy()
             cancelButton = ctk.CTkButton(buttonFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
                                      border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
             cancelButton.pack(side='right', padx=(0,30), pady=0)
 
-            def importButtonCommand():
+            def importButtonCommand() -> None:
+                """
+                Initiates the import process for the raw text.
+                Validates the input in the importTextbox, checks if delimiters are selected,
+                retrieves mass tags if provided, and validates the entries.
+                If all validations pass, it imports the entries into the database and updates the main app UI.
+                """
                 # Check if the importTextbox is empty or contains only placeholder text
                 if importTextbox.get("1.0", tk.END).strip() == placeholderText or not importTextbox.get("1.0", tk.END).strip():
                     messagebox.showwarning("Empty Text",
@@ -1234,24 +1436,19 @@ class MainWindow(ctk.CTk):
                 # Check if all dropdowns have a selected value
                 if not entryDelimiterDropdown.get_selected() or not termDefinitionDelimiterDropdown.get_selected():
                     proceed = messagebox.askyesno("Missing Delimiters",
-                                           "Delimiters have not been selected. Current operations will use values of:\n- Line Break (Default)\n- Colon (Default)\nDo you want wish to proceed?",
+                                           "Delimiters have not been selected. Current operations will use values of:\n- Line Break (Default)\n- Colon (Default)\nDo you wish to proceed?",
                                            parent=topLevel)
                     if proceed == False:
                         return
                 
-                # Get mass tags if provided
                 importList.massTags = massTagsEntry.get().strip()
-
-                # Get rawText from importTextbox
                 importList.rawText = importTextbox.get("1.0", tk.END).strip()
 
-                # Validate entries (remake from rawText)
+                # Validate entries (uses rawText which should have been parsed)
                 isValid = importList.validateEntries()
-                print(isValid, len(importList.parsedEntries))  # Debugging output to check validation results
-
                 if not isValid:
                     messagebox.showerror("Invalid Entries",
-                                         "Some entries are invalid. Please check the raw text and try again.",
+                                         "Some entries are invalid. Please review or re-parse the text and try again.",
                                          parent=topLevel)
                     return
                 
@@ -1280,9 +1477,14 @@ class MainWindow(ctk.CTk):
             ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
             footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
             footerIcon.pack(expand=True)
-    
-    def openImportDBWindow(self): # Opens the import window to import a Lexes DB file.
-        ### Popup Window Setup
+
+    def openImportDBWindow(self) -> None: # Opens the import window to import a Lexes DB file.
+        """
+        Opens the import window to import a Lexes DB file.
+        The window allows the user to select a Lexes DB file and preview the file before import.
+        Mass tags can be added to all entries in the database.
+        """
+        ### Popup Window Setup ###
         topLevel = ctk.CTkToplevel(self)
         topLevel.geometry("1280x720")
         topLevel.title("Import Database")
@@ -1305,37 +1507,32 @@ class MainWindow(ctk.CTk):
                                 massTags="",
                                 parsedEntries=[])
         
-        def truncateText(text, maxPixels, font):
-            ellipsis = "..."
-            ellipsisWidth = font.measure(ellipsis)
-
-            if font.measure(text) <= maxPixels:
-                return text
-
-            for i in range(len(text), 0, -1):
-                subText = text[:i]
-                if font.measure(subText) + ellipsisWidth <= maxPixels:
-                    return subText + ellipsis
-
-            return ellipsis  # fallback if even a single char is too wide (but shouldn't happen)
+        # Max Widths For Columns
+        termWidth = 220
+        definitionWidth = 660
+        tagsWidth = 330
         
-        termWidth = 220 # Max width for term column
-        definitionWidth = 660 # Max width for definition column
-        tagsWidth = 330 # Max width for tags column
-        # Function to populate preview rows
-        def populatePreviewBox(entries):
-            entries = entries[:100] # Limit to first 100 entries for performance
+        def populatePreviewBox(entries) -> None:
+            """
+            Populates the preview box with entries from the database.
+            Limits to the first 100 entries for performance.
+            """
+            entries = entries[:100]
 
             # Clear previous rows (except header)
             for widget in previewScrollable.winfo_children()[3:]:
                 widget.destroy()
             # Add new rows
             for i, (term, definition, tags) in enumerate(entries):
-                ctkRowFont = ctk.CTkFont(family=rowFont[0], size=rowFont[1])
+                # Use rowFont tuple for font family and size
+                fontFamily = rowFont[0]
+                fontSize = rowFont[1]
+                fontWeight = "normal"
 
-                truncatedTerm = truncateText(str(term), termWidth - 50, ctkRowFont)
-                truncatedDefinition = truncateText(str(definition), definitionWidth - 50, ctkRowFont)
-                truncatedTags = truncateText(str(tags), tagsWidth - 50, ctkRowFont)
+                # Use MainWindow truncateText method to truncate
+                truncatedTerm = self.truncateText(str(term), maxWidth=termWidth-50, size=fontSize, font=fontFamily, weight=fontWeight)
+                truncatedDefinition = self.truncateText(str(definition), maxWidth=definitionWidth - 50, size=fontSize, font=fontFamily, weight=fontWeight)
+                truncatedTags = self.truncateText(str(tags), maxWidth=tagsWidth - 50, size=fontSize, font=fontFamily, weight=fontWeight)
 
                 ctk.CTkLabel(previewScrollable, text=truncatedTerm, font=rowFont, text_color=rowColor,
                              anchor="w", width=termWidth).grid(row=i, column=0, sticky="w", padx=(8, 8))
@@ -1344,8 +1541,12 @@ class MainWindow(ctk.CTk):
                 ctk.CTkLabel(previewScrollable, text=truncatedTags, font=rowFont, text_color=rowColor,
                              anchor="w", width=tagsWidth).grid(row=i, column=2, sticky="w", padx=(8, 8))
 
-        # Hook up to file selection entry (call this function when a file is selected)
-        def onFileSelected(filepath):
+        def onFileSelected(filepath) -> None:
+            """
+            Callback function for when a file is selected in the importDirectoryEntry.
+            Reads the database file at filepath, extracts entries, and populates the preview box.
+            Updates the chosenFile label with the file name and number of entries.
+            """
             fileName = os.path.basename(filepath)
 
             # Read the database file at filepath and extract entries
@@ -1358,7 +1559,7 @@ class MainWindow(ctk.CTk):
                 populatePreviewBox(entries)
                 previewScrollable._parent_canvas.yview_moveto(0)
 
-            chosenFile.configure(text=f"{fileName} ({count} entries)")  # Update the label with the selected file name
+            chosenFile.configure(text=f"{fileName} ({count} entries)")  # Update the label with the selected file name and number of entries
 
         # Import from label and file directory selection and preview
         importFromLabel = ctk.CTkLabel(background, text="Import database from:", font=("League Spartan", 48), text_color=DarkGreen2)
@@ -1374,7 +1575,7 @@ class MainWindow(ctk.CTk):
         previewBoxFrame.pack(padx=35, pady=(20,0), fill="x")
         previewBoxFrame.pack_propagate(False)  # Keep fixed height
 
-        # Colours and fonts
+        # Colours and Fonts for Preview
         headerFont = ("Bahnschrift Bold", 16)
         headerColor = Cream3
         rowFont = ("Bahnschrift", 16)
@@ -1428,23 +1629,34 @@ class MainWindow(ctk.CTk):
         buttonFrame = ctk.CTkFrame(bottomFrame, corner_radius=0, fg_color="transparent")
         buttonFrame.pack(side="right", fill="x", padx=0, pady=0, anchor='s')
 
-        def cancelButtonCommand():
+        def cancelButtonCommand() -> None:
+            """
+            Closes the import window without saving any changes.
+            """
             topLevel.destroy()
         cancelButton = ctk.CTkButton(buttonFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130,
             text_color=Red, corner_radius=5, border_color=Red, fg_color=Cream,
             hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
         cancelButton.pack(side="right", padx=(0, 0), pady=0)
 
-        def importButtonCommand():
-            # Check if the Database file meets requirements:
-            # - File path is not empty
+        def importButtonCommand() -> None:
+            """
+            Validates and imports the selected database file.
+            Conditions for validation:
+            - A file path must be selected.
+            - The table must be called 'master'.
+            - The table must contain columns: term, definition, tags (in that order).
+            - The table must contain at least one entry.
+            If all validations pass, it imports the entries into the database and updates the main app UI.
+            """
+            # File path selected
             if not importDirectoryEntry.get_path():
                 messagebox.showwarning("No File Path Selected",
                                        "Please select a file path to import database from.",
                                        parent=topLevel)
                 return
-            
-            # - Table is called master
+
+            # Table is called 'master'
             with sqlite3.connect(importDirectoryEntry.get_path()) as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='master'")
@@ -1454,7 +1666,7 @@ class MainWindow(ctk.CTk):
                                          parent=topLevel)
                     return
 
-            # - Contains columns: term, definition, tags (in that order)
+            # Table contains correct columns.
             with sqlite3.connect(importDirectoryEntry.get_path()) as conn:
                 cursor = conn.cursor()
                 cursor.execute("PRAGMA table_info(master)")
@@ -1464,8 +1676,8 @@ class MainWindow(ctk.CTk):
                                          "The selected database does not contain the required columns: term, definition, tags. Please select a valid Lexes database file.",
                                          parent=topLevel)
                     return
-            
-            # - Contains at least one entry
+
+            # Table isn't empty.
             with sqlite3.connect(importDirectoryEntry.get_path()) as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM master")
@@ -1484,11 +1696,8 @@ class MainWindow(ctk.CTk):
             
             # Add DB entries to importList.parsedEntries
             importList.importDB()
+            count = importList.importAndClear() # imports and stores imported entry count
 
-            # Import the validated entries into the database
-            count = importList.importAndClear()
-
-            # Clear importTextbox, close window
             topLevel.destroy()
 
             # Update the main app UI, show success message
@@ -1520,18 +1729,26 @@ class MainWindow(ctk.CTk):
                                         border_width=2.5, height=50, width=578)
         massTagsEntry.pack(padx=0, pady=(0,0))
 
-
-
-
-    # Sets Windows display settings scaling to match intended scaling for app
-    def applyCustomScaling(self):
-        user32 = ctypes.windll.user32
+    def applyCustomScaling(self) -> None:
+        """
+        Apply custom scaling to the application window and widgets.
+        This method checks the current DPI scaling of the display and adjusts the scaling of the application window and widgets accordingly.
+        
+        For example:
+            SSince Lexes was designed and developed on 100% DPI, if the device's DPI is set to 125%,
+            the application will scale down to 100% to maintain consistent sizing.
+        """
+        user32 = ctypes.windll.user32 
         gdi32 = ctypes.windll.gdi32
 
         hdc = user32.GetDC(0)
-        dpi = gdi32.GetDeviceCaps(hdc, 88)
+        dpi = gdi32.GetDeviceCaps(hdc, 88) # returns DPI (dots per inch)
         user32.ReleaseDC(0, hdc)
 
+        """
+        Since 96 DPI (default) is 100%, by dividing the current DPI by 96 and multiplying by 100,
+        we get the scaling percentage.
+        """
         scalingPercent = int((dpi / 96) * 100)
 
         if scalingPercent != 100:
@@ -1540,11 +1757,19 @@ class MainWindow(ctk.CTk):
             ctk.set_window_scaling(scale)
             ctk.set_widget_scaling(scale)
         else:
-            # scale is already 100%
+            # scale is already 100%, so set to 1.0 to keep it at 100%
             ctk.set_window_scaling(1.0)
             ctk.set_widget_scaling(1.0)
         
-    def updateDictionaryUI(self):
+    def updateDictionaryUI(self) -> None:
+        """
+        Updates only the dictionary UI.
+        Clears the selected entries, to reset all entries highlighted.
+        Rebuilds the display list and populates the dictionary list with the entries filtered through the new parameters.
+        Also updates the select all toggle state to be unselected as all entries are now unselected and calls delete button to update its state.
+
+        This method is called after any change to the dictionary list, such as filtering, adding, deleting, or editing entries.
+        """
         self.masterApp.selectedList.entries.clear()  # clear selected entries
         self.masterApp.displayList.build()  # rebuild filtered list
         self.dictionaryList.entries = self.masterApp.displayList.entries
@@ -1552,18 +1777,35 @@ class MainWindow(ctk.CTk):
         self.selectAllToggle.set_state(False)  # force toggle to be unselected
         self.updateDeleteButtonState()
         
-        self.entryCounter.configure(text=f"# Entries: {len(self.masterApp.displayList.entries)}")
+        self.updateCounter() # update the counter label in the footer
 
-    def updateAuxiliaryUI(self):
+    def updateAuxiliaryUI(self) -> None:
+        """
+        Updates only the auxiliary UI components (filterBar).
+        Updates the filterBar options with the unique tags from the database as the total available tags change.
+
+        This method is called after any change to the tags in the database, such as adding, deleting, or editing tags.
+        It ensures that the filterBar reflects the current state of the tags available for filtering.
+        """
         self.filterBar.options = self.getUniqueTags()
         self.filterBar.refresh_options()
 
-    def updateUI(self):
+    def updateUI(self) -> None:
+        """
+        Updates the entire UI of the application.
+        Calls both updateDictionaryUI and updateAuxiliaryUI to refresh the dictionary list and auxiliary components.
+
+        This method is called after any significant change to the application state that affects both the dictionary list and auxiliary components,
+        such as importing a new database, adding or deleting entries, or changing the filter options.
+        """
         self.updateDictionaryUI()
         self.updateAuxiliaryUI()
 
-    def getUniqueTags(self):
-        # gets unique tags
+    def getUniqueTags(self) -> list[str]:
+        """
+        Returns an list of unique tags, ordered by their first appearance in the database.
+        Uses a set for efficient uniqueness checking and a list to maintain order.
+        """
         seen = set()
         orderedTags = []
 
@@ -1578,7 +1820,11 @@ class MainWindow(ctk.CTk):
                             orderedTags.append(tag)
         return orderedTags
 
-    def truncateText(self, text: str, maxWidth: int = 663, size: int = 64, weight="bold", font = "League Spartan"):
+    def truncateText(self, text: str, maxWidth: int = 663, size: int = 64, weight="bold", font = "League Spartan") -> str:
+            """
+            Returns the text truncated to fit within the specified pixel width, adding an ellipsis if necessary.
+            If the text fits within maxWidth, returns the original text. Else, truncates the text and appends an ellipsis.
+            """
             font = ctk.CTkFont(family=font, size=size, weight=weight)
             if font.measure(text) <= maxWidth:
                 return text
@@ -1587,8 +1833,7 @@ class MainWindow(ctk.CTk):
             truncated = f"{text}..."
             return truncated
 
-
-# App start logic
+### App Startup ###
 if __name__ == "__main__":
     app = App()
     app.start()

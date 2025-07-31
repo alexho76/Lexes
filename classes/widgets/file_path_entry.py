@@ -24,6 +24,7 @@ Usage:
 """
 
 ### Module Imports ###
+from email.mime import text
 import tkinter.filedialog as filedialog
 import customtkinter as ctk
 from tkinter import messagebox
@@ -117,3 +118,18 @@ class FilePathEntry(ctk.CTkFrame):
         Returns the currently selected file path or an empty string if none is selected.
         """
         return self.file_path if self.file_path else ""
+    
+    def reset(self) -> None:
+        """
+        Public Method
+        Resets the file path to "" and clears the entry label.
+        """
+        self.file_path = ""
+        self.path_label.configure(text=self.placeholder_text)  # Reset label to placeholder text
+    
+    def change_text_color(self, color: str) -> None:
+        """
+        Public Method
+        Changes the text color of the entry label.
+        """
+        self.path_label.configure(text_color=color)

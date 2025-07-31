@@ -127,14 +127,27 @@ class DictionaryList(ctk.CTkFrame):
 
         # Widget Setup ###
         self._setup_widgets()
+        self._bind_mousewheel_all()
         self.pack_propagate(False)
         self.populate()
 
         ### Bind Events ###
         self.canvas.bind("<Configure>", self._on_canvas_resize)
-        self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
 
-    ### Private Methods ###
+
+    def _bind_mousewheel_all(self) -> None:
+        """
+        Private Method
+        Binds mousewheel events to the canvas and all children widgets for scrolling.
+        Uses the root window (toplevel) for global event binding.
+        """
+        toplevel = self.winfo_toplevel()
+        self.bind("<Enter>", lambda e: toplevel.bind_all("<MouseWheel>", self._on_mousewheel))
+        self.bind("<Leave>", lambda e: toplevel.unbind_all("<MouseWheel>"))
+        for child in self.winfo_children():
+            child.bind("<Enter>", lambda e: toplevel.bind_all("<MouseWheel>", self._on_mousewheel))
+            child.bind("<Leave>", lambda e: toplevel.unbind_all("<MouseWheel>"))
+
     def _setup_widgets(self) -> None:
         """
         Private Method

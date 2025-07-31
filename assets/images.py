@@ -26,6 +26,9 @@ from PIL import Image
 ### Lexes Logo and Brand Images ###
 logoImage = Image.open(r"assets\lexes_logo.png").resize((232,86), Image.LANCZOS)
 iconImage = Image.open(r"assets\lexes_icon.png").resize((65,65), Image.LANCZOS)
+sloganXImage = Image.open(r"assets\lexes_slogan_x.png").resize((241,65), Image.LANCZOS)
+sloganYImage = Image.open(r"assets\lexes_slogan_y.png").resize((171,87), Image.LANCZOS)
+sloganXYImage = Image.open(r"assets\lexes_slogan_xy.png").resize((224,73), Image.LANCZOS)
 
 ### Search and Delete Icons ###
 searchIconImage = Image.open(r"assets\search_icon.png").resize((40,40), Image.LANCZOS)
