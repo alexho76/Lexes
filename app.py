@@ -130,13 +130,6 @@ class MainWindow(ctk.CTk):
         self.geometry(f"{screenWidth}x{screenHeight}")
         self.title("Lexes - Main Window")
 
-        # # Menubar
-        # self.menubar = tk.Menu(self)
-        # self.config(menu=self.menubar)
-        # self.fileMenu = tk.Menu(self.menubar, tearoff=0)
-        # self.fileMenu.add_command(label="Save")
-        # self.menubar.add_cascade(label="File", menu=self.fileMenu)
-
         # Background Frame
         self.background = ctk.CTkFrame(self, corner_radius=0, fg_color=LightGreen1)
         self.background.pack(fill='both', expand=True)
@@ -945,14 +938,14 @@ class MainWindow(ctk.CTk):
         buttonFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
         buttonFrame.pack(padx=35, pady=(35,0), fill="x")
 
-        def cancelButtonCommand() -> None:
+        def closeButtonCommand() -> None:
             """
             Closes the add entry window without saving any changes.
             """
             topLevel.destroy()
-        cancelButton = ctk.CTkButton(buttonFrame, text="Cancel", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
-                                     border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
-        cancelButton.pack(side='right', padx=(0,0), pady=0)
+        closeButton = ctk.CTkButton(buttonFrame, text="Close", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
+                                     border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=closeButtonCommand)
+        closeButton.pack(side='right', padx=(0,0), pady=0)
 
         def addButtonCommand() -> None:
             """
@@ -1671,7 +1664,8 @@ class MainWindow(ctk.CTk):
                 cursor = conn.cursor()
                 cursor.execute("PRAGMA table_info(master)")
                 columns = [col[1] for col in cursor.fetchall()]
-                if not all(col in columns for col in ["term", "definition", "tags"]):
+                expectedColumns = ["uid", "term", "definition", "tags"]
+                if columns != expectedColumns:
                     messagebox.showerror("Invalid Database",
                                          "The selected database does not contain the required columns: term, definition, tags. Please select a valid Lexes database file.",
                                          parent=topLevel)
@@ -1735,7 +1729,7 @@ class MainWindow(ctk.CTk):
         This method checks the current DPI scaling of the display and adjusts the scaling of the application window and widgets accordingly.
         
         For example:
-            SSince Lexes was designed and developed on 100% DPI, if the device's DPI is set to 125%,
+            Since Lexes was designed and developed on 100% DPI, if the device's DPI is set to 125%,
             the application will scale down to 100% to maintain consistent sizing.
         """
         user32 = ctypes.windll.user32 
@@ -1767,9 +1761,12 @@ class MainWindow(ctk.CTk):
         Clears the selected entries, to reset all entries highlighted.
         Rebuilds the display list and populates the dictionary list with the entries filtered through the new parameters.
         Also updates the select all toggle state to be unselected as all entries are now unselected and calls delete button to update its state.
+        Shows or hides info message on dictionary list to indicate no entries shown.
 
         This method is called after any change to the dictionary list, such as filtering, adding, deleting, or editing entries.
         """
+        self.dictionaryList.hide_empty_message()
+
         self.masterApp.selectedList.entries.clear()  # clear selected entries
         self.masterApp.displayList.build()  # rebuild filtered list
         self.dictionaryList.entries = self.masterApp.displayList.entries
@@ -1777,6 +1774,18 @@ class MainWindow(ctk.CTk):
         self.selectAllToggle.set_state(False)  # force toggle to be unselected
         self.updateDeleteButtonState()
         
+        ### Check length of database ###
+        with sqlite3.connect(DBPATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM master")
+            count = cursor.fetchone()[0]
+        if count == 0: # No entries exist at all
+            self.dictionaryList.hide_empty_message()
+            self.dictionaryList.display_empty_message(entries_exist = False)
+        elif len(self.dictionaryList.entries) == 0:
+            self.dictionaryList.hide_empty_message()
+            self.dictionaryList.display_empty_message(entries_exist = True)
+
         self.updateCounter() # update the counter label in the footer
 
     def updateAuxiliaryUI(self) -> None:

@@ -108,8 +108,6 @@ class ImportList:
         
         for entry in self.parsedEntries:
             entry.add()
-            # debugging line to see what is being added (optional)
-            # print("Adding entry:", entry.term.encode('ascii', errors='replace').decode(), entry.definition.encode('ascii', errors='replace').decode())
         
         self.rawText = ""
         self.parsedEntries.clear()
@@ -125,9 +123,9 @@ class ImportList:
             rows = cursor.fetchall()
 
         for row in rows: # Reads each row from DB
-            term = row[0]
-            definition = row[1]
-            tags = row[2] or ""
+            term = row[1]
+            definition = row[2]
+            tags = row[3] or ""
 
             # Adds massTags to row's pre-existing tags
             combinedTags = f"{self.massTags.strip()} {tags.strip()}".strip()

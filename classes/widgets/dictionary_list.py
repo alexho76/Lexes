@@ -63,6 +63,7 @@ class DictionaryList(ctk.CTkFrame):
                  tag_icon: str = None,
                  on_selection_change = None,
                  on_row_click = None,
+                 empty_message: ctk.CTkLabel = None,
                  **kwargs):
         """
         Initialise the DictionaryList frame and UI config.
@@ -101,6 +102,7 @@ class DictionaryList(ctk.CTkFrame):
         self.tag_text_color = tag_text_color
 
         self.scroll_speed = scroll_speed
+        self.empty_message = empty_message
 
         ### Icon Images ###
         self.overflow_icon = ctk.CTkImage(light_image=overflow_icon, dark_image=overflow_icon, size=(34,9))
@@ -812,3 +814,26 @@ class DictionaryList(ctk.CTkFrame):
             entry.unselect(self.selectedList)
             self.selected_vars[idx].set(0)
         self._update_visible_rows()
+
+    def display_empty_message(self, entries_exist: bool) -> None:
+        """
+        Public Method
+        Displays a message indicating that the database is empty or has no results meeting the current filters.
+        """
+        if entries_exist:
+            self.empty_message = ctk.CTkLabel(self.canvas, text="No results match the current filters.",
+                                              fg_color="transparent", font=self.font_term, text_color=self.row_bg_color_1)
+            self.empty_message.place(relx=0.5, rely=0.5, anchor="center")
+        else:
+            self.empty_message = ctk.CTkLabel(self.canvas, text="Your dictionary is empty. Click 'Add' to create your first entry.",
+                                              fg_color="transparent", font=self.font_term, text_color=self.row_bg_color_1)
+            self.empty_message.place(relx=0.5, rely=0.5, anchor="center")
+
+    def hide_empty_message(self) -> None:
+        """
+        Public Method
+        Clears the empty message label from the canvas.
+        """
+        if self.empty_message is not None:
+            self.empty_message.destroy()
+            self.empty_message = None

@@ -80,9 +80,11 @@ class SelectedList:
 
         with sqlite3.connect(fullPath) as conn:
             cursor = conn.cursor()
+            cursor.execute("DROP TABLE IF EXISTS master")  # Always recreate table with correct schema
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS master (
-                term TEXT PRIMARY KEY NOT NULL,
+                uid INTEGER PRIMARY KEY AUTOINCREMENT,
+                term TEXT NOT NULL,
                 definition TEXT NOT NULL,
                 tags TEXT)
             """)

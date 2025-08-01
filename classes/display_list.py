@@ -96,7 +96,9 @@ class DisplayList:
 
         # Changed from previously plan of removing entries without keyword to rebuilding displayList.entries, due to issues with removing entries while iterating
         self.entries = [entry for entry in self.entries
-                        if self.searchKeyword.lower() in entry.term.lower() or self.searchKeyword.lower() in entry.definition.lower()]
+                        if self.searchKeyword.lower() in entry.term.lower() 
+                        or self.searchKeyword.lower() in entry.definition.lower()
+                        or self.searchKeyword.lower() in entry.tags.lower()]
 
     # Uses Helper.quickSort(), assumes sortAttribute is among alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
     def sort(self) -> None:
