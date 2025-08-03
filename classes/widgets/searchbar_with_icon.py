@@ -33,7 +33,6 @@ class SearchBarWithIcon(ctk.CTkFrame):
                  entry_placeholder="Search by keyword",
                  font=("League Spartan", 36),
                  text_color="green",
-                 bg_color=None,
                  placeholder_text_color="darkgreen",
                  fg_color="lightgray",
                  border_width=0,
@@ -43,13 +42,15 @@ class SearchBarWithIcon(ctk.CTkFrame):
                  on_search_callback = None,
                  **kwargs):
         """
-        Initialize the SearchBarWithIcon widget with custom styles, icons, and callback.
+        Initialise the SearchBarWithIcon widget with custom styles, icons, and callback.
         """
         super().__init__(master, width=width, height=height, fg_color="transparent", **kwargs)
+        ### Appearance ###
         self.width = width
         self.height = height
         self.icon_width = icon_width
-        self.on_search_callback = on_search_callback
+
+        self.on_search_callback = on_search_callback # callback for search action
 
         self.pack_propagate(False)
 

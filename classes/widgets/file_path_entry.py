@@ -24,7 +24,6 @@ Usage:
 """
 
 ### Module Imports ###
-from email.mime import text
 import tkinter.filedialog as filedialog
 import customtkinter as ctk
 from tkinter import messagebox

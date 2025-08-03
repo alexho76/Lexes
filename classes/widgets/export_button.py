@@ -55,8 +55,8 @@ class ExportButton(ctk.CTkFrame):
 
         self.border_color = border_color
         self.border_width = 2.5
-        self.state_active = False
-        self.callback_command = callback_command
+        self.state_active = False # initial state is inactive
+        self.callback_command = callback_command # callback function to execute on click
 
         ### Store images and config ###
         self.neutral_text = neutral_text

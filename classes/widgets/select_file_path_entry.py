@@ -50,12 +50,12 @@ class SelectFilePathEntry(ctk.CTkFrame):
         Initialise the SelectFilePathEntry widget with custom styling, icon, and callback.
         """
         super().__init__(master, fg_color=fg_color, border_color=border_color, border_width=border_width, **kwargs)
-
+        ### Icon Setup ###
         self.icon = ctk.CTkImage(light_image=icon, dark_image=icon, size=icon_size) if icon else None
-
         self.icon_label = ctk.CTkLabel(self, image=self.icon, text="", fg_color="transparent")
         self.icon_label.pack(side="left", padx=(10,0), pady=5)
 
+        ### Path Label Setup ###
         self.placeholder_text = placeholder_text
         self.path_label = ctk.CTkLabel(self, text=self.placeholder_text, font=font, text_color=text_color, fg_color="transparent")
         self.path_label.pack(side="left", padx=10, pady=(2.5,7.5))
@@ -65,9 +65,9 @@ class SelectFilePathEntry(ctk.CTkFrame):
         self.icon_label.bind("<Button-1>", self._open_dialog)
         self.path_label.bind("<Button-1>", self._open_dialog)
 
-        self.file_type = file_type
-        self.file_path = ""
-        self.on_callback = on_callback
+        self.file_type = file_type # file type to restrict selection (e.g., ".csv", ".db")
+        self.file_path = "" # initially empty path
+        self.on_callback = on_callback # callback function to execute when a file is selected
 
     def get_path(self) -> str:
         """

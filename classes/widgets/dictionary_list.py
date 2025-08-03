@@ -73,11 +73,11 @@ class DictionaryList(ctk.CTkFrame):
         """
         super().__init__(master, width=width, height=height+1.5, fg_color=header_bg_color, corner_radius=0, **kwargs)
         super().pack_propagate(False)
-        self.on_selection_change = on_selection_change
-        self.on_row_click = on_row_click
+        self.on_selection_change = on_selection_change # callback for when selection changes
+        self.on_row_click = on_row_click # callback for when a row is clicked
 
         ### Entry and SelectedList setup ###
-        self.entries = entries
+        self.entries = entries # list of Entry objects to display in dictionary
         self.selectedList = selectedList if selectedList is not None else SelectedList()
 
         ## Layout, Font, Dimensions, and Colour setup ###
@@ -101,8 +101,8 @@ class DictionaryList(ctk.CTkFrame):
         self.tag_box_bg_color = tag_box_bg_color
         self.tag_text_color = tag_text_color
 
-        self.scroll_speed = scroll_speed
-        self.empty_message = empty_message
+        self.scroll_speed = scroll_speed # speed of scrolling in pixels per scroll event
+        self.empty_message = empty_message # message to display when there are no entries
 
         ### Icon Images ###
         self.overflow_icon = ctk.CTkImage(light_image=overflow_icon, dark_image=overflow_icon, size=(34,9))

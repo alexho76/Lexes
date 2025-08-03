@@ -47,8 +47,8 @@ class LockedButton(ctk.CTkFrame):
         super().__init__(master, width=width, height=height, fg_color="transparent", **kwargs)
         self.pack_propagate(False)
 
-        self._command = command
-        self._is_locked = True
+        self._command = command # callback function to execute on click
+        self._is_locked = True # initial state is locked (disabled)
 
         ### Assets and Styling ###
         self._neutral_icon = ctk.CTkImage(light_image=neutral_icon, dark_image=neutral_icon, size=icon_size)

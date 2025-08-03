@@ -52,13 +52,13 @@ class SingleSelectComboBox(ctk.CTkFrame):
         super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, border_color=border_color, border_width=border_width, **kwargs)
 
         ### Widget Appearance & Options ###
-        self.options = options
+        self.options = options # list of options to display in the dropdown
         self.width = width
         self.height = height
 
+        ### Font and Colors ###
         self.font = font or ("Arial", 14)
         self.dropdown_font = dropdown_font or ("Arial", 12)
-        
         self.fg_color = fg_color
         self.border_color = border_color
         self.border_width = border_width
@@ -67,11 +67,13 @@ class SingleSelectComboBox(ctk.CTkFrame):
         self.selected_text_color = selected_text_color
         self.unselected_text_color = unselected_text_color
         
+        ### Additional Appearance ###
         self.corner_radius = corner_radius
         self.default_text = default_text
         self.dropdown_bg_color = dropdown_bg_color
-        self.on_close_callback = on_close_callback
         self.ipadx = ipadx  # Padding for dropdown options
+
+        self.on_close_callback = on_close_callback
 
         ### Internal State ###
         self.selected_index = None # Index of currently selected option (None if nothing selected)

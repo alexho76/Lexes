@@ -23,7 +23,7 @@ import wikipedia
 
 class Helper:
     @staticmethod
-    # Static method to call Wikipedia API, parse response, and return definition (if found).
+    # Static method to call Wikipedia API on query, parse response, and return definition (if found).
     # Handles disambiguation and input errors by retrying with modified query formats or returning None (which are caught later and handled as errors).
     # NOTE: Returns string of definition if found or None if not found.
     def wikipediaAPI(query: str) -> str | None:

@@ -51,7 +51,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
         super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, **kwargs)
 
         ### Config and State ###
-        self.options = options
+        self.options = options # list of options to display in the dropdown
         self.width = width
         self.height = height
         self.font = font or ("Arial", 14)
@@ -61,18 +61,19 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.text_color = text_color
         self.selected_bg_color = selected_bg_color
         self.selected_text_color = selected_text_color
-        self.require_frame_color = require_frame_color
+        self.require_frame_color = require_frame_color # color for the "Require All Tags?" frame
         self.corner_radius = corner_radius
-        self.default_text = default_text
+        self.default_text = default_text # text to display when no options are selected
         self.dropdown_bg_color = dropdown_bg_color
-        self.on_close_callback = on_close_callback
+        self.on_close_callback = on_close_callback # callback to execute when the dropdown is closed
 
-        self.selected_indices = set()
-        self.option_frames = []
-        self.option_labels = []
-        self.prevent_reopen = False
-
-        self.measure_font = ctk.CTkFont(family=self.dropdown_font[0], size=self.dropdown_font[1])
+        ### Option Config ###
+        self.selected_indices = set() # set of selected option indices
+        self.option_frames = [] # list of frames for each option in the dropdown
+        self.option_labels = [] # list of labels for each option in the dropdown
+        
+        self.prevent_reopen = False # flag to prevent immediate reopening of the dropdown after closing
+        self.measure_font = ctk.CTkFont(family=self.dropdown_font[0], size=self.dropdown_font[1]) # font for measuring text width
 
         # Dynamically set dropdown height based on number of options
         numOptions = len(self.options)

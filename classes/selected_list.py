@@ -30,7 +30,7 @@ from .helper import Helper
 class SelectedList:
     def __init__(self,
                  entries: list = None):
-        self.entries = entries if entries is not None else [] # mutable argument solution
+        self.entries = entries if entries is not None else [] # mutable argument solution - list of selected Entry objects
     
     # NOTE: Takes selectedList object as parameter.
     def unselectAll(self,

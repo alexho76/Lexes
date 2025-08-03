@@ -37,10 +37,10 @@ class Entry:
                  tags: str = "",
                  createdAt: str = None,
                  uid: int = None):
-        self.uid = uid
-        self.term = term
-        self.definition = definition
-        self.tags = tags
+        self.uid = uid # unique identifier for the entry, optional for new entries
+        self.term = term # term of the entry (word or phrase)
+        self.definition = definition # definition of the entry (meaning or explanation)
+        self.tags = tags # tags associated with the entry, can be empty
         if createdAt is None: # mutable argument solution, creates timestamp in __init__ instead of when object is constructed.
             self.createdAt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         else:

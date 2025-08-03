@@ -39,11 +39,11 @@ class DisplayList:
                  requireAllTags: bool = False,
                  searchKeyword: str = "",
                  sortAttribute: str = "dateDescending"):
-        self.entries = entries if entries is not None else [] # mutable argument solution
-        self.filterTags = filterTags
-        self.requireAllTags = requireAllTags
-        self.searchKeyword = searchKeyword
-        self.sortAttribute = sortAttribute
+        self.entries = entries if entries is not None else [] # mutable argument solution - list of Entry objects to display in dictionary
+        self.filterTags = filterTags # string of tags to filter entries by
+        self.requireAllTags = requireAllTags # boolean to determine if all filterTags must be present in entries
+        self.searchKeyword = searchKeyword # string to search entries by term, definition, or tags
+        self.sortAttribute = sortAttribute # string to determine how to sort entries (alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending)
     
     # Out of all database entries, adds entry to displayList.entries based on filter settings (requireAllTags).
     def filter(self) -> None:

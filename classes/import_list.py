@@ -28,6 +28,7 @@ from .helper import Helper
 from .entry import Entry
 
 class ImportList:
+    # Initiates the ImportList with its attributes, avoiding mutable default arguments.
     def __init__(self,
                  filePath: str = "",
                  rawText: str = "",
@@ -35,12 +36,12 @@ class ImportList:
                  termDefinitionDelimiter: str = ":",
                  massTags: str = "",
                  parsedEntries: list[Entry] = None):
-        self.rawText = rawText
-        self.entryDelimiter = entryDelimiter
-        self.termDefinitionDelimiter = termDefinitionDelimiter
-        self.massTags = massTags
-        self.parsedEntries = parsedEntries if parsedEntries is not None else [] # mutable argument solution
-        self.filePath = filePath
+        self.rawText = rawText # raw text input to be parsed into entries
+        self.entryDelimiter = entryDelimiter # delimiter to separate entries in raw text
+        self.termDefinitionDelimiter = termDefinitionDelimiter # delimiter to separate term and definition in each entry
+        self.massTags = massTags # tags to be added to each entry
+        self.parsedEntries = parsedEntries if parsedEntries is not None else [] # mutable argument solution - list of Entry objects parsed from raw text
+        self.filePath = filePath # path to the database file for importing entries
 
     # Parses the raw text chunk into entries (term, definition) tuples. Generates definitions via Wikipedia API if needed.
     # Returns Boolean of successful parse and list of parsed entries as tuples all in a tuple.
