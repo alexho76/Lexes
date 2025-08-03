@@ -20,7 +20,7 @@ Naming Conventions:
     - Class names: PascalCase (App, MainWindow).
     - Method names: camelCase (initialiseUI, start, setupDB).
     - Attributes: camelCase (displayList, selectedList, mainWindow).
-    - Constants: UPPERCASE (DBPATH).
+    - Constants: UPPERCASE (DBPATH, LASTUSEDTAGSPATH, TAGSPREFERENCEPATH, DEFAULTTAGSPATH).
     - General code: camelCase.
 
 Usage:
@@ -45,7 +45,7 @@ import os
 ### Local Class & Assets Imports ###
 # Config and Assets Imports
 from config.theme import *
-from config.configurations import * # imports DBPATH
+from config.configurations import * # PATH constants
 from assets.images import *
 
 # Backend Class Imports
@@ -210,7 +210,8 @@ class MainWindow(ctk.CTk):
                                             fg_color=Cream,
                                             border_color=NavigationSecondary,
                                             border_width=2,
-                                            hover_color=Cream2)
+                                            hover_color=Cream2,
+                                            command=self.openSettingsWindow)
         self.settingsButton.pack(side='left', padx=2, pady=9)
         
         self.helpButton = ctk.CTkButton(self.navigationBar,
@@ -286,8 +287,17 @@ class MainWindow(ctk.CTk):
                                              on_close_callback=self.filterBarCommand)
         self.filterBar.pack(side='left', padx=6)
 
+        ### Options Translation (Mapping) ###
+        self.sortOptionsDictionary = {
+            "Newest": "dateDescending",
+            "Oldest": "dateAscending",
+            "A-Z": "alphabeticalAscending",
+            "Z-A": "alphabeticalDescending",
+            None: "dateDescending" # default option if nothing selected
+        }
         self.sortBar = SingleSelectComboBox(self.toolBar,
                                             options=["Newest", "Oldest", "A-Z", "Z-A"],
+                                            options_dictionary=self.sortOptionsDictionary,
                                             font=("League Spartan", 36),
                                             dropdown_font=("League Spartan", 24),
                                             fg_color=DarkGreen1,
@@ -795,6 +805,7 @@ class MainWindow(ctk.CTk):
         Opens a new window for adding a dictionary entry.
         The window contains fields for term, definition, and tags.
         It includes buttons for auto-defining the term, saving the entry, and cancelling.
+        Uses LASTUSEDTAGSPATH to store the last used tag to pre-fill the tags field (saves between sessions).
         """
         ### Popup Window Setup ###
         topLevel = ctk.CTkToplevel(self)
@@ -918,6 +929,25 @@ class MainWindow(ctk.CTk):
                                          text_color=Pink, fg_color=Cream, border_color=Pink, border_width=2.5, hover_color=Cream2, image=ctkAutoDefineIcon, anchor='w')
         autoDefineButton.pack(padx=15, pady=(8,0), side='left')
 
+        def saveLastUsedTags(tags: str) -> None:
+            """
+            Saves the last used tags to a file so that they can be pre-filled
+            in the tag entry field next time the add entry window is opened.
+            Using 'w' mode automatically overwrites the file's contents if it exists.
+            """
+            with open(LASTUSEDTAGSPATH, "w", encoding="utf-8") as file:
+                file.write(tags)
+        
+        def getLastUsedTags() -> str:
+            """
+            Returns the last used tags from a file to pre-fill the tags field in the add entry window.
+            """
+            try:
+                with open(LASTUSEDTAGSPATH, "r", encoding="utf-8") as file:
+                    return file.read().strip()
+            except FileNotFoundError:
+                return ""
+
         # Tag display entry
         tagLabelFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
         tagLabelFrame.pack(padx=35, pady=(15,0), fill="x")
@@ -929,10 +959,59 @@ class MainWindow(ctk.CTk):
         tagLabel = ctk.CTkLabel(tagLabelFrame, text="Tags (optional)", font=("League Spartan", 48), text_color=DarkGreen2)
         tagLabel.pack(padx=7, pady=(0,0), side='left')
 
+        ### Tag Entry ###
         tagEntry = ctk.CTkEntry(background, placeholder_text="e.g. nuclear_physics biology vce", font=("League Spartan", 36),
                                  placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
                                  border_width=2.5)
         tagEntry.pack(padx=35, pady=0, fill="x")
+
+        ### Tags Autofill ###
+        # Read TAGSPREFERENCEPATH
+        try:
+            with open(TAGSPREFERENCEPATH, 'r', encoding='utf-8') as file:
+                autofillPreference = file.read().strip()
+        except FileNotFoundError:
+            autofillPreference = "last_used" # default to last_used if file not found
+        
+        # If the autofill preference is set to "last_used", pre-fill the tag entry with the last used tags
+        if autofillPreference == "last_used":
+            # Ensure the LASTUSEDTAGSPATH file exists
+            if not os.path.exists(LASTUSEDTAGSPATH):
+                with open(LASTUSEDTAGSPATH, "w", encoding="utf-8") as file:
+                    file.write("")
+            else:
+                # If the file exists, read the last used tags and pre-fill the tag entry
+                lastUsedTags = getLastUsedTags()
+                if lastUsedTags:
+                    tagEntry.insert(0, lastUsedTags)
+        
+        # If the autofill preference is set to "default", pre-fill the tag entry with the default tags from DEFAULTTAGSPATH
+        elif autofillPreference == "default":
+            # Ensure the DEFAULTTAGSPATH file exists
+            if not os.path.exists(DEFAULTTAGSPATH):
+                with open(DEFAULTTAGSPATH, "w", encoding="utf-8") as file:
+                    file.write("")
+            else:
+                # If the file exists, read the default tags and pre-fill the tag entry
+                with open(DEFAULTTAGSPATH, "r", encoding="utf-8") as file:
+                    defaultTags = file.read().strip()
+                    if defaultTags:
+                        tagEntry.insert(0, defaultTags)
+        
+        # If the autofill preference is set to "none", do not pre-fill the tag entry
+        elif autofillPreference == "none":
+            pass
+
+        else: # No autofill preference set, fill it using last used tags
+            # Ensure the LASTUSEDTAGSPATH file exists
+            if not os.path.exists(LASTUSEDTAGSPATH):
+                with open(LASTUSEDTAGSPATH, "w", encoding="utf-8") as file:
+                    file.write("")
+            else:
+                # If the file exists, read the last used tags and pre-fill the tag entry
+                lastUsedTags = getLastUsedTags()
+                if lastUsedTags:
+                    tagEntry.insert(0, lastUsedTags)
 
         # Window Navigation Buttons
         buttonFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
@@ -950,6 +1029,7 @@ class MainWindow(ctk.CTk):
         def addButtonCommand() -> None:
             """
             Adds the new entry to the database using fields from the UI (term, definition, tags).
+            Also saves the last used tags to a file for pre-filling next time.
             """
             term = termEntry.get().strip()
             definition = definitionEntry.get("1.0", tk.END).strip()
@@ -961,6 +1041,9 @@ class MainWindow(ctk.CTk):
                 return
             entry = Entry(term=term, definition=definition, tags=tags)
             entry.add()
+
+            # Save the last used tags to a file
+            saveLastUsedTags(tags)
 
             self.updateUI() # update the main app UI including the dictionary list, counter, and filter bar
 
@@ -1722,6 +1805,243 @@ class MainWindow(ctk.CTk):
                                         placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
                                         border_width=2.5, height=50, width=578)
         massTagsEntry.pack(padx=0, pady=(0,0))
+    
+    def openSettingsWindow(self) -> None: # Opens the settings window to adjust application settings.
+        """
+        Opens the settings window to change the app settings.
+        Window allows the user to set whether the app pre-load the tags entry with the last used tag, a default tag, or no tag at all.
+        Also allows the user to full reset the database which will delete all entry rows, but also reset the auto-increment UID counter back to 1.
+        This will allow the user to start fresh with a new database, but will not delete the database file itself
+        NOTE: Should ask the user to confirm they know what they are doing.
+        TBA: Graph for showing the number of entries in the database, and the tag distribution, and timeline on database growth.
+        """
+        ### Popup Window Setup ###
+        topLevel = ctk.CTkToplevel(self)
+        topLevel.geometry("1280x720")
+        topLevel.title("Settings")
+        topLevel.resizable(False, False)
+
+        # Make sure it appears above the main window 
+        topLevel.lift()
+        topLevel.attributes("-topmost", True)
+        topLevel.after(10, lambda: topLevel.attributes("-topmost", False))
+
+        # Force focus (keyboard + window manager)
+        topLevel.focus_force()
+        topLevel.grab_set()  # grabs all inputs (kb and mouse)
+
+        background = ctk.CTkFrame(topLevel, corner_radius=0, fg_color=LightGreen2)
+        background.pack(fill="both", expand=True)
+
+        ### Tags Autofill Settings ###
+        tagsAutofillFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        tagsAutofillFrame.pack(padx=(30,0), pady=(30,0), fill='x')
+
+        # Label 
+        ctkTagsAutofillIcon = ctk.CTkImage(dark_image=tagLightIconImage, light_image=tagLightIconImage, size=(37,37))
+        tagsAutofillIcon = ctk.CTkLabel(tagsAutofillFrame, image=ctkTagsAutofillIcon, text="", fg_color="transparent")
+        tagsAutofillIcon.pack(side='left', padx=0, pady=0)
+        autoFillLabel = ctk.CTkLabel(tagsAutofillFrame, text="Autofill Tags Settings", font=("League Spartan", 36), text_color=DarkGreen2)
+        autoFillLabel.pack(padx=(15,0), pady=(0,7), side='left')
+
+        # Dropdown
+        def tagsAutofillDropdownCommand(selectedOption) -> None:
+            """
+            Callback function for when the tags autofill dropdown is closed.
+            Packs the "default tags" entry if "Default" is selected.
+            Else hides it.
+            """
+            if selectedOption == "Default":
+                if not defaultTagsEntry.winfo_ismapped(): # pack only if not already packed
+                    defaultTagsFrame.pack(padx=(30,0), pady=(20,0), fill='x') 
+                    defaultTagsEntry.pack(padx=30, pady=0, anchor='w')
+
+                # Read the current default tags from DEFAULTTAGSPATH and set it in the entry
+                try:
+                    with open(DEFAULTTAGSPATH, 'r', encoding='utf-8') as defaultTagsFile:
+                        defaultTags = defaultTagsFile.read().strip()
+                        if defaultTags:  # Only set if not empty
+                            defaultTagsEntry.delete(0, 'end')  # Clear the entry first
+                            defaultTagsEntry.insert(0, defaultTags)
+                except FileNotFoundError:
+                    # if the file doesn't exist, do nothing
+                    pass
+            else:
+                background.focus_set()  # Remove focus
+                defaultTagsEntry.delete(0, 'end')  # Clear the entry
+                defaultTagsEntry.pack_forget()
+                defaultTagsFrame.pack_forget()
+        
+        tagsAutofillOptions = ["Last Used", "Default", "None"]
+        tagsAutofillDropdown = SingleSelectComboBox(background,
+                                                        options=tagsAutofillOptions,
+                                                        font=("League Spartan", 32),
+                                                        dropdown_font=("League Spartan", 24),
+                                                        fg_color=Cream,
+                                                        text_color=Cream3,
+                                                        corner_radius=5,
+                                                        width=500,
+                                                        height=60,
+                                                        border_width=2.5,
+                                                        border_color=DarkGreen3,
+                                                        selected_bg_color=DarkGreen3,
+                                                        selected_text_color=Cream,
+                                                        unselected_text_color=DarkGreen3,
+                                                        default_text="Select tag autofill option...",
+                                                        dropdown_bg_color=DarkGreen1b,
+                                                        on_close_callback=tagsAutofillDropdownCommand,
+                                                        ipadx=(10,0))
+
+
+
+        ### Default Tags ###
+        defaultTagsFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        # defaultTagsFrame.pack(padx=(30,0), pady=(20,0), fill='x') 
+        # Hidden by default, shown if "Default" is selected in the dropdown
+
+        # Label 
+        ctkdefaultTagsIcon = ctk.CTkImage(dark_image=tagLightIconImage, light_image=tagLightIconImage, size=(37,37))
+        defaultTagsIcon = ctk.CTkLabel(defaultTagsFrame, image=ctkdefaultTagsIcon, text="", fg_color="transparent")
+        defaultTagsIcon.pack(side='left', padx=0, pady=0)
+        defaultTagsLabel = ctk.CTkLabel(defaultTagsFrame, text="Default Tags", font=("League Spartan", 36), text_color=DarkGreen2)
+        defaultTagsLabel.pack(padx=(15,0), pady=(0,7), side='left')
+
+        # Default tags entry (Hidden by default, shown if "Default" is selected in the dropdown)
+        defaultTagsEntry = ctk.CTkEntry(background, placeholder_text="e.g. nuclear_physics biology vce", font=("League Spartan", 32),
+                                 placeholder_text_color=Cream3, text_color=DarkGreen2, fg_color=Cream, border_color=DarkGreen3,
+                                 border_width=2.5, width=1000)
+        # defaultTagsEntry.pack(padx=30, pady=0, anchor='w')
+        # Hidden by default, shown if "Default" is selected in the dropdown
+
+        ### Auto Select the Current Tags Autofill Option ###
+        # Read the current tags autofill option from TAGSPREFERENCEPATH and translate
+        TAGSPREFERENCEMAP = {
+            "last_used": "Last Used",
+            "default": "Default",
+            "none": "None"
+        }
+        try:
+            with open(TAGSPREFERENCEPATH, 'r', encoding='utf-8') as file:
+                autofillOption = file.read().strip()
+                if autofillOption in TAGSPREFERENCEMAP:
+                    tagsAutofillDropdown.set_selected_option(TAGSPREFERENCEMAP[autofillOption])
+                tagsAutofillDropdown.pack(padx=(30,0), pady=(0,0), anchor='w')
+                if autofillOption == "default":
+                    # Pack the default tags entry if "Default" is selected and fill it with the current default tag
+                    defaultTagsFrame.pack(padx=(30,0), pady=(20,0), fill='x')
+                    defaultTagsEntry.pack(padx=30, pady=0, anchor='w')
+                    try:
+                        with open(DEFAULTTAGSPATH, 'r', encoding='utf-8') as defaultTagsFile:
+                            defaultTags = defaultTagsFile.read().strip()
+                            if defaultTags:  # Only set if not empty
+                                defaultTagsEntry.insert(0, defaultTags)
+                    except FileNotFoundError:
+                        # if the file doesn't exist, do nothing
+                        pass
+        except FileNotFoundError:
+            # if the file doesn't exist do nothing
+            pass
+
+        # Footer
+        footer = ctk.CTkFrame(background, corner_radius=0, fg_color=LightGreen1, height=80)
+        footer.pack(fill='x', side='bottom', pady=0, padx=0)
+        footer.pack_propagate(False)
+
+        ctkIconImage = ctk.CTkImage(light_image=iconImage, dark_image=iconImage, size=(65,65))
+        footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
+        footerIcon.pack(expand=True)
+
+        # Window Navigation Buttons
+        buttonFrame = ctk.CTkFrame(background, corner_radius=0, fg_color="transparent")
+        buttonFrame.pack(padx=0, pady=(0,20), fill="x", side='bottom')
+
+        def cancelButtonCommand() -> None:
+            """
+            Closes the add entry window without saving any changes.
+            """
+            topLevel.destroy()
+        cancelButton = ctk.CTkButton(buttonFrame, text="Close", font=("League Spartan Bold", 24), height=50, width=130, text_color=Red, corner_radius=5,
+                                     border_color=Red, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=cancelButtonCommand)
+        cancelButton.pack(side='right', padx=(0,35), pady=0)
+
+        def saveButtonCommand() -> None:
+            """
+            Saves the settings and closes the window.
+            - Saves the tags autofill option selected in the dropdown to TAGSPREFERENCEPATH.
+            - If "Default" is selected, also saves the default tags entry to DEFAULTTAGSPATH.
+            """
+            autofillOption = tagsAutofillDropdown.get_selected()
+
+            # Save autofill option
+            if autofillOption == "Last Used": # Write "last_used" to TAGSPREFERENCEPATH file
+                with open(TAGSPREFERENCEPATH, 'w', encoding='utf-8') as file:
+                    file.write("last_used")
+            
+            elif autofillOption == "Default": # Write to TAGSPREFERENCEPATH file and also save default tags
+                defaultTags = defaultTagsEntry.get().strip()
+                if not defaultTags:  # If the entry is empty, show a warning
+                    messagebox.showwarning("Empty Default Tags",
+                                               "Default tags entry is empty. Please enter default tags or select 'None' to disable.",
+                                               parent=topLevel)
+                    return
+                with open(TAGSPREFERENCEPATH, 'w', encoding='utf-8') as file: # Write "default" to TAGSPREFERENCEPATH file
+                    file.write("default")
+                
+                with open(DEFAULTTAGSPATH, 'w', encoding='utf-8') as defaultTagsFile: # Write the default tags to DEFAULTTAGSPATH file
+                    defaultTagsFile.write(defaultTags)
+
+            elif autofillOption == "None": # Write "none" to TAGSPREFERENCEPATH file
+                with open(TAGSPREFERENCEPATH, 'w', encoding='utf-8') as file:
+                    file.write("none")
+            
+            else: # fallback write "last_used" to TAGSPREFERENCEPATH file as the application default
+                with open(TAGSPREFERENCEPATH, 'w', encoding='utf-8') as file:
+                    file.write("last_used")
+            
+            topLevel.destroy()  # Close the settings window
+            messagebox.showinfo("Settings Saved",
+                                    f"Successfully changed tags autofill setting to '{autofillOption}'.",
+                                    parent=self)
+
+        saveButton = ctk.CTkButton(buttonFrame, text="Save", font=("League Spartan Bold", 24), height=50, width=130, text_color=DarkGreen3, corner_radius=5,
+                                   border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=saveButtonCommand)
+        saveButton.pack(side='right', padx=(0,5), pady=0)
+
+        ### Reset Database ###        
+        def resetDatabase() -> None:
+            """
+            Resets the database by deleting all entries and resetting the UID counter.
+            Asks for confirmation before proceeding.
+            """
+            confirm = messagebox.askyesno("Reset Database",
+                                          "Are you sure you want to reset the database? This will DELETE ALL ENTRIES and reset the UID counter.\nThis action cannot be undone.",
+                                          parent=topLevel)
+            if not confirm:
+                return
+            try:
+                with sqlite3.connect(DBPATH) as conn:
+                    cursor = conn.cursor()
+                    # Delete all entries in the master table
+                    cursor.execute("DELETE FROM master")
+
+                    # Reset the UID counter by deleting the uid table
+                    cursor.execute("DELETE FROM sqlite_sequence WHERE name='master'")
+                
+                topLevel.destroy()  # Close the settings window
+                self.updateUI()  # Update the main app UI
+                messagebox.showinfo("Database Reset",
+                                    "Database successfully reset. All entries have been deleted and the UID counter has been reset.",
+                                    parent=self)
+            except sqlite3.Error as e:
+                messagebox.showerror("Database Error",
+                                     f"An error occurred while resetting the database: {e}",
+                                     parent=topLevel)
+
+        ctkResetDatabaseIcon = ctk.CTkImage(dark_image=dangerIconImage, light_image=dangerIconImage, size=(30,27))
+        resetDatabaseButton = ctk.CTkButton(buttonFrame, text="Reset Database", font=("League Spartan Bold", 24), height=50, width=225,
+                                            text_color=Red, corner_radius=5, border_color=Red, fg_color=Cream, hover_color=Cream2,
+                                            image=ctkResetDatabaseIcon, border_width=2.5, command=resetDatabase)
+        resetDatabaseButton.pack(padx=30, pady=0, side='left')
 
     def applyCustomScaling(self) -> None:
         """

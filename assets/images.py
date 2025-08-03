@@ -43,6 +43,7 @@ checkboxActiveIconImage = Image.open(r"assets\checkbox_active_icon.png").resize(
 ### Miscellaneous Icons ###
 ellipsisIconImage = Image.open(r"assets\ellipsis_icon.png").resize((34,9), Image.LANCZOS)
 clickToSelectIconImage = Image.open(r"assets\click_to_select_icon.png").resize((31,31), Image.LANCZOS)
+dangerIconImage = Image.open(r"assets\danger_icon.png").resize((30,30), Image.LANCZOS)
 
 ### Entry Field Icons ###
 termIconImage = Image.open(r"assets\term_icon.png").resize((33,21), Image.LANCZOS)

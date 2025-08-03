@@ -29,6 +29,7 @@ import customtkinter as ctk
 class SingleSelectComboBox(ctk.CTkFrame):
     def __init__(self, master, *,
                  options,
+                 options_dictionary=None,
                  width=200,
                  height=50,
                  font=None,
@@ -82,13 +83,8 @@ class SingleSelectComboBox(ctk.CTkFrame):
         self.prevent_reopen = False
 
         ### Options Translation (Mapping) ###
-        self.options_dictionary = {
-            "Newest": "dateDescending",
-            "Oldest": "dateAscending",
-            "A-Z": "alphabeticalAscending",
-            "Z-A": "alphabeticalDescending",
-            None: "dateDescending" # default option if nothing selected
-        }
+        self.options_dictionary = options_dictionary # If not provided, options_dictionary is None.
+        # Maps option strings to their translated values if necessary to allow the dropdown to display shortened options.
 
         ### Dropdown Height Calculation ###
         num_options = len(self.options)
@@ -303,7 +299,11 @@ class SingleSelectComboBox(ctk.CTkFrame):
 
         # Trigger callback if set
         if self.on_close_callback:
-            translated_option = self.options_dictionary[self.get_selected()]
+            if self.options_dictionary is None:
+                translated_option = self.get_selected()
+            else:
+                # Translate selected option using options_dictionary
+                translated_option = self.options_dictionary.get(self.get_selected(), self.get_selected())
             self.on_close_callback(translated_option)
 
         self.prevent_reopen = True
@@ -346,3 +346,16 @@ class SingleSelectComboBox(ctk.CTkFrame):
         if self.selected_index is None:
             return None
         return self.options[self.selected_index]
+
+    def set_selected_option(self, option: str) -> None:
+        """
+        Public Method
+        Sets the selected option by its string value.
+        Updates visuals and selected index accordingly.
+        """
+        if option in self.options:
+            self.selected_index = self.options.index(option)
+            self._update_all_options()
+            self._on_select()
+        else:
+            raise ValueError(f"Option '{option}' not found in options list.")

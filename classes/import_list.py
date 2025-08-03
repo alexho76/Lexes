@@ -113,6 +113,7 @@ class ImportList:
         self.rawText = ""
         self.parsedEntries.clear()
         # NOTE: DO NOT CLEAR self.entryDelimiter, self.termDefinitionDelimiter, or self.massTags (keeps as a sort of setting)
+        # TBA: Save this across sessions.
 
         return count
     
