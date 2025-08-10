@@ -76,7 +76,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.measure_font = ctk.CTkFont(family=self.dropdown_font[0], size=self.dropdown_font[1]) # font for measuring text width
 
         # Dynamically set dropdown height based on number of options
-        numOptions = len(self.options)
+        numOptions = max(1, len(self.options))
         if numOptions < 5:
             self.dropdown_height = 40 * numOptions + 25
         else: # Max height for 5 rows  displayed
@@ -456,8 +456,15 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def refresh_options(self) -> None:
         """
         Public Method
-        Refreshes the option list in the dropdown, preserving previous selection.
+        Resizes the dropdown box if needed, refreshes the option list in the dropdown, preserving previous selection.
         """
+        # Dynamically resize the dropdown height based on number of options
+        numOptions = max(1, len(self.options))
+        if numOptions < 5:
+            self.dropdown_height = 40 * numOptions + 25
+        else:  # Max height for 5 rows displayed
+            self.dropdown_height = 200 + 25
+
         # Save current selected tags (indices)
         preserved_indices = set(self.selected_indices)
         preserved_require_all = self.require_all_var.get()

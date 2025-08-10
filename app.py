@@ -1067,6 +1067,9 @@ class MainWindow(ctk.CTk):
         footerIcon = ctk.CTkLabel(footer, image=ctkIconImage, text="", anchor='center')
         footerIcon.pack(expand=True)
 
+        # Focus into term entry once everything has been packed
+        topLevel.after(500, termEntry.focus_set)
+
     def openExportWindow(self) -> None:
         """
         Opens a new window for exporting entries.

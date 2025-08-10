@@ -91,14 +91,15 @@ class DisplayList:
 
     # Rebuilds displayList.entries, excluding those without searchKeyword.
     def search(self) -> None:
-        if self.searchKeyword == "":
+        keyword = self.searchKeyword.strip()  # Fixed issue of trailing and leading spaces resulting in no search.
+        if keyword == "":
             return
 
         # Changed from previously plan of removing entries without keyword to rebuilding displayList.entries, due to issues with removing entries while iterating
         self.entries = [entry for entry in self.entries
-                        if self.searchKeyword.lower() in entry.term.lower() 
-                        or self.searchKeyword.lower() in entry.definition.lower()
-                        or self.searchKeyword.lower() in entry.tags.lower()]
+                        if keyword.lower() in entry.term.lower() 
+                        or keyword.lower() in entry.definition.lower()
+                        or keyword.lower() in entry.tags.lower()]
 
     # Uses Helper.quickSort(), assumes sortAttribute is among alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
     def sort(self) -> None:
