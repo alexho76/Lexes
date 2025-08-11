@@ -562,6 +562,13 @@ class MainWindow(ctk.CTk):
             newTags = self.tagsTextbox.get("1.0", tk.END)
             newTags = ' '.join(tag.strip() for tag in newTags.split())
 
+            if newTerm == "" or newDefinition == "":
+                # Empty term or definition fields. Show error message and return
+                messagebox.showwarning("Missing Term or Definition",
+                                       "Entry is missing a term or definition. Please try again.",
+                                       parent=self.sidebarFrame)
+                return
+
             if entry.tags == newTags and entry.term == newTerm and entry.definition == newDefinition: # close the sidebar as nothing has changed
                 self.sidebarFrame.destroy()
                 return
@@ -731,7 +738,9 @@ class MainWindow(ctk.CTk):
         else:
             self.dictionaryList.unselect_all()
         
+        # Update both buttons immediately after bulk change
         self.updateDeleteButtonState()
+        self.updateSelectAllButtonState()
 
     def onEntrySelectionChanged(self) -> None:
         """
@@ -739,7 +748,20 @@ class MainWindow(ctk.CTk):
         Updates the delete button state and the entry counter.
         """
         self.updateDeleteButtonState()
+        self.updateSelectAllButtonState()
         self.updateCounter()  # Update the entry counter when selection changes
+
+    def updateSelectAllButtonState(self) -> None:
+        """
+        Updates the state of the select all button based on the current selection.
+        If all entries are selected, the button displays in the "Unselect all"; otherwise, it displays "Select all".
+        """
+        if len(self.masterApp.selectedList.entries) == len(self.masterApp.displayList.entries): # All selected
+            if self.selectAllToggle.get_state() == False:
+                self.selectAllToggle.set_state(True) # Show "Unselect all"
+        else:
+            if self.selectAllToggle.get_state() == True:
+                self.selectAllToggle.set_state(False) # Show "Select all"
 
     def updateDeleteButtonState(self) -> None:
         """
