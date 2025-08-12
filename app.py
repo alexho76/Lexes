@@ -2110,12 +2110,15 @@ class MainWindow(ctk.CTk):
 
         This method is called after any change to the dictionary list, such as filtering, adding, deleting, or editing entries.
         """
+        self.dictionaryList.canvas.yview_moveto(0) # Reset scroll position
+        
         self.dictionaryList.hide_empty_message()
 
         self.masterApp.selectedList.entries.clear()  # clear selected entries
         self.masterApp.displayList.build()  # rebuild filtered list
         self.dictionaryList.entries = self.masterApp.displayList.entries
         self.dictionaryList.populate()  # refresh list UI
+        
         self.selectAllToggle.set_state(False)  # force toggle to be unselected
         self.updateDeleteButtonState()
         
