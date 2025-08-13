@@ -1076,6 +1076,10 @@ class MainWindow(ctk.CTk):
             definitionEntry.insert(1.0, placeholderText)  # reset to placeholder text
             termEntry.focus_set()
 
+            # Strip contents of tag entry and re-insert (Case for pure whitespace -> Reset)
+            tagEntry.delete(0, tk.END)
+            tagEntry.insert(0, tags.strip())
+
         addButton = ctk.CTkButton(buttonFrame, text="Add", font=("League Spartan Bold", 24), height=50, width=130, text_color=DarkGreen3, corner_radius=5,
                                   border_color=DarkGreen3, fg_color=Cream, hover_color=Cream2, border_width=2.5, command=addButtonCommand)
         addButton.pack(side='right', padx=(0,5), pady=0)
@@ -1645,10 +1649,63 @@ class MainWindow(ctk.CTk):
         def onFileSelected(filepath) -> None:
             """
             Callback function for when a file is selected in the importDirectoryEntry.
-            Reads the database file at filepath, extracts entries, and populates the preview box.
+
+            Reads the database file at filepath, validates it, extracts entries, and populates the preview box.
             Updates the chosenFile label with the file name and number of entries.
             """
             fileName = os.path.basename(filepath)
+
+            """
+            Validate the selected database file.
+            Conditions for validation:
+            - A file path must be selected.
+            - The table must be called 'master'.
+            - The table must contain columns: term, definition, tags (in that order).
+            - The table must contain at least one entry.
+            If all validations pass, it imports the entries into the database and updates the main app UI.
+            """
+            # File path selected
+            if not filepath:
+                importDirectoryEntry.reset() # Reset the entry so Import button will fail.
+                return
+
+            # Table is called 'master'
+            with sqlite3.connect(filepath) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='master'")
+                if not cursor.fetchone():
+                    importDirectoryEntry.reset() # Reset the entry so Import button will fail.
+                    messagebox.showerror("Invalid Database",
+                                         "The selected database does not contain a 'master' table. Please select a valid Lexes database file.",
+                                         parent=topLevel)
+                    return
+
+            # Table contains correct columns.
+            with sqlite3.connect(filepath) as conn:
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA table_info(master)")
+                columns = [col[1] for col in cursor.fetchall()]
+                expectedColumns = ["uid", "term", "definition", "tags"]
+                if columns != expectedColumns:
+                    importDirectoryEntry.reset() # Reset the entry so Import button will fail.
+                    messagebox.showerror("Invalid Database",
+                                         "The selected database does not contain the required columns: uid, term, definition, tags. Please select a valid Lexes database file.",
+                                         parent=topLevel)
+                    return
+
+            # Table isn't empty.
+            with sqlite3.connect(filepath) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM master")
+                count = cursor.fetchone()[0]
+                if count == 0:
+                    importDirectoryEntry.reset() # Reset the entry so Import button will fail.
+                    messagebox.showerror("Empty Database",
+                                         "The selected database is empty. Please select a valid Lexes database file.",
+                                         parent=topLevel)
+                    return
+
+            # If we reach here, all validations passed
 
             # Read the database file at filepath and extract entries
             with sqlite3.connect(filepath) as conn:
@@ -1742,13 +1799,7 @@ class MainWindow(ctk.CTk):
 
         def importButtonCommand() -> None:
             """
-            Validates and imports the selected database file.
-            Conditions for validation:
-            - A file path must be selected.
-            - The table must be called 'master'.
-            - The table must contain columns: term, definition, tags (in that order).
-            - The table must contain at least one entry.
-            If all validations pass, it imports the entries into the database and updates the main app UI.
+            Selected database file should already be validated (if it exists). So just check for existence.
             """
             # File path selected
             if not importDirectoryEntry.get_path():
@@ -1756,41 +1807,6 @@ class MainWindow(ctk.CTk):
                                        "Please select a file path to import database from.",
                                        parent=topLevel)
                 return
-
-            # Table is called 'master'
-            with sqlite3.connect(importDirectoryEntry.get_path()) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='master'")
-                if not cursor.fetchone():
-                    messagebox.showerror("Invalid Database",
-                                         "The selected database does not contain a 'master' table. Please select a valid Lexes database file.",
-                                         parent=topLevel)
-                    return
-
-            # Table contains correct columns.
-            with sqlite3.connect(importDirectoryEntry.get_path()) as conn:
-                cursor = conn.cursor()
-                cursor.execute("PRAGMA table_info(master)")
-                columns = [col[1] for col in cursor.fetchall()]
-                expectedColumns = ["uid", "term", "definition", "tags"]
-                if columns != expectedColumns:
-                    messagebox.showerror("Invalid Database",
-                                         "The selected database does not contain the required columns: term, definition, tags. Please select a valid Lexes database file.",
-                                         parent=topLevel)
-                    return
-
-            # Table isn't empty.
-            with sqlite3.connect(importDirectoryEntry.get_path()) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM master")
-                count = cursor.fetchone()[0]
-                if count == 0:
-                    messagebox.showerror("Empty Database",
-                                         "The selected database is empty. Please select a valid Lexes database file.",
-                                         parent=topLevel)
-                    return
-
-            # If we reach here, all validations passed
             
             # Update importList with the file path and mass tags
             importList.filePath = importDirectoryEntry.get_path().strip()

@@ -69,13 +69,6 @@ class SelectFilePathEntry(ctk.CTkFrame):
         self.file_path = "" # initially empty path
         self.on_callback = on_callback # callback function to execute when a file is selected
 
-    def get_path(self) -> str:
-        """
-        Public Method
-        Returns the currently selected file path as a string, or empty string if none.
-        """
-        return self.file_path if self.file_path else ""
-
     def _open_dialog(self, event=None) -> None:
         """
         Private Method
@@ -106,3 +99,19 @@ class SelectFilePathEntry(ctk.CTkFrame):
         # Trigger the callback with selected file path if provided.
         if self.on_callback:
             self.on_callback(self.file_path)
+
+    def get_path(self) -> str:
+        """
+        Public Method
+        Returns the currently selected file path as a string, or empty string if none.
+        """
+        return self.file_path if self.file_path else ""
+
+    def reset(self) -> None:
+        """
+        Public Method
+        Resets the SelectFilePathEntry widget to its initial state.
+        Clears the stored file path and restores the placeholder text to normal.
+        """
+        self.file_path = ""
+        self.path_label.configure(text=self.placeholder_text)
