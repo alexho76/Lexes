@@ -377,6 +377,9 @@ class MainWindow(ctk.CTk):
                                              on_selection_change=self.onEntrySelectionChanged,
                                              on_row_click=self.handleRowClick)
         self.dictionaryList.pack(pady=(15,0))
+        # If database empty, show message
+        if self.countEntries() == 0:
+            self.dictionaryList.display_empty_message(entries_exist = False)
     
         # Footer with Slogan and Entry Counter
         self.footer = ctk.CTkFrame(self.background, fg_color=LightGreen1)
@@ -757,6 +760,12 @@ class MainWindow(ctk.CTk):
         Updates the state of the select all button based on the current selection.
         If all entries are selected, the button displays in the "Unselect all"; otherwise, it displays "Select all".
         """
+        if len(self.masterApp.displayList.entries) == 0: # Special case: Dictionary is empty so there are no entries.
+            # Always show "Select all" state (off)
+            if self.selectAllToggle.get_state() == True:
+                self.selectAllToggle.set_state(False)
+            return
+
         if len(self.masterApp.selectedList.entries) == len(self.masterApp.displayList.entries): # All selected
             if self.selectAllToggle.get_state() == False:
                 self.selectAllToggle.set_state(True) # Show "Unselect all"
@@ -2028,7 +2037,7 @@ class MainWindow(ctk.CTk):
                     file.write("last_used")
             
             elif autofillOption == "Default": # Write to TAGSPREFERENCEPATH file and also save default tags
-                defaultTags = defaultTagsEntry.get().strip()
+                defaultTags = ' '.join(defaultTagsEntry.get().split())
                 if not defaultTags:  # If the entry is empty, show a warning
                     messagebox.showwarning("Empty Default Tags",
                                                "Default tags entry is empty. Please enter default tags or select 'None' to disable.",
@@ -2049,8 +2058,18 @@ class MainWindow(ctk.CTk):
                     file.write("last_used")
             
             topLevel.destroy()  # Close the settings window
-            messagebox.showinfo("Settings Saved",
-                                    f"Successfully changed tags autofill setting to '{autofillOption}'.",
+
+            if autofillOption == "Last Used":
+                messagebox.showinfo("Settings Saved",
+                                    f"Successfully saved tags autofill setting as '{autofillOption}'. Tags will now be autofilled in the Add Window using the last used tags.",
+                                    parent=self)
+            elif autofillOption == "Default":
+                messagebox.showinfo("Settings Saved",
+                                    f"Successfully saved tags autofill setting as '{autofillOption}'. Tags will now be autofilled in the Add Window using '{defaultTags}'.",
+                                    parent=self)
+            elif autofillOption == "None":
+                messagebox.showinfo("Settings Saved",
+                                    f"Successfully saved tags autofill setting as '{autofillOption}'. Tags will not be autofilled in the Add Window.",
                                     parent=self)
 
         saveButton = ctk.CTkButton(buttonFrame, text="Save", font=("League Spartan Bold", 24), height=50, width=130, text_color=DarkGreen3, corner_radius=5,
@@ -2092,6 +2111,10 @@ class MainWindow(ctk.CTk):
                                             text_color=Red, corner_radius=5, border_color=Red, fg_color=Cream, hover_color=Cream2,
                                             image=ctkResetDatabaseIcon, border_width=2.5, command=resetDatabase)
         resetDatabaseButton.pack(padx=30, pady=0, side='left')
+
+        # Entry Counter        
+        entryCounterLabel = ctk.CTkLabel(background, text=f"Entries: {self.countEntries()}", font=("League Spartan Bold", 24), text_color=Red)
+        entryCounterLabel.pack(side='bottom', padx=32.5, pady=5, anchor='w')
     
     def openHelpWindow(self) -> None: # Opens the help window.
         """
@@ -2224,6 +2247,17 @@ class MainWindow(ctk.CTk):
                 text = text[:-1]
             truncated = f"{text}..."
             return truncated
+
+    def countEntries(self) -> int:
+        """
+        Counts the number of entries in the database.
+        Returns the count of entries as an integer.
+        """
+        with sqlite3.connect(DBPATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM master")
+            count = cursor.fetchone()[0]
+        return count
 
 ### App Startup ###
 if __name__ == "__main__":
