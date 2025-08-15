@@ -27,6 +27,7 @@ Usage:
 import tkinter.filedialog as filedialog
 import customtkinter as ctk
 from tkinter import messagebox
+import os
 
 ### Local Class Imports ###
 from classes.widgets.export_button import ExportButton
@@ -87,28 +88,45 @@ class FilePathEntry(ctk.CTkFrame):
         ### Get the file type based on the selected export option ###
         if self.option_one.get_state():
             file_type = ".csv"
+            file_types = [("CSV Files", "*.csv")]
         elif self.option_two.get_state():
             file_type = ".db"
+            file_types = [("SQLite Database Files", "*.db")]
         else:
             file_type = ""
+            file_types = []
 
         ### Open the file dialog based on the selected file type ###
-        if file_type == ".csv":
+        if file_type:
             file_path = filedialog.asksaveasfilename(title="Save As",
-                                                    defaultextension=".csv",
-                                                    filetypes=[("CSV Files", "*.csv")]) # only shows csv's and selecting a duplicate will overwrite
-        elif file_type == ".db":
-            file_path = filedialog.asksaveasfilename(title="Save As",
-                                                    defaultextension=".db",
-                                                    filetypes=[("SQLite Database Files", "*.db")]) # only shows db's and selecting a duplicate will overwrite
+                                                    defaultextension=file_type,
+                                                    filetypes=file_types) # only shows matching file types and selecting a duplicate will overwrite
         else:
             messagebox.showerror("No File Type Selected", "Please select a file type to export the entries to.", parent=self.master)
             file_path = ""
         
-        self.file_path = file_path
-        self.path_label.configure(text=self.file_path) if self.file_path else self.path_label.configure(text=self.placeholder_text) # Update label with the selected file path or reset to placeholder
+        # Validate file extension
+        if file_path:
+            root, ext = os.path.splitext(file_path)
+            # If wrong extension, show error and return
+            if ext and ext.lower() != file_type:
+                messagebox.showerror("Invalid File Extension",
+                    f"Please save the file as {file_type} only.",
+                    parent=self.master)
+                self.file_path = ""
+                self.path_label.configure(text=self.placeholder_text)
+                return
+            # If missing extension, add it
+            if not ext:
+                file_path = file_path + file_type
 
-        if self.on_callback: # Call the callback function if provided
+            self.file_path = file_path
+            self.path_label.configure(text=self.file_path)
+        else:
+            self.file_path = ""
+            self.path_label.configure(text=self.placeholder_text)
+
+        if self.on_callback:
             self.on_callback(self.file_path)
 
     def get_path(self) -> str:

@@ -225,7 +225,8 @@ class MainWindow(ctk.CTk):
                                         fg_color=Cream,
                                         border_color=NavigationSecondary,
                                         border_width=2,
-                                        hover_color=Cream2)
+                                        hover_color=Cream2,
+                                        command=self.openHelpWindow)
         self.helpButton.pack(side='left', padx=2, pady=9)
         
         self.exitButton = ctk.CTkButton(self.navigationBar,
@@ -1055,7 +1056,7 @@ class MainWindow(ctk.CTk):
             """
             term = termEntry.get().strip()
             definition = definitionEntry.get("1.0", tk.END).strip()
-            tags = tagEntry.get().strip() # still in space separated string format
+            tags = ' '.join(tagEntry.get().split())  # Normalise whitespace to single spaces between tags
             if (not term) or (definition == placeholderText) or (not definition):
                 messagebox.showwarning("Missing Fields",
                                        "Please fill in both the term and definition fields.",
@@ -1102,6 +1103,13 @@ class MainWindow(ctk.CTk):
         The window allows the user to select the export format (Anki Deck or Lexes DB),
         specify the export file path, and choose whether to include tags.
         """
+        # Validate if entries are selected to export
+        if len(self.masterApp.selectedList.entries) == 0: # (empty selected list)
+                messagebox.showwarning("No Entries Selected",
+                                       "Please select entries to export.",
+                                       parent=self)
+                return
+
         ### Popup Window Setup ###
         topLevel = ctk.CTkToplevel(self)
         topLevel.geometry("1280x720")
@@ -1545,8 +1553,9 @@ class MainWindow(ctk.CTk):
                                            parent=topLevel)
                     if proceed == False:
                         return
-                
-                importList.massTags = massTagsEntry.get().strip()
+                    
+                # Normalise tags to single spaces
+                importList.massTags = ' '.join(massTagsEntry.get().split())
                 importList.rawText = importTextbox.get("1.0", tk.END).strip()
 
                 # Validate entries (uses rawText which should have been parsed)
@@ -1808,9 +1817,9 @@ class MainWindow(ctk.CTk):
                                        parent=topLevel)
                 return
             
-            # Update importList with the file path and mass tags
+            # Update importList with the file path and mass tags and normalise tags to max of one space of whitespace between
             importList.filePath = importDirectoryEntry.get_path().strip()
-            importList.massTags = massTagsEntry.get().strip()
+            importList.massTags = ' '.join(massTagsEntry.get().split())
             
             # Add DB entries to importList.parsedEntries
             importList.importDB()
@@ -2083,6 +2092,16 @@ class MainWindow(ctk.CTk):
                                             text_color=Red, corner_radius=5, border_color=Red, fg_color=Cream, hover_color=Cream2,
                                             image=ctkResetDatabaseIcon, border_width=2.5, command=resetDatabase)
         resetDatabaseButton.pack(padx=30, pady=0, side='left')
+    
+    def openHelpWindow(self) -> None: # Opens the help window.
+        """
+        Opens the help window to display external documentation in the form of a manual/guide.
+        NOTE: TBA - NOT IN CURRENT VERSION. COMING SOON.
+        """
+        messagebox.showinfo("COMING SOON",
+                            "Help manual is not available in the current version.",
+                            parent=self)
+        return
 
     def applyCustomScaling(self) -> None:
         """
