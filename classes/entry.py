@@ -31,7 +31,7 @@ from .selected_list import SelectedList
 
 ### CONSTANT CHARACTER LIMITS ###
 TERM_MAX_CHAR = 500
-DEFINITION_MAX_CHAR = 10000
+DEFINITION_MAX_CHAR = 5000
 TAGS_MAX_CHAR = 1000
 
 def _char_limit_warn(field_name, original_text, max_len) -> None:
