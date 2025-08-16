@@ -33,8 +33,10 @@ class Helper:
         - query (str): The search query for Wikipedia. String as it represents the textually inputted search query.
         """
         def defaultQuery(q):
-            if not q:
+            if not q: # Existence check
                 return None
+            if not isinstance(q, str): # Type check
+                raise TypeError("Query must be a string")
 
             url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{q}"
 
@@ -89,6 +91,13 @@ class Helper:
         - entries (list[Entry]): The list of entry objects to sort. List to allow for iteration.
         - attribute (str): The attribute to sort by. String as it represents the sorting criteria.
         """
+        ### Validation ###
+        if not isinstance(entries, list):
+            raise TypeError("entries must be a list of Entry objects")
+        for entry in entries:
+            if not hasattr(entry, 'term') or not hasattr(entry, 'createdAt'):
+                raise TypeError("entries must be a list of Entry objects with 'term' and 'createdAt' attributes")
+
         # Base case for recursion: if the list is empty or has one element, it's already sorted.
         if len(entries) <= 1:
             return entries

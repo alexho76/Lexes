@@ -10,3 +10,6 @@ __pycache__/
 
 # Ignore VSCode's temporary file for code runner
 tempCodeRunnerFile.py
+
+# VSCodeCounter Extension
+.VSCodeCounter

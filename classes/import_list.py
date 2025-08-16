@@ -69,13 +69,23 @@ class ImportList:
 
                 # Generate definition using Wikipedia API if definition is empty
                 if definition == "":
-                    definition = Helper.wikipediaAPI(term)
+                    try:
+                        definition = Helper.wikipediaAPI(term)
+                    except Exception as e:
+                        print(f"Error occurred while fetching definition for '{term}': {e}")
+                        definition = None
                     if definition is None:
                         definition = ""
             
             elif len(entry) == 1:
                 term = entry[0].strip()
-                definition = Helper.wikipediaAPI(term)  # calls Wikipedia API, keeps definition as blank if API request failed
+
+                # Generate definition using Wikipedia API if definition is empty
+                try:
+                    definition = Helper.wikipediaAPI(term)
+                except Exception as e:
+                    print(f"Error occurred while fetching definition for '{term}': {e}")
+                    definition = None
                 if definition is None:
                     definition = ""
             

@@ -29,6 +29,24 @@ from .helper import Helper
 from config.configurations import DBPATH # Constant path to the database file
 from .selected_list import SelectedList
 
+### CONSTANT CHARACTER LIMITS ###
+TERM_MAX_CHAR = 500
+DEFINITION_MAX_CHAR = 10000
+TAGS_MAX_CHAR = 1000
+
+def _char_limit_warn(field_name, original_text, max_len) -> None:
+    """
+    Private Method
+
+    Checks if the length of the original text exceeds the maximum allowed length for a field.
+    If it does, prints a warning message indicating the field name and the maximum length.
+    - field_name (str): The name of the field being checked. String as it represents whether the field is a term, definition, or tags.
+    - original_text (str): The original text to check. String as it represents the textually inputted original text.
+    - max_len (int): The maximum allowed length for the field. Integer as it represents the maximum number of characters allowed.
+    """
+    if len(original_text) > max_len:
+        print(f"Warning: {field_name.capitalize()} exceeds {max_len} characters. {field_name.capitalize()} will be truncated.")
+
 class Entry:
     def __init__(self,
                  term: str,
@@ -43,10 +61,15 @@ class Entry:
         - tags (str): Tags associated with the entry, can be empty. String as it represents the textually inputted series of tags.
         - createdAt (str): Creation timestamp of the entry. String as it represents the textually inputted creation timestamp.
         """
+        ### Range check for term, definition, tags length ###
+        _char_limit_warn("term", term, TERM_MAX_CHAR)
+        _char_limit_warn("definition", definition, DEFINITION_MAX_CHAR)
+        _char_limit_warn("tags", tags, TAGS_MAX_CHAR)
+
         self.uid = uid # unique identifier for the entry, optional for new entries
-        self.term = term
-        self.definition = definition
-        self.tags = tags
+        self.term = term[:TERM_MAX_CHAR]  # term of the entry, truncated to max length
+        self.definition = definition[:DEFINITION_MAX_CHAR]
+        self.tags = tags[:TAGS_MAX_CHAR]
         if createdAt is None: # mutable argument solution, creates timestamp in __init__ instead of when object is constructed.
             self.createdAt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         else:
@@ -77,9 +100,14 @@ class Entry:
         - newDefinition (str): The new definition for the entry. String as it represents the textually inputted new definition.
         - newTags (str): The new tags for the entry. String as it represents the textually inputted new series of tags.
         """
-        self.term = newTerm
-        self.definition = newDefinition
-        self.tags = newTags
+        ### Range check for newTerm, newDefinition, newTags length ###
+        _char_limit_warn("term", newTerm, TERM_MAX_CHAR)
+        _char_limit_warn("definition", newDefinition, DEFINITION_MAX_CHAR)
+        _char_limit_warn("tags", newTags, TAGS_MAX_CHAR)
+
+        self.term = newTerm[:TERM_MAX_CHAR]  # update term, truncated to max length
+        self.definition = newDefinition[:DEFINITION_MAX_CHAR] # update definition, truncated to max length
+        self.tags = newTags[:TAGS_MAX_CHAR] # update tags, truncated to max length
         uid = self.uid
 
         with sqlite3.connect(DBPATH) as conn:

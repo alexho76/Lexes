@@ -120,7 +120,10 @@ class DisplayList:
         Uses Helper.quickSort() to sort displayList.entries.
         Assumes sortAttribute is among alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
         """
-        self.entries = Helper.quickSort(self.entries, self.sortAttribute)
+        try:
+            self.entries = Helper.quickSort(self.entries, self.sortAttribute)
+        except Exception as e:
+            print(f"Error occurred while sorting: {e}")
 
     def build(self) -> None:
         """

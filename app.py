@@ -488,7 +488,11 @@ class MainWindow(ctk.CTk):
             Retrieves the definition from Wikipedia for the current term in the sidebar title. If a definition is found, it updates the definition textbox. Else, it shows an error message.
             """
             updatedTerm = self.sidebarTitle.get().strip()
-            newDefinition = Helper.wikipediaAPI(updatedTerm) # get definition from wikipedia
+            try:
+                newDefinition = Helper.wikipediaAPI(updatedTerm) # get definition from wikipedia
+            except Exception as e:
+                print(f"Error occurred while fetching definition for '{updatedTerm}': {e}")
+                newDefinition = None
             if newDefinition:
                 self.definitionTextbox.focus_set()
                 self.definitionTextbox.delete(1.0, tk.END)
