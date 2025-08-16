@@ -32,21 +32,33 @@ from .selected_list import SelectedList
 from config.configurations import DBPATH # Constant path to the database file
 
 class DisplayList:
-    # Initiation with default parameters for their respective data types and uses.
     def __init__(self,
                  entries: list[Entry] = None,
                  filterTags: str = "",
                  requireAllTags: bool = False,
                  searchKeyword: str = "",
                  sortAttribute: str = "dateDescending"):
-        self.entries = entries if entries is not None else [] # mutable argument solution - list of Entry objects to display in dictionary
-        self.filterTags = filterTags # string of tags to filter entries by
-        self.requireAllTags = requireAllTags # boolean to determine if all filterTags must be present in entries
-        self.searchKeyword = searchKeyword # string to search entries by term, definition, or tags
-        self.sortAttribute = sortAttribute # string to determine how to sort entries (alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending)
+        """
+        Initiation with default parameters for their respective data types and uses.
+        - entries (list[Entry]): List of Entry objects to display in the dictionary. List of Entries to be able to iterate.
+        - filterTags (str): Tags to filter entries by. String as it represents a series of textually inputted tags.
+        - requireAllTags (bool): Boolean to determine if all filterTags must be present in entries. Boolean as it represents a true/false value.
+        - searchKeyword (str): Keyword to search entries by. String as it represents the textually inputted search keyword.
+        - sortAttribute (str): Attribute to determine how to sort entries (alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending). String as it represents the sorting attribute.
+        """
+        self.entries = entries if entries is not None else [] # mutable argument solution
+        self.filterTags = filterTags
+        self.requireAllTags = requireAllTags
+        self.searchKeyword = searchKeyword
+        self.sortAttribute = sortAttribute
     
-    # Out of all database entries, adds entry to displayList.entries based on filter settings (requireAllTags).
     def filter(self) -> None:
+        """
+        Out of all database entries, adds entry to displayList.entries based on filter settings (requireAllTags).  
+
+        Data Source: Entries are loaded from a local SQLite database to ensure fast lookup, and support complex queries.
+        SQLite also provides a secure and reliable way to manage application data.
+        """
         self.entries = []
 
         with sqlite3.connect(DBPATH) as conn:
@@ -89,8 +101,10 @@ class DisplayList:
                     entry = Entry(uid=row[0],term=row[1], definition=row[2], tags=row[3], createdAt=row[4])
                     self.entries.append(entry)
 
-    # Rebuilds displayList.entries, excluding those without searchKeyword.
     def search(self) -> None:
+        """
+        Rebuilds displayList.entries, excluding those without searchKeyword.
+        """
         keyword = self.searchKeyword.strip()  # Fixed issue of trailing and leading spaces resulting in no search.
         if keyword == "":
             return
@@ -101,19 +115,27 @@ class DisplayList:
                         or keyword.lower() in entry.definition.lower()
                         or keyword.lower() in entry.tags.lower()]
 
-    # Uses Helper.quickSort(), assumes sortAttribute is among alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
     def sort(self) -> None:
+        """
+        Uses Helper.quickSort() to sort displayList.entries.
+        Assumes sortAttribute is among alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
+        """
         self.entries = Helper.quickSort(self.entries, self.sortAttribute)
 
-    # NOTE: IMPORTANT ORDER: filter -> search -> sort, and self.entries is cleared in filter() not build() itself.
     def build(self) -> None:
+        """
+        Builds the display list by applying filters, searching, and sorting.
+        NOTE: IMPORTANT ORDER: filter -> search -> sort, and self.entries is cleared in filter() not build() itself.
+        """
         self.filter()
         self.search()
         self.sort()
 
-    # Selects all entries in displayList.entries, calling select() on each entry.
-    # NOTE: Takes selectedList object as parameter for adequate scope.
     def selectAll(self,
-                  selectedList: SelectedList) -> None: 
+                  selectedList: SelectedList) -> None:
+        """
+        Selects all entries in displayList.entries, calling select() on each entry. NOTE: Takes selectedList object as parameter for adequate scope.
+        - selectedList (SelectedList): The list to add selected entries to. SelectedList to hold all selected entries.
+        """
         for entry in self.entries:
             entry.select(selectedList)

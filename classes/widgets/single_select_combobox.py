@@ -28,27 +28,46 @@ import customtkinter as ctk
 
 class SingleSelectComboBox(ctk.CTkFrame):
     def __init__(self, master, *,
-                 options,
-                 options_dictionary=None,
-                 width=200,
-                 height=50,
-                 font=None,
-                 dropdown_font=None,
-                 fg_color="white",
-                 border_color="gray",
-                 border_width=1,
-                 text_color="black",
-                 selected_bg_color="#cce5ff",
-                 selected_text_color="#004085",
-                 unselected_text_color,
-                 corner_radius=8,
-                 default_text="Select option ▼",
-                 dropdown_bg_color="#C6E1B8",
-                 on_close_callback=None,
-                 ipadx=(27,0),
+                 options: list,
+                 options_dictionary: dict = None,
+                 width: int = 200,
+                 height: int = 50,
+                 font: tuple = None,
+                 dropdown_font: tuple = None,
+                 fg_color: str = "white",
+                 border_color: str = "gray",
+                 border_width: float = 1,
+                 text_color: str = "black",
+                 selected_bg_color: str = "#cce5ff",
+                 selected_text_color: str = "#004085",
+                 unselected_text_color: str = "gray",
+                 corner_radius: int = 8,
+                 default_text: str = "Select option ▼",
+                 dropdown_bg_color: str = "#C6E1B8",
+                 on_close_callback: callable = None,
+                 ipadx: tuple = (27,0),
                  **kwargs):
         """
         Initialise the SingleSelectComboBox widget with styling, option list, and callback.
+        - master (CTk): The parent widget for the SingleSelectComboBox. CTk so it can use customTkinter features.
+        - options (list): The list of options to display in the dropdown. List so it can be iterated.
+        - options_dictionary (dict): A dictionary mapping option values to their display names. Dictionary so it can translate options if needed.
+        - width (int): The width of the widget. Integer as it represents the width in pixels.
+        - height (int): The height of the widget. Integer as it represents the height in pixels.
+        - font (tuple): The font to use for the widget text. Tuple as it represents the font family and size.
+        - dropdown_font (tuple): The font to use for the dropdown options. Tuple as it represents the font family and size.
+        - fg_color (str): The foreground color of the widget. String as it represents a color value.
+        - border_color (str): The border color of the widget. String as it represents a color value.
+        - border_width (float): The border width of the widget. Float as it represents the width in pixels.
+        - text_color (str): The text color of the widget. String as it represents a color value.
+        - selected_bg_color (str): The background color of the selected option. String as it represents a color value.
+        - selected_text_color (str): The text color of the selected option. String as it represents a color value.
+        - unselected_text_color (str): The text color of the unselected options. String as it represents a color value.
+        - corner_radius (int): The corner radius of the widget. Integer as it represents the radius in pixels.
+        - default_text (str): The default text to display when no option is selected. String as it represents the default text.
+        - dropdown_bg_color (str): The background color of the dropdown menu. String as it represents a color value.
+        - on_close_callback (callable): A callback function to be called when the dropdown is closed. Callable as it represents a callback function.
+        - ipadx (tuple): Internal padding for the dropdown options. Tuple as it represents the padding values (left, right).
         """
         super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, border_color=border_color, border_width=border_width, **kwargs)
 
@@ -136,8 +155,8 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _create_menu_popup(self) -> None:
         """
         Private Method
-        Creates the popup dropdown menu with scrollable option list.
-        Binds events for mouse wheel and option selection.
+
+        Creates the popup dropdown menu with scrollable option list. Binds events for mouse wheel and option selection.
         """
         ### Toplevel Popup Setup ###
         self.popup = tk.Toplevel(self)
@@ -210,7 +229,9 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _update_option_visual(self, idx) -> None:
         """
         Private Method
+
         Updates the appearance of an option row and label based on selection.
+        - idx (int): The index of the option to update. Integer as it represents the option's position.
         """
         selected = (self.selected_index == idx)
         frame = self.option_frames[idx]
@@ -226,6 +247,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _update_all_options(self) -> None:
         """
         Private Method
+
         Updates the visual appearance of all option rows and labels.
         """
         for idx in range(len(self.options)):
@@ -234,8 +256,8 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _bind_mousewheel(self) -> None:
         """
         Private Method
-        Enables mouse wheel scrolling for the dropdown canvas.
-        Supports various mouse wheel events for different platforms.
+
+        Enables mouse wheel scrolling for the dropdown canvas. Supports various mouse wheel events for different platforms.
         """ 
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
         self.canvas.bind_all("<Button-4>", self._on_mousewheel)
@@ -244,6 +266,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _unbind_mousewheel(self) -> None:
         """
         Private Method
+
         Disables mouse wheel scrolling for the dropdown canvas.
         """
         self.canvas.unbind_all("<MouseWheel>")
@@ -253,7 +276,9 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _on_mousewheel(self, event) -> None:
         """
         Private Method
+
         Handles mouse wheel scrolling event for the dropdown canvas.
+        - event (tk.Event): The mouse wheel event. Tkinter Event contains information about the event like the scroll direction.
         """
         if event.num == 4 or event.delta > 0:
             self.canvas.yview_scroll(-1, "units")
@@ -263,8 +288,9 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _toggle_menu(self, event=None) -> None:
         """
         Private Method
-        Toggles the visibility of the dropdown menu.
-        Opens the menu if closed; hides it if open.
+
+        Toggles the visibility of the dropdown menu. Opens the menu if closed; hides it if open.
+        - event (tk.Event): The event that triggered the toggle. Tkinter Event contains information about the event.
         """
         if self.is_menu_open:
             self._hide_menu()
@@ -274,8 +300,8 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _show_menu(self) -> None:
         """
         Private Method
-        Displays the dropdown menu below the combobox.
-        Focuses the popup for keyboard interaction.
+
+        Displays the dropdown menu below the combobox. Focuses the popup for keyboard interaction.
         """
         x = self.winfo_rootx()
         y = self.winfo_rooty() + self.winfo_height()
@@ -289,9 +315,8 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _hide_menu(self) -> None:
         """
         Private Method
-        Hides the dropdown menu popup and updates state/visuals.
-        Triggers the on_close_callback if provided.
-        Prevents immediate reopening.
+
+        Hides the dropdown menu popup and updates state/visuals. Triggers the on_close_callback if provided. Prevents immediate reopening.
         """
         self.popup.withdraw()
         self.is_menu_open = False
@@ -313,8 +338,9 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _on_popup_focus_out(self, event=None) -> None:
         """
         Private Method
-        Handles loss of focus from the dropdown popup.
-        Closes the menu if it is open.
+
+        Handles loss of focus from the dropdown popup. Closes the menu if it is open.
+        - event (tk.Event): The event that triggered the focus out. Tkinter Event contains information about the event.
         """
         if self.is_menu_open:
             self._hide_menu()
@@ -322,6 +348,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _on_select(self) -> None:
         """
         Private Method
+
         Updates the main label text based on the selected option.
         """
         if self.selected_index is None:
@@ -332,8 +359,9 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def _on_enter_press(self, event=None) -> None:
         """
         Private Method
-        Handles pressing Enter while the dropdown menu is open.
-        Closes the menu.
+
+        Handles pressing Enter while the dropdown menu is open. Closes the menu.
+        - event (tk.Event): The event that triggered the enter press. Tkinter Event contains information about the event.
         """
         if self.is_menu_open:
             self._hide_menu()
@@ -341,6 +369,7 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def get_selected(self) -> str | None:
         """
         Public Method
+
         Returns the currently selected option string (or None if nothing selected).
         """
         if self.selected_index is None:
@@ -350,8 +379,9 @@ class SingleSelectComboBox(ctk.CTkFrame):
     def set_selected_option(self, option: str) -> None:
         """
         Public Method
-        Sets the selected option by its string value.
-        Updates visuals and selected index accordingly.
+
+        Sets the selected option by its string value. Updates visuals and selected index accordingly.
+        - option (str): The string value of the option to select. String as it represents the option in the dropdown.
         """
         if option in self.options:
             self.selected_index = self.options.index(option)

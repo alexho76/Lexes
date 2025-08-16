@@ -23,10 +23,15 @@ import wikipedia
 
 class Helper:
     @staticmethod
-    # Static method to call Wikipedia API on query, parse response, and return definition (if found).
-    # Handles disambiguation and input errors by retrying with modified query formats or returning None (which are caught later and handled as errors).
-    # NOTE: Returns string of definition if found or None if not found.
     def wikipediaAPI(query: str) -> str | None:
+        """
+        Static method to call Wikipedia API on query, parse response, and return definition (if found).
+        Handles disambiguation and input errors by retrying with modified query formats or returning None (which are caught later and handled as errors).
+        Returns string of definition if found or None if not found.
+
+        Data Source: Auto retrieved definition is fetched from WikipediaAPI to provide a comprehensive, accurate, up-to-date definition for a wide range of terms.
+        - query (str): The search query for Wikipedia. String as it represents the textually inputted search query.
+        """
         def defaultQuery(q):
             if not q:
                 return None
@@ -77,16 +82,20 @@ class Helper:
             return specialQuery(query)
 
     @staticmethod
-    # Performs quicksort on entry objects based on various attributes: alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
-    # NOTE: Modified the design pseudocode naming to be more general.
     def quickSort(entries, attribute) -> list:
+        """
+        Performs quicksort on Entry objects based on various attributes: alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
+        Returns a sorted list of Entry objects.
+        - entries (list[Entry]): The list of entry objects to sort. List to allow for iteration.
+        - attribute (str): The attribute to sort by. String as it represents the sorting criteria.
+        """
         # Base case for recursion: if the list is empty or has one element, it's already sorted.
         if len(entries) <= 1:
             return entries
-        
-        pivot = entries[0]
-        lesser = []
-        greater = []
+
+        pivot = entries[0] # Choose the first element as the pivot
+        lesser = [] # List of elements less than the pivot to be sorted recursively
+        greater = [] # List of elements greater than the pivot to be sorted recursively
 
         for entry in entries[1:]:
             if attribute == "alphabeticalAscending":

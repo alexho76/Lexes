@@ -35,25 +35,32 @@ from classes.widgets.export_button import ExportButton
 class FilePathEntry(ctk.CTkFrame):
     def __init__(self,
                  master,
-
                  icon,
-                 icon_size,
-
-                 font,
-                 text_color,
-                 fg_color,
-                 border_color,
-                 border_width,
-
-                 placeholder_text,
-
+                 icon_size: tuple,
+                 font: tuple,
+                 text_color: str,
+                 fg_color: str,
+                 border_color: str,
+                 border_width: float,
+                 placeholder_text: str,
                  option_one: ExportButton, # checkbox toggle 1
                  option_two: ExportButton, # checkbox toggle 2
-
-                 on_callback = None,
+                 on_callback: callable = None,
                  **kwargs):
         """
         Initialise the FilePathEntry widget with custom styles, images, and text.
+        - master (CTk): The parent widget for the FilePathEntry. CTk so it can use customTkinter features.
+        - icon (Image): The icon image to display in the entry. Image as it represents the button icon.
+        - icon_size (tuple): The size of the icon image. Tuple as it represents the width and height.
+        - font (tuple): The font configuration for the entry text. Tuple as it represents the font family and size.
+        - text_color (str): The text color for the entry. String as it represents a color value.
+        - fg_color (str): The foreground color for the entry. String as it represents a color value.
+        - border_color (str): The border color for the entry. String as it represents a color value.
+        - border_width (float): The border width for the entry. Float as it represents the pixel width.
+        - placeholder_text (str): The placeholder text for the entry. String as it represents the placeholder text displayed in the label.
+        - option_one (ExportButton): The first export option button. ExportButton as it represents the button widget.
+        - option_two (ExportButton): The second export option button. ExportButton as it represents the button widget.
+        - on_callback (callable): The callback function to call when the entry is updated. Callable as it represents a callback function.
         """
         super().__init__(master, fg_color=fg_color, border_color=border_color, border_width=border_width, **kwargs)
         self.on_callback = on_callback
@@ -82,16 +89,17 @@ class FilePathEntry(ctk.CTkFrame):
     def _open_dialog(self, event=None) -> None:
         """
         Private Method
-        Opens a file dialog to select a file path.
-        Changes type of files displayed based on the selected export option (using option_one and option_two).
+
+        Opens a file dialog to select a file path. Changes type of files displayed based on the selected export option (using option_one and option_two).
+        - event (tk.Event): The click event. Tkinter Event containing information about the click.
         """
         ### Get the file type based on the selected export option ###
         if self.option_one.get_state():
             file_type = ".csv"
-            file_types = [("CSV Files", "*.csv")]
+            file_types = [("CSV Files", "*.csv")] # List of file types for CSV export for easy comparison
         elif self.option_two.get_state():
             file_type = ".db"
-            file_types = [("SQLite Database Files", "*.db")]
+            file_types = [("SQLite Database Files", "*.db")] # List of file types for DB export for easy comparison
         else:
             file_type = ""
             file_types = []
@@ -132,6 +140,7 @@ class FilePathEntry(ctk.CTkFrame):
     def get_path(self) -> str:
         """
         Public Method
+
         Returns the currently selected file path or an empty string if none is selected.
         """
         return self.file_path if self.file_path else ""
@@ -139,6 +148,7 @@ class FilePathEntry(ctk.CTkFrame):
     def reset(self) -> None:
         """
         Public Method
+
         Resets the file path to "" and clears the entry label.
         """
         self.file_path = ""
@@ -147,6 +157,8 @@ class FilePathEntry(ctk.CTkFrame):
     def change_text_color(self, color: str) -> None:
         """
         Public Method
+
         Changes the text color of the entry label.
+        - color (str): The new text color for the entry label. String as it represents a color value.
         """
         self.path_label.configure(text_color=color)

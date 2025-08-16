@@ -35,7 +35,7 @@ from classes.display_list import DisplayList
 
 class DictionaryList(ctk.CTkFrame):
     
-    def __init__(self, master=None,
+    def __init__(self, master,
                  entries: list[Entry] = [],
                  selectedList: SelectedList = None,
                  width: int = 1920,
@@ -61,15 +61,42 @@ class DictionaryList(ctk.CTkFrame):
                  term_icon: str = None,
                  definition_icon: str = None,
                  tag_icon: str = None,
-                 on_selection_change = None,
-                 on_row_click = None,
+                 on_selection_change: callable = None,
+                 on_row_click: callable = None,
                  empty_message: ctk.CTkLabel = None,
                  **kwargs):
         """
-        Initialise the DictionaryList frame and UI config.
-            - Sets up fonts, colors, icons, dimensions, and other UI elements.
-            - Builds all widgets and binds events.
-            - Populates the list with entries on start.
+        Initialise the DictionaryList frame and UI config. Sets up fonts, colors, icons, dimensions, and other UI elements.
+        Builds all widgets and binds events. Populates the list with entries on start.
+        - master (CTk): The parent widget for the DictionaryList. CTk so it can use customTkinter features.
+        - entries (list[Entry]): The list of Entry objects to display in the dictionary. List of Entries so it can display multiple dictionary entries.
+        - selectedList (SelectedList): The list of selected entries. SelectedList as it acts as a container for the selected entries.
+        - width (int): The width of the DictionaryList. Integer as it represents the pixel width.
+        - height (int): The height of the DictionaryList. Integer as it represents the pixel height.
+        - row_height (int): The height of each row in the DictionaryList. Integer as it represents the pixel height.
+        - term_font_size (int): The font size for the term text. Integer as it represents the font size in points.
+        - definition_font_size (int): The font size for the definition text. Integer as it represents the font size in points.
+        - tag_font_size (int): The font size for the tag text. Integer as it represents the font size in points.
+        - header_bg_color (str): The background color for the header. String as it represents a color value.
+        - header_text_color (str): The text color for the header. String as it represents a color value.
+        - row_bg_color_1 (str): The background color for the odd rows. String as it represents a color value.
+        - row_bg_color_2 (str): The background color for the even rows. String as it represents a color value.
+        - selected_row_color_1 (str): The background color for the odd selected rows. String as it represents a color value.
+        - selected_row_color_2 (str): The background color for the even selected rows. String as it represents a color value.
+        - divider_color (str): The color of the divider lines between rows. String as it represents a color value.
+        - main_text_color (str): The color of the main text. String as it represents a color value.
+        - checkbox_color (str): The color of the checkbox. String as it represents a color value.
+        - tag_box_bg_color (str): The background color of the tag box. String as it represents a color value.
+        - tag_text_color (str): The color of the tag text. String as it represents a color value.
+        - scroll_speed (int): The speed of scrolling in pixels per scroll event. Integer as it represents the pixel speed.
+        - overflow_icon (str): The file path for the overflow icon. String as it represents a file path.
+        - select_icon (str): The file path for the select icon. String as it represents a file path.
+        - term_icon (str): The file path for the term icon. String as it represents a file path.
+        - definition_icon (str): The file path for the definition icon. String as it represents a file path.
+        - tag_icon (str): The file path for the tag icon. String as it represents a file path.
+        - on_selection_change (callable): Callback for when the selection changes. Callable as it acts as a callback function.
+        - on_row_click (callable): Callback for when a row is clicked. Callable as it acts as a callback function.
+        - empty_message (CTkLabel): Message to display when there are no entries. CTkLabel as it represents a label widget.
         """
         super().__init__(master, width=width, height=height+1.5, fg_color=header_bg_color, corner_radius=0, **kwargs)
         super().pack_propagate(False)
@@ -112,6 +139,7 @@ class DictionaryList(ctk.CTkFrame):
         self.tag_icon = ctk.CTkImage(light_image=tag_icon, dark_image=tag_icon, size=(28,28))
 
         ### Internal Tracking Variables ###
+        # Dictionaries used to track key-value pairs of state of each row.
         self.selected_vars = {}
         self.visible_rows = {}
 
@@ -140,8 +168,8 @@ class DictionaryList(ctk.CTkFrame):
     def _bind_mousewheel_all(self) -> None:
         """
         Private Method
-        Binds mousewheel events to the canvas and all children widgets for scrolling.
-        Uses the root window (toplevel) for global event binding.
+
+        Binds mousewheel events to the canvas and all children widgets for scrolling. Uses the root window (toplevel) for global event binding.
         """
         toplevel = self.winfo_toplevel()
         self.bind("<Enter>", lambda e: toplevel.bind_all("<MouseWheel>", self._on_mousewheel))
@@ -153,6 +181,7 @@ class DictionaryList(ctk.CTkFrame):
     def _setup_widgets(self) -> None:
         """
         Private Method
+        
         Build and pack all main UI widgets: header, canvas, scrollbar, and row frame.
         """
         ### Header Row ###
@@ -212,7 +241,9 @@ class DictionaryList(ctk.CTkFrame):
     def _on_mousewheel(self, event) -> None:
         """
         Private Method
+
         Handles mouse wheel scrolling event for the canvas. Destroys popups if open so that popups close upon scroll.
+        - event (tk.Event): The mouse wheel event. Tkinter Event as it provides information about the scroll direction.
         """
         direction = -1 if event.delta > 0 else 1
         scroll_units = int(direction * self.scroll_speed)
@@ -228,6 +259,7 @@ class DictionaryList(ctk.CTkFrame):
     def _on_scroll(self, *args) -> None:
         """
         Private Method
+
         Handles manual scrollbar scrolling event for the canvas.
         """
         self.canvas.yview(*args)
@@ -236,7 +268,9 @@ class DictionaryList(ctk.CTkFrame):
     def _on_frame_configure(self, event) -> None:
         """
         Private Method
+
         Updates scroll region of the canvas to encompass the entire rows frame when it is resized (new rows added).
+        - event (tk.Event): The event that triggered the frame configuration. Tkinter Event as it provides information when the frame's status is changed.
         """
         total_height = len(self.entries) * self.row_height
 
@@ -249,13 +283,16 @@ class DictionaryList(ctk.CTkFrame):
     def _on_canvas_resize(self, event) -> None:
         """
         Private Method
+
         Updates the visible rows when the canvas is resized by the user.
+        - event (tk.Event): The event that triggered the canvas resize. Tkinter Event as it provides information about the resize action.
         """
         self._update_visible_rows()
 
     def _update_visible_rows(self) -> None:
         """
         Private Method
+
         Lazy-loads visible rows only in canvas viewport, destroying rows that leave the frame of view and creating new ones for those that come into view.
         """
         y0 = self.canvas.canvasy(0)
@@ -284,8 +321,12 @@ class DictionaryList(ctk.CTkFrame):
     def _create_row(self, row_num: int, entry: Entry, visible_mode=False, selected_var=None) -> ctk.CTkFrame:
         """
         Private Method
-        Creates a single row widget for an entry, including checkbox, term, definition, and tags.
-        Handles selection state, click events, and dynamic row colour.
+
+        Creates a single row widget for an entry, including checkbox, term, definition, and tags. Handles selection state, click events, and dynamic row colour.
+        - row_num (int): The row number for the entry. Integer as it represents a discrete row number, incrementing by 1.
+        - entry (Entry): The entry object containing term, definition, and tags. Entry as it encapsulates all relevant information for a dictionary entry.
+        - visible_mode (bool): Flag indicating whether the row is being created in visible mode. Boolean as it can either be True or False, affecting the row's layout and behavior.
+        - selected_var (tk.IntVar): The variable tracking the selection state of the row. IntVar as it allows for easy integration with Tkinter widgets.
         """
         row_type = (row_num - 1) % 2
         if selected_var is None:
@@ -403,8 +444,7 @@ class DictionaryList(ctk.CTkFrame):
 
         def on_row_click(event):
             """
-            Handles click events for the row (excluding checkbox).
-            Triggers the on_row_click callback, which is later used for displaying the sidebar popup for individual entries.
+            Handles click events for the row (excluding checkbox). Triggers the on_row_click callback, which is later used for displaying the sidebar popup for individual entries.
             """
             if self.on_row_click:
                 self.on_row_click(row_num, entry)
@@ -428,7 +468,11 @@ class DictionaryList(ctk.CTkFrame):
     def _truncate_text(self, text: str, max_width_px: int, font) -> str:
         """
         Private Method
+
         Truncates text with ellipsis if it exceeds the maximum pixel width.
+        - text (str): The text to truncate. String as it represents the text inputted.
+        - max_width_px (int): The maximum width in pixels for the text. Integer as it represents the max width of the text in pixels.
+        - font (tk.Font): The font used for measuring text width. Tkinter Font as it represents the font used to measure width.
         """
         ellipsis = "..."
         ellipsis_width = font.measure(ellipsis)
@@ -446,9 +490,13 @@ class DictionaryList(ctk.CTkFrame):
     def _truncate_multiline_text(self, text: str, max_width_px: int, font, max_lines: int = 3) -> str:
         """
         Private Method
+
         Truncates multi-line text to fit within a specified width and maximum number of lines, adding ellipsis if it overflows.
-        Handles word splitting for long words that single-handedly exceed the width of a line.
-        Returns the truncated text as a single string with newline characters.
+        Handles word splitting for long words that single-handedly exceed the width of a line. Returns the truncated text as a single string with newline characters.
+        - text (str): The text to truncate. String as it represents the text inputted.
+        - max_width_px (int): The maximum width in pixels for the text. Integer as it represents the max width of the text in pixels.
+        - font (tk.Font): The font used for measuring text width. Tkinter Font as it represents the font used to measure width.
+        - max_lines (int): The maximum number of lines to display. Integer as it represents the maximum number of lines to display.
         """
         ellipsis = "..."
         ellipsis_w = font.measure(ellipsis)
@@ -504,9 +552,11 @@ class DictionaryList(ctk.CTkFrame):
     def _truncate_tag_text(self, text: str, max_width: int) -> str:
         """
         Private Method
-        Truncates tag text with ellipsis if it exceeds the maximum width.
-        Used when creating tag boxes to ensure they fit within the available space.
+
+        Truncates tag text with ellipsis if it exceeds the maximum width. Used when creating tag boxes to ensure they fit within the available space.
         Returns the truncated text string with ellipsis if necessary.
+        - text (str): The text to truncate. String as it represents the text inputted.
+        - max_width (int): The maximum width in pixels for the text. Integer as it represents the max width of the text in pixels.
         """
         ellipsis = "..."
         font = ctk.CTkFont(family="League Spartan", size=16)
@@ -520,8 +570,10 @@ class DictionaryList(ctk.CTkFrame):
     def _render_tags(self, container: ctk.CTkFrame, tags_list: list[str]) -> None:
         """
         Private Method
-        Renders tag boxes into the tag column.
-        Uses overflow boxes if tags exceed available width.
+
+        Renders tag boxes into the tag column. Uses overflow boxes if tags exceed available width.
+        - container (ctk.CTkFrame): The container frame to render the tags into. CTkFrame as it represents the frame for the tags.
+        - tags_list (list[str]): The list of tags to render. List of strings so it can be iterated.
         """
         for w in container.winfo_children():
             w.destroy()
@@ -562,7 +614,10 @@ class DictionaryList(ctk.CTkFrame):
     def _create_tag_box(self, container: ctk.CTkFrame, text: str) -> None:
         """
         Private Method
+
         Creates a single tag box widget with a label inside.
+        - container (ctk.CTkFrame): The container frame to render the tag into. CTkFrame as it represents the frame for the tag.
+        - text (str): The text to display inside the tag. String as it represents the content of the tag.
         """
         tag_frame = ctk.CTkFrame(container, fg_color=self.tag_box_bg_color,
                                 corner_radius=5)
@@ -577,7 +632,10 @@ class DictionaryList(ctk.CTkFrame):
     def _create_overflow_tag_box(self, container: ctk.CTkFrame, unused_tags: list[str]) -> None:
         """
         Private Method
+
         Creates an overflow tag box (button) that opens a dropdown with unused tags (tags that didn't fit in the tags column).
+        - container (ctk.CTkFrame): The container frame to render the overflow tag box into. CTkFrame as it represents the frame for the overflow tag box.
+        - unused_tags (list[str]): The list of unused tags to display in the dropdown. List of strings so it can be iterated.
         """
         def on_button_click(event=None):
             self._toggle_overflow_popup(tag_button, unused_tags)
@@ -599,7 +657,9 @@ class DictionaryList(ctk.CTkFrame):
     def _create_overflow_tag_dropdown(self, unused_tags_list) -> None:
         """
         Private Method
+
         Creates a popup dropdown listing overflow (unused) tags when the overflow button is clicked.
+        - unused_tags_list (list[str]): The list of unused tags to display in the dropdown. List of strings so it can be iterated.
         """
         self._safe_destroy_popup()
 
@@ -646,8 +706,7 @@ class DictionaryList(ctk.CTkFrame):
 
         def on_popup_mousewheel(event):
             """
-            Handles mouse wheel scrolling in the popup canvas.
-            Allows scrolling through the tag list using the mouse wheel.
+            Handles mouse wheel scrolling in the popup canvas. Allows scrolling through the tag list using the mouse wheel.
             """
             direction = -1 if event.delta > 0 else 1
             self.popup_canvas.yview_scroll(direction, "units")
@@ -663,8 +722,10 @@ class DictionaryList(ctk.CTkFrame):
     def _toggle_overflow_popup(self, widget, unused_tags) -> None:
         """
         Private Method
-        Toggles the overflow popup.
-        Dynamically positions the popup either above or below depending on available space.
+        
+        Toggles the overflow popup. Dynamically positions the popup either above or below depending on available space.
+        - widget (tk.Widget): The widget to position the popup relative to. Tkinter Widget as it represents the UI element.
+        - unused_tags (list[str]): The list of unused tags to display in the dropdown. List of strings so it can be iterated.
         """
         if hasattr(self, "popup") and self.popup.winfo_exists():
             self._safe_destroy_popup()
@@ -716,6 +777,7 @@ class DictionaryList(ctk.CTkFrame):
     def _safe_destroy_popup(self) -> None:
         """
         Private Method
+
         Safely destroys the popup if it exists.
         """
         if hasattr(self, "popup") and self.popup.winfo_exists():
@@ -725,12 +787,12 @@ class DictionaryList(ctk.CTkFrame):
     def _bind_popup_outside_click(self) -> None:
         """
         Private Method
+
         Binds a click event outside the popup to close it.
         """
         def on_click_outside(event):
             """
-            Handles click events outside the popup.
-            Destroys the popup if the click is outside its bounds.
+            Handles click events outside the popup. Destroys the popup if the click is outside its bounds.
             """
             if hasattr(self, "popup") and self.popup.winfo_exists():
                 x1 = self.popup.winfo_rootx()
@@ -745,6 +807,7 @@ class DictionaryList(ctk.CTkFrame):
     def _unbind_popup_outside_click(self) -> None:
         """
         Private Method
+
         Unbinds the click handler for outside the popup dropdown to prevent memory leaks.
         """
         if hasattr(self, "_outside_click_handler"):
@@ -754,6 +817,7 @@ class DictionaryList(ctk.CTkFrame):
     def _add_tooltip(self, widget, text) -> None:
         """
         Private Method
+
         Adds a tooltip to a widget that displays additional information when hovered over.
         Used for tag labels in overflow tag box dropdown to show full tag text if truncated even further.
         """
@@ -777,6 +841,7 @@ class DictionaryList(ctk.CTkFrame):
     def populate(self) -> None:
         """
         Public Method
+
         Populates the dictionary list with entries, destroying any existing rows and creating new ones.
         """
         for idx, info in self.visible_rows.items():
@@ -797,6 +862,7 @@ class DictionaryList(ctk.CTkFrame):
     def select_all(self) -> None:
         """
         Public Method
+
         Selects all entries in the dictionary list, updating their selection state and their row colours.
         """
         for idx, entry in enumerate(self.entries):
@@ -808,6 +874,7 @@ class DictionaryList(ctk.CTkFrame):
     def unselect_all(self) -> None:
         """
         Public Method
+
         Unselects all entries in the dictionary list, updating their selection state and their row colours.
         """
         for idx, entry in enumerate(self.entries):
@@ -818,6 +885,7 @@ class DictionaryList(ctk.CTkFrame):
     def display_empty_message(self, entries_exist: bool) -> None:
         """
         Public Method
+
         Displays a message indicating that the database is empty or has no results meeting the current filters.
         """
         if entries_exist:
@@ -832,6 +900,7 @@ class DictionaryList(ctk.CTkFrame):
     def hide_empty_message(self) -> None:
         """
         Public Method
+
         Clears the empty message label from the canvas.
         """
         if self.empty_message is not None:

@@ -27,26 +27,38 @@ import customtkinter as ctk
 
 class ToggleCheckboxButton(ctk.CTkFrame):
     def __init__(self, master, *,
-                 neutral_text="Toggle",
-                 active_text="Toggle",
-                 width=100,
-                 height=50,
-                 corner_radius=5,
-                 font=("League Spartan", 36),
-
-                 image_neutral=None,
-                 image_active=None,
-
-                 fg_color_neutral="gray",
-                 fg_color_active="green",
-                 text_color_neutral="white",
-                 text_color_active="white",
-                 bg_color="transparent",
-
-                 command=None,
+                 neutral_text: str = "Toggle",
+                 active_text: str = "Toggle",
+                 width: int = 100,
+                 height: int = 50,
+                 corner_radius: int = 5,
+                 font: tuple = ("League Spartan", 36),
+                 image_neutral = None,
+                 image_active = None,
+                 fg_color_neutral: str = "gray",
+                 fg_color_active: str = "green",
+                 text_color_neutral: str = "white",
+                 text_color_active: str = "white",
+                 bg_color: str = "transparent",
+                 command: callable = None,
                  **kwargs):
         """
         Initialise the ToggleCheckboxButton widget with styling, icons, state, and callback.
+        - master (CTk): The parent widget for the ToggleCheckboxButton. CTk so it can use customTkinter features.
+        - neutral_text (str): The text to display when the button is in the neutral state. String as it represents the label text.
+        - active_text (str): The text to display when the button is in the active state. String as it represents the label text.
+        - width (int): The width of the button. Integer as it represents the width in pixels.
+        - height (int): The height of the button. Integer as it represents the height in pixels.
+        - corner_radius (int): The corner radius of the button. Integer as it represents the radius in pixels.
+        - font (tuple): The font to use for the button text. Tuple as it represents the font family and size.
+        - image_neutral (Image): The image to display when the button is in the neutral state. Image as it represents the icon displayed.
+        - image_active (Image): The image to display when the button is in the active state. Image as it represents the icon displayed.
+        - fg_color_neutral (str): The foreground color of the button in the neutral state. String as it represents a color value.
+        - fg_color_active (str): The foreground color of the button in the active state. String as it represents a color value.
+        - text_color_neutral (str): The text color of the button in the neutral state. String as it represents a color value.
+        - text_color_active (str): The text color of the button in the active state. String as it represents a color value.
+        - bg_color (str): The background color of the button. String as it represents a color value.
+        - command (callable): A callback function to be called when the button is clicked. Callable as it represents a callback function.
         """
         super().__init__(master, width=width, height=height,
                          corner_radius=corner_radius, fg_color=bg_color, **kwargs)
@@ -88,7 +100,9 @@ class ToggleCheckboxButton(ctk.CTkFrame):
     def _on_click(self, event=None) -> str:
         """
         Private Method
+
         Handles click events, toggles state and prevents propagation.
+        - event (tk.Event): The event object associated with the click. Tkinter Event so it can be used to identify the widget that triggered the click event.
         """
         self._toggle()
         return "break"
@@ -96,6 +110,7 @@ class ToggleCheckboxButton(ctk.CTkFrame):
     def _toggle(self) -> None:
         """
         Private Method
+
         Toggles the button state (active/neutral), updates appearance, and triggers callback if set.
         """
         self.state_active = not self.state_active
@@ -106,6 +121,7 @@ class ToggleCheckboxButton(ctk.CTkFrame):
     def _update_appearance(self) -> None:
         """
         Private Method
+
         Updates the visual appearance (background, text, icon) based on current state.
         """
         if self.state_active:
@@ -120,6 +136,7 @@ class ToggleCheckboxButton(ctk.CTkFrame):
     def get_state(self) -> bool:
         """
         Public Method
+
         Returns the current active state of the button (True for active, False for neutral).
         """
         return self.state_active
@@ -127,7 +144,9 @@ class ToggleCheckboxButton(ctk.CTkFrame):
     def set_state(self, active: bool) -> None:
         """
         Public Method
+
         Sets the button to active or neutral state and updates appearance.
+        - active (bool): The desired active state of the button. Boolean as it represents the state (True for active, False for neutral).
         """
         self.state_active = active
         self._update_appearance()

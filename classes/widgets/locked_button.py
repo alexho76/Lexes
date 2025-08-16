@@ -30,19 +30,32 @@ class LockedButton(ctk.CTkFrame):
     def __init__(self, master, *,
                  neutral_icon,
                  active_icon,
-                 icon_size=(47, 49),
-                 width=60,
-                 height=60,
-                 corner_radius=5,
-                 anchor='center',
-                 fg_color_neutral="gray",
-                 fg_color_active="red",
-                 hover_color_active="tomato",
-                 text="",
-                 command=None,
+                 icon_size: tuple = (47, 49),
+                 width: int = 60,
+                 height: int = 60,
+                 corner_radius: int = 5,
+                 anchor: str = 'center',
+                 fg_color_neutral: str = "gray",
+                 fg_color_active: str = "red",
+                 hover_color_active: str = "tomato",
+                 text: str = "",
+                 command: callable = None,
                  **kwargs):
         """
         Initialise the LockedButton widget with custom icons, styles, and command.
+        - master (CTk): The parent widget for the LockedButton. CTk so it can use customTkinter features.
+        - neutral_icon (Image): The icon to display when the button is in the neutral state. Image as it represents the button icon.
+        - active_icon (Image): The icon to display when the button is in the active state. Image as it represents the button icon.
+        - icon_size (tuple): The size of the button icon. Tuple as it represents the icon dimensions (width, height).
+        - width (int): The width of the button. Integer as it represents the button width in pixels.
+        - height (int): The height of the button. Integer as it represents the button height in pixels.
+        - corner_radius (int): The corner radius of the button. Integer as it represents the button corner radius in pixels.
+        - anchor (str): The anchor position of the button. String as it represents which direction the button is anchored.
+        - fg_color_neutral (str): The foreground color of the button in the neutral state. String as it represents the color value.
+        - fg_color_active (str): The foreground color of the button in the active state. String as it represents the color value.
+        - hover_color_active (str): The hover color of the button in the active state. String as it represents the color value.
+        - text (str): The text to display on the button. String as it represents the button text.
+        - command (callable): The callback function to call when the button is clicked. Callable as it represents a callback function.
         """
         super().__init__(master, width=width, height=height, fg_color="transparent", **kwargs)
         self.pack_propagate(False)
@@ -74,6 +87,7 @@ class LockedButton(ctk.CTkFrame):
     def _on_click(self) -> None:
         """
         Private Method
+
         Handles the button click event. If the button is unlocked, it executes the command.
         """
         if not self._is_locked and self._command:
@@ -82,6 +96,7 @@ class LockedButton(ctk.CTkFrame):
     def unlock(self) -> None:
         """
         Public Method
+
         Unlocks (enables) the button, updates its appearance, and allows clicking.
         """
         self._is_locked = False
@@ -93,6 +108,7 @@ class LockedButton(ctk.CTkFrame):
     def lock(self) -> None:
         """
         Public Method
+
         Locks (disables) the button, updates its appearance, and prevents clicking.
         """
         self._is_locked = True
@@ -104,6 +120,8 @@ class LockedButton(ctk.CTkFrame):
     def set_command(self, command) -> None:
         """
         Public Method
+
         Sets the callback function to be called when the button is clicked (if unlocked).
+        - command (callable): The callback function to execute on button click. Callable as it represents a callback function.
         """
         self._command = command

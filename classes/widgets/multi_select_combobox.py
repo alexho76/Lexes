@@ -29,24 +29,40 @@ import customtkinter as ctk
 
 class MultiSelectComboBox(ctk.CTkFrame):
     def __init__(self, master, *,
-                 options,
-                 width=200,
-                 height=50,
-                 font=None,
-                 dropdown_font=None,
-                 fg_color="white",
-                 border_color="gray",
-                 text_color="black",
-                 selected_bg_color="#cce5ff",
-                 selected_text_color="#004085",
-                 require_frame_color="#e6f0ff",
-                 corner_radius=8,
-                 default_text="Select options ▼",
-                 dropdown_bg_color="#C6E1B8",
-                 on_close_callback=None,
+                 options: list[str],
+                 width: int = 200,
+                 height: int = 50,
+                 font: tuple = None,
+                 dropdown_font: tuple = None,
+                 fg_color: str = "white",
+                 border_color: str = "gray",
+                 text_color: str = "black",
+                 selected_bg_color: str = "#cce5ff",
+                 selected_text_color: str = "#004085",
+                 require_frame_color: str = "#e6f0ff",
+                 corner_radius: int = 8,
+                 default_text: str = "Select options ▼",
+                 dropdown_bg_color: str = "#C6E1B8",
+                 on_close_callback: callable = None,
                  **kwargs):
         """
         Initialise the MultiSelectComboBox widget with custom styles, options, and callbacks.
+        - master (CTk): The parent widget for the MultiSelectComboBox. CTk so it can use customTkinter features.
+        - options (list[str]): The list of options to display in the dropdown. List of strings so it is iterable and represents multiple selections as text.
+        - width (int): The width of the dropdown. Integer as it represents the dropdown width in pixels.
+        - height (int): The height of the dropdown. Integer as it represents the dropdown height in pixels.
+        - font (tuple): The font configuration for the dropdown text. Tuple as it represents the font family and size.
+        - dropdown_font (tuple): The font configuration for the dropdown options. Tuple as it represents the font family and size.
+        - fg_color (str): The foreground color for the dropdown. String as it represents a color value.
+        - border_color (str): The border color for the dropdown. String as it represents a color value.
+        - text_color (str): The text color for the dropdown. String as it represents a color value.
+        - selected_bg_color (str): The background color for selected options. String as it represents a color value.
+        - selected_text_color (str): The text color for selected options. String as it represents a color value.
+        - require_frame_color (str): The background color for the "Require All Tags?" frame. String as it represents a color value.
+        - corner_radius (int): The corner radius for the dropdown. Integer as it represents the corner radius in pixels.
+        - default_text (str): The default text to display when no options are selected. String as it represents the default text to be displayed in the label.
+        - dropdown_bg_color (str): The background color for the dropdown. String as it represents a color value.
+        - on_close_callback (callable): The callback function to call when the dropdown is closed. Callable as it represents a callback function.
         """
         super().__init__(master, width=width, fg_color="transparent", corner_radius=corner_radius, **kwargs)
 
@@ -68,7 +84,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
         self.on_close_callback = on_close_callback # callback to execute when the dropdown is closed
 
         ### Option Config ###
-        self.selected_indices = set() # set of selected option indices
+        self.selected_indices = set() # Uses set for efficient membership testing
         self.option_frames = [] # list of frames for each option in the dropdown
         self.option_labels = [] # list of labels for each option in the dropdown
         
@@ -123,6 +139,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _create_menu_popup(self) -> None:
         """
         Private Method
+
         Creates the dropdown popup window and populates it with option frames, checkboxes, and labels.
         """
         self.popup = tk.Toplevel(self)
@@ -255,7 +272,9 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _update_option_visual(self, idx) -> None:
         """
         Private Method
+
         Updates the appearance of the option at index idx based on whether it is selected.
+        - idx (int): The index of the option to update. Integer as it represents the position of the option in the list.
         """
         selected = idx in self.selected_indices
         frame = self.option_frames[idx]
@@ -271,6 +290,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _bind_mousewheel(self) -> None:
         """
         Private Method
+
         Enables mouse wheel scrolling for the dropdown canvas.
         """
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
@@ -280,6 +300,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _unbind_mousewheel(self) -> None:
         """
         Private Method
+
         Disables mouse wheel scrolling for the dropdown canvas.
         """
         self.canvas.unbind_all("<MouseWheel>")
@@ -289,7 +310,9 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _on_mousewheel(self, event) -> None:
         """
         Private Method
+
         Handles mouse wheel scroll events for the dropdown canvas.
+        - event (tk.Event): The mouse wheel event. Tkinter Event containing information about the scroll.
         """
         if event.num == 4 or event.delta > 0:
             self.canvas.yview_scroll(-1, "units")
@@ -299,7 +322,9 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _toggle_menu(self, event=None) -> None:
         """
         Private Method
+
         Toggles the dropdown menu open or closed.
+        - event (tk.Event): The event that triggered the toggle. Tkinter Event containing information about the toggle action.
         """
         if self.is_menu_open:
             self._hide_menu()
@@ -309,6 +334,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _show_menu(self) -> None:
         """
         Private Method
+
         Displays the dropdown menu and focuses the popup.
         """
         x = self.winfo_rootx()
@@ -323,6 +349,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _hide_menu(self) -> None:
         """
         Private Method
+
         Hides the dropdown menu and updates state.
         """
         self.popup.withdraw()
@@ -343,7 +370,9 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _on_popup_focus_out(self, event=None) -> None:
         """
         Private Method
+
         Handles popup losing focus (closes menu).
+        - event (tk.Event): The event that triggered the focus out. Tkinter Event containing information about the focus event.
         """
         if self.is_menu_open:
             self._hide_menu()
@@ -351,6 +380,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _on_select(self) -> None:
         """
         Private Method
+
         Updates selection state, visual feedback, and toggles checkboxes as needed.
         """
         count = len(self.selected_indices)
@@ -386,8 +416,11 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _truncate_text(self, text: str, max_width_px: int, font) -> str:
         """
         Private Method
-        Truncates text with ellipsis if it exceeds max_width_px in the given font.
-        Returns string text either regular or truncated with ellipsis.
+
+        Truncates text with ellipsis if it exceeds max_width_px in the given font. Returns string text either regular or truncated with ellipsis.
+        - text (str): The text to truncate. String as it represents the content to be displayed.
+        - max_width_px (int): The maximum width of the text to be truncated. Integer as it represents the width in pixels.
+        - font (CTkFont): The font used for measuring text width. CTkFont as it represents the text styling.
         """
         ellipsis = "..."
         ellipsis_width = font.measure(ellipsis)
@@ -406,7 +439,10 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _add_tooltip(self, widget, text) -> None:
         """
         Private Method
+
         Adds a tooltip to the given widget displaying the full text when hovered.
+        - widget (CTk/Tk): The widget to attach the tooltip to. CTk/Tk as it represents the UI element which the tooltip will be attached to.
+        - text (str): The text to display in the tooltip. String as it represents the content to be shown.
         """
         tooltip = tk.Toplevel(widget)
         tooltip.withdraw()
@@ -434,7 +470,9 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def _on_enter_press(self, event=None) -> None:
         """
         Private Method
+
         Handles pressing Enter key to close dropdown.
+        - event (tk.Event): The event that triggered the key press. Tkinter Event containing information about the key press.
         """
         if self.is_menu_open:
             self._hide_menu()
@@ -442,6 +480,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def get_selected(self) -> list:
         """
         Public Method
+
         Returns a list of selected options as strings.
         """
         return [self.options[i].strip() for i in sorted(self.selected_indices)]
@@ -449,6 +488,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def require_all_selected(self) -> bool:
         """
         Public Method
+
         Returns True if "Require all tags?" is checked, else False.
         """
         return self.require_all_var.get()
@@ -456,6 +496,7 @@ class MultiSelectComboBox(ctk.CTkFrame):
     def refresh_options(self) -> None:
         """
         Public Method
+
         Resizes the dropdown box if needed, refreshes the option list in the dropdown, preserving previous selection.
         """
         # Dynamically resize the dropdown height based on number of options

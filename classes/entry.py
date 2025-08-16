@@ -30,28 +30,38 @@ from config.configurations import DBPATH # Constant path to the database file
 from .selected_list import SelectedList
 
 class Entry:
-    # Initiates the Entry with its attributes: uid and createdAt are optional parameters. Auto-generates timestamp.
     def __init__(self,
                  term: str,
                  definition: str,
                  tags: str = "",
                  createdAt: str = None,
                  uid: int = None):
+        """
+        Initiates the Entry with its attributes: uid and createdAt are optional parameters. Auto-generates timestamp.
+        - term (str): term of the entry (word or phrase). String as it represents the textually inputted term.
+        - definition (str): Definition of the entry (meaning or explanation). String as it represents the textually inputted definition.
+        - tags (str): Tags associated with the entry, can be empty. String as it represents the textually inputted series of tags.
+        - createdAt (str): Creation timestamp of the entry. String as it represents the textually inputted creation timestamp.
+        """
         self.uid = uid # unique identifier for the entry, optional for new entries
-        self.term = term # term of the entry (word or phrase)
-        self.definition = definition # definition of the entry (meaning or explanation)
-        self.tags = tags # tags associated with the entry, can be empty
+        self.term = term
+        self.definition = definition
+        self.tags = tags
         if createdAt is None: # mutable argument solution, creates timestamp in __init__ instead of when object is constructed.
             self.createdAt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         else:
             self.createdAt = createdAt
     
-    # Custom representation of what the entry object looks like when printed.
     def __repr__(self) -> str:
+        """
+        Custom representation of what the entry object looks like when printed. Returns a string representation of the entry.
+        """
         return f"Entry(uid={self.uid}, term={self.term}, definition={self.definition}, tags={self.tags}, createdAt={self.createdAt})"
 
-    # Pushes entry into DB.
     def add(self) -> None:
+        """
+        Adds the entry to the database.
+        """
         with sqlite3.connect(DBPATH) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -60,9 +70,13 @@ class Entry:
             )
             conn.commit()
 
-
-    # Updates entry attributes then updates row in DB where uid matches.
     def edit(self, newTerm: str, newDefinition: str, newTags: str) -> None:
+        """
+        Updates entry attributes then updates row in DB where uid matches.
+        - newTerm (str): The new term for the entry. String as it represents the textually inputted new term.
+        - newDefinition (str): The new definition for the entry. String as it represents the textually inputted new definition.
+        - newTags (str): The new tags for the entry. String as it represents the textually inputted new series of tags.
+        """
         self.term = newTerm
         self.definition = newDefinition
         self.tags = newTags
@@ -74,10 +88,12 @@ class Entry:
                         (self.term, self.definition, self.tags.strip(), uid))
             conn.commit()
 
-    # Deletes row in DB with matching uid.
-    # NOTE: Does not need to remove from displayList and selectedList to separate functionality from UI. (Button functions will manage this.)
-    # NOTE: Only removes from DB, doesn't "delete" the object. Once object is no longer referenced, it will be garbage collected.
     def delete(self) -> None:
+        """
+        Deletes row in DB with matching uid.
+        Does not need to remove from displayList and selectedList to separate functionality from UI (Button functions will manage this).
+        Only removes from DB, doesn't "delete" the object. Once object is no longer referenced, it will be garbage collected.
+        """
         uid = self.uid
 
         with sqlite3.connect(DBPATH) as conn:
@@ -86,19 +102,25 @@ class Entry:
                         (uid,))
             conn.commit()
     
-    # Retrieves definition from Wikipedia API using helper function, then returns string as string.
     def autoGenerate(self) -> str:
+        """
+        Retrieves definition from Wikipedia API using helper function. Returns retrieved definition as string or empty string if not found.
+        """
         retrievedDefinition = Helper.wikipediaAPI(self.term)
         return retrievedDefinition if retrievedDefinition is not None else ""
 
-    # Adds entry to selectedList if not in it.
-    # NOTE: SelectedList object must be passed as parameter.
     def select(self, selectedList: SelectedList) -> None:
+        """
+        Adds entry to selectedList if not in it.
+        - selectedList (SelectedList): The list to add selected entries to. SelectedList to hold all selected entries.
+        """
         if self not in selectedList.entries:
             selectedList.entries.append(self)
 
-    # Deletes entry from selectedList if in it.
-    # NOTE: SelectedList object must be passed as parameter.
     def unselect(self, selectedList: SelectedList) -> None:
+        """
+        Deletes entry from selectedList if in it.
+        - selectedList (SelectedList): The list to remove unselected entries from. SelectedList to hold all selected entries.
+        """
         if self in selectedList.entries:
             selectedList.entries.remove(self)

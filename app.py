@@ -68,7 +68,12 @@ from classes.widgets.select_file_path_entry import SelectFilePathEntry
 
 class App:
     """
-    Main application class. Hdandles initialisation of UI and setup of backend database.
+    Main application class. Handles initialisation of UI and setup of backend database.
+
+    Data Sources: UI widgets are used throughout the application supporting interactivity, usability, and user experience.
+    They make operating the program more intuitive and enable users to interact with the app efficiently.
+    The app's Tkinter and CustomTkinter widgets such as buttons, checkboxes, combo boxes, list displays, and entries increase the program's
+    accessibility and affordance through real-time feedback compared to a terminal-based program.
     """
     if platform.system() == "Windows": # fullscreen the app
         from ctypes import windll, byref, sizeof, c_int
@@ -92,9 +97,11 @@ class App:
 
     def setupDB(self) -> None:
         """
-        Initialises the SQLite database by either creating a new database file or connecting to an existing one.
-        If a database file with the path of DBPATH exists, it will connect to it.
+        Initialises the SQLite database by either creating a new database file or connecting to an existing one. If a database file with the path of DBPATH exists, it will connect to it.
         Otherwise, it will create a new database file and a table named 'master' with the specified columns.
+
+        Data Source: Creates data source of local SQLite database. SQLite database is used for fast and efficient data storage and lookup.
+        SQLite is also secure and reliable for storing data locally.
         """
         with sqlite3.connect(DBPATH) as conn:
             cursor = conn.cursor()
@@ -129,6 +136,11 @@ class MainWindow(ctk.CTk):
         self.masterApp = masterApp
         self.geometry(f"{screenWidth}x{screenHeight}")
         self.title("Lexes - Main Window")
+
+        # Custom Icon (Top of Window and Taskbar)
+        scriptDirectory = os.path.dirname(os.path.abspath(__file__))
+        iconPath = os.path.join(scriptDirectory, "assets", "icon.ico")
+        self.iconbitmap(iconPath)
 
         # Background Frame
         self.background = ctk.CTkFrame(self, corner_radius=0, fg_color=LightGreen1)
@@ -289,6 +301,7 @@ class MainWindow(ctk.CTk):
         self.filterBar.pack(side='left', padx=6)
 
         ### Options Translation (Mapping) ###
+        # Dictionary used to map user-friendly option names to internal sorting keys
         self.sortOptionsDictionary = {
             "Newest": "dateDescending",
             "Oldest": "dateAscending",
@@ -401,10 +414,12 @@ class MainWindow(ctk.CTk):
 
     def handleRowClick(self, row_num, entry) -> None:
         """
-        Callback for when a row in the dictionary list is clicked.
-        Creates a sidebar with the entry's details and allows editing.
-        Side bar features a title, UID, created date, and text boxes for definition and tags.
-        Buttons for actions such as auto-defining, deleting, and saving changes or cancelling.
+        Callback for when a row in the dictionary list is clicked. Creates a sidebar with the entry's details and allows editing.
+        Side bar features a title, UID, created date, and text boxes for definition and tags. Buttons for actions such as auto-defining,
+        deleting, and saving changes or cancelling.
+
+        - row_num (int): The row number of the clicked entry. Integer as it represents a number of rows, incrementing by 1 and discrete.
+        - entry (Entry): The Entry object containing the details of the clicked row. Entry as it represents an entry with linked data such as uid, term, definition, tags.
         """
         self.sidebarFrame.destroy() if hasattr(self, 'sidebarFrame') else None  # remove previous sidebar if exists
         
@@ -429,8 +444,7 @@ class MainWindow(ctk.CTk):
         
         def editButtonCommand() -> None:
             """
-            Just focuses into the title entry field.
-            Title is always editable, but this allows the user to click the edit button to focus into the title entry, making it easier to edit.
+            Just focuses into the title entry field. Title is always editable, but this allows the user to click the edit button to focus into the title entry, making it easier to edit.
             """
             self.sidebarTitle.focus_set()
         
@@ -471,9 +485,7 @@ class MainWindow(ctk.CTk):
         
         def sidebarAutoDefButtonCommand() -> None:
             """
-            Retrieves the definition from Wikipedia for the current term in the sidebar title.
-            If a definition is found, it updates the definition textbox.
-            Else, it shows an error message.
+            Retrieves the definition from Wikipedia for the current term in the sidebar title. If a definition is found, it updates the definition textbox. Else, it shows an error message.
             """
             updatedTerm = self.sidebarTitle.get().strip()
             newDefinition = Helper.wikipediaAPI(updatedTerm) # get definition from wikipedia
@@ -502,8 +514,7 @@ class MainWindow(ctk.CTk):
         
         def sidebarDeleteButtonCommand() -> None:
             """
-            Destroys the sidebar frame and deletes the entry from the database.
-            Clears selectedList entries and updates the display list.
+            Destroys the sidebar frame and deletes the entry from the database. Clears selectedList entries and updates the display list.
             """
             self.sidebarFrame.destroy()
 
@@ -557,8 +568,7 @@ class MainWindow(ctk.CTk):
 
         def sidebarDoneButtonCommand() -> None:
             """
-            Saves the changes made in the sidebar to the entry.
-            If no changes are made, it simply closes the sidebar.
+            Saves the changes made in the sidebar to the entry. If no changes are made, it simply closes the sidebar.
             If changes are made, it updates the entry in the database and refreshes the UI.
             """
             newTerm = self.sidebarTitle.get().strip()
@@ -684,8 +694,9 @@ class MainWindow(ctk.CTk):
 
     def searchBarCommand(self, searchKeyword) -> None:
         """
-        Callback for when the search bar is used.
-        Updates the displayList's searchKeyword attribute if it has changed and refreshes the dictionary UI.
+        Callback for when the search bar is used. Updates the displayList's searchKeyword attribute if it has changed and refreshes the dictionary UI.
+
+        - searchKeyword (str): The search keyword entered by the user. String as it represents a textually inputted word.
         """
         if searchKeyword != self.masterApp.displayList.searchKeyword: # update search term
             self.masterApp.displayList.searchKeyword = searchKeyword
@@ -696,10 +707,10 @@ class MainWindow(ctk.CTk):
 
     def filterBarCommand(self, selectedTags) -> None:
         """
-        Callback for when the filter bar is used.
-        Updates the displayList's filterTags and requireAllTags attributes based on the selected tags if they have changed.
-        If no tags are selected, it resets the filterTags to None and requireAllTags to False.
-        Refreshes the dictionary UI to reflect the changes.
+        Callback for when the filter bar is used. Updates the displayList's filterTags and requireAllTags attributes based on the selected tags if they have changed.
+        If no tags are selected, it resets the filterTags to None and requireAllTags to False. Refreshes the dictionary UI to reflect the changes.
+
+        - selectedTags (list[str]): The tags selected by the user. List of strings to allow for iteration during creation of the dropdown.
         """
         if selectedTags is None: # option is "No tags" (show entries with no tags)
             self.masterApp.displayList.filterTags = None
@@ -721,9 +732,10 @@ class MainWindow(ctk.CTk):
 
     def sortBarCommand(self, selectedAttribute) -> None:
         """
-        Callback for when the sort bar is used.
-        Updates the displayList's sortAttribute attribute based on the selected attribute if it has changed.
+        Callback for when the sort bar is used. Updates the displayList's sortAttribute attribute based on the selected attribute if it has changed.
         Refreshes the dictionary UI to reflect the changes.
+
+        - selectedAttribute (str): The attribute selected by the user for sorting. String as it represents the attribute name.
         """
         if selectedAttribute != self.masterApp.displayList.sortAttribute: # update sort attribute
             self.masterApp.displayList.sortAttribute = selectedAttribute
@@ -734,8 +746,7 @@ class MainWindow(ctk.CTk):
 
     def selectAllToggleCommand(self) -> None:
         """
-        Callback for when the select all toggle is used.
-        Selects or unselects all entries in the dictionary list.
+        Callback for when the select all toggle is used. Selects or unselects all entries in the dictionary list.
         """
         if self.selectAllToggle.get_state():
             self.dictionaryList.select_all()
@@ -748,8 +759,7 @@ class MainWindow(ctk.CTk):
 
     def onEntrySelectionChanged(self) -> None:
         """
-        Callback for when the entry selection changes.
-        Updates the delete button state and the entry counter.
+        Callback for when the entry selection changes. Updates the delete button state and the entry counter.
         """
         self.updateDeleteButtonState()
         self.updateSelectAllButtonState()
@@ -757,8 +767,7 @@ class MainWindow(ctk.CTk):
 
     def updateSelectAllButtonState(self) -> None:
         """
-        Updates the state of the select all button based on the current selection.
-        If all entries are selected, the button displays in the "Unselect all"; otherwise, it displays "Select all".
+        Updates the state of the select all button based on the current selection. If all entries are selected, the button displays in the "Unselect all"; otherwise, it displays "Select all".
         """
         if len(self.masterApp.displayList.entries) == 0: # Special case: Dictionary is empty so there are no entries.
             # Always show "Select all" state (off)
@@ -775,8 +784,7 @@ class MainWindow(ctk.CTk):
 
     def updateDeleteButtonState(self) -> None:
         """
-        Updates the state of the delete button based on the current selection.
-        If selected entries exist, the button is enabled; otherwise, it is locked.
+        Updates the state of the delete button based on the current selection. If selected entries exist, the button is enabled; otherwise, it is locked.
         This method is called whenever the selection changes in the dictionary list.
         """
         if len(self.masterApp.selectedList.entries) > 0:
@@ -786,8 +794,7 @@ class MainWindow(ctk.CTk):
 
     def deleteSelectedButtonCommand(self) -> None:
         """
-        Callback for when the delete selected button is pressed.
-        Deletes the currently selected entries from the database and updates the UI.
+        Callback for when the delete selected button is pressed. Deletes the currently selected entries from the database and updates the UI.
         """
         if not self.masterApp.selectedList.entries:
             return
@@ -797,7 +804,7 @@ class MainWindow(ctk.CTk):
                                    parent=self):
             return
 
-        uidsToDelete = [entry.uid for entry in self.masterApp.selectedList.entries]
+        uidsToDelete = [entry.uid for entry in self.masterApp.selectedList.entries] # List so that mass removal can be done through iteration
 
         with sqlite3.connect(DBPATH) as conn: # mass removal from db instead of individual deletes (entry.delete() method)
             cursor = conn.cursor()
@@ -834,10 +841,11 @@ class MainWindow(ctk.CTk):
 
     def openAddWindow(self) -> None:
         """
-        Opens a new window for adding a dictionary entry.
-        The window contains fields for term, definition, and tags.
+        Opens a new window for adding a dictionary entry. The window contains fields for term, definition, and tags.
         It includes buttons for auto-defining the term, saving the entry, and cancelling.
-        Uses LASTUSEDTAGSPATH to store the last used tag to pre-fill the tags field (saves between sessions).
+
+        Data Source: User's tag auto-fill preferences and default tags are written to .txt files for simplicity, portability, and ease of manual editing
+        without requiring a database. The non-sensitive and unidentifiable nature of the data means security is not a major concern.
         """
         ### Popup Window Setup ###
         topLevel = ctk.CTkToplevel(self)
@@ -897,32 +905,28 @@ class MainWindow(ctk.CTk):
 
         def showPlaceholder() -> None:
             """
-            Method to manually program placeholder text in the definition entry.
-            Sets the text color to the placeholder color and inserts the placeholder text to the definition entry.
+            Method to manually program placeholder text in the definition entry. Sets the text color to the placeholder color and inserts the placeholder text to the definition entry.
             """
             definitionEntry.configure(text_color=placeholderColor)
             definitionEntry.insert("1.0", placeholderText)
 
         def hidePlaceholder(event=None) -> None:
             """
-            Method to manually program placeholder text in the definition entry.
-            Hides placeholder text and sets the text color to normal.
+            Method to manually program placeholder text in the definition entry. Hides placeholder text and sets the text color to normal.
             """
             definitionEntry.delete("1.0", tk.END)
             definitionEntry.configure(text_color=normalColor)
 
         def onFocusIn(event) -> None:
             """
-            When the definition entry gains focus, check if it shows placeholder text.
-            If it does, hide the placeholder text.
+            When the definition entry gains focus, check if it shows placeholder text. If it does, hide the placeholder text.
             """
             if definitionEntry.get("1.0", tk.END).strip() == placeholderText and definitionEntry.cget("text_color") == placeholderColor:
                 hidePlaceholder()
 
         def onFocusOut(event) -> None:
             """
-            When the definition entry loses focus, check if it is empty.
-            If it is empty, show the placeholder text.
+            When the definition entry loses focus, check if it is empty. If it is empty, show the placeholder text.
             """
             if not definitionEntry.get("1.0", tk.END).strip():
                 showPlaceholder()
@@ -935,10 +939,8 @@ class MainWindow(ctk.CTk):
 
         def autoDefButtonCommand() -> None:
             """
-            Automatically defines the term entered by the user.
-            Retrieves the definition from Wikipedia using the Helper class.
-            If a definition is found, it updates the definition entry with the new definition.
-            If no definition is found, it shows an error message.
+            Automatically defines the term entered by the user. Retrieves the definition from Wikipedia using the Helper class.
+            If a definition is found, it updates the definition entry with the new definition. If no definition is found, it shows an error message.
             """
             term = termEntry.get().strip()
             if term:
@@ -963,16 +965,22 @@ class MainWindow(ctk.CTk):
 
         def saveLastUsedTags(tags: str) -> None:
             """
-            Saves the last used tags to a file so that they can be pre-filled
-            in the tag entry field next time the add entry window is opened.
+            Saves the last used tags to a file so that they can be pre-filled in the tag entry field next time the add entry window is opened.
             Using 'w' mode automatically overwrites the file's contents if it exists.
+
+            Data Source: User's last used tag are written to .txt files for simplicity, portability, and ease of manual editing without requiring a database.
+            The non-sensitive and unidentiable nature of the data means security is not a major concern.
+
+            - tags (str): The tags to save. String as it represents textually inputted tags.
             """
             with open(LASTUSEDTAGSPATH, "w", encoding="utf-8") as file:
                 file.write(tags)
         
         def getLastUsedTags() -> str:
             """
-            Returns the last used tags from a file to pre-fill the tags field in the add entry window.
+            Returns str of the last used tags from a file to pre-fill the tags field in the add entry window.
+            Data Source: User's last used tag are read from .txt files for simplicity, portability, and ease of manual editing without requiring a database.
+            The non-sensitive and unidentifiable nature of the data means security is not a major concern.
             """
             try:
                 with open(LASTUSEDTAGSPATH, "r", encoding="utf-8") as file:
@@ -1060,8 +1068,7 @@ class MainWindow(ctk.CTk):
 
         def addButtonCommand() -> None:
             """
-            Adds the new entry to the database using fields from the UI (term, definition, tags).
-            Also saves the last used tags to a file for pre-filling next time.
+            Adds the new entry to the database using fields from the UI (term, definition, tags). Also saves the last used tags to a file for pre-filling next time.
             """
             term = termEntry.get().strip()
             definition = definitionEntry.get("1.0", tk.END).strip()
@@ -1108,9 +1115,7 @@ class MainWindow(ctk.CTk):
 
     def openExportWindow(self) -> None:
         """
-        Opens a new window for exporting entries.
-        The window allows the user to select the export format (Anki Deck or Lexes DB),
-        specify the export file path, and choose whether to include tags.
+        Opens a new window for exporting entries. The window allows the user to select the export format (Anki Deck or Lexes DB), specify the export file path, and choose whether to include tags.
         """
         # Validate if entries are selected to export
         if len(self.masterApp.selectedList.entries) == 0: # (empty selected list)
@@ -1147,6 +1152,8 @@ class MainWindow(ctk.CTk):
         def toggleExport(buttonName) -> None:
             """
             Toggles the export options for each button based on their respective states and function input.
+
+            - buttonName (str): The name of the button that was clicked. String as it represents the button name.
             """
             exportDirectoryEntry.reset()  # Reset the file path entry when toggling export options
             
@@ -1235,10 +1242,8 @@ class MainWindow(ctk.CTk):
 
         def exportButtonCommand() -> None:
             """
-            Initiates the export process based on the selected options.
-            Validates the selected export type, file path, and ensures entries are selected before proceeding.
-            If any validation fails, it shows a warning message.
-            If all validations pass, it calls the appropriate export method on the selectedList.
+            Initiates the export process based on the selected options. Validates the selected export type, file path, and ensures entries are selected before proceeding.
+            If any validation fails, it shows a warning message. If all validations pass, it calls the appropriate export method on the selectedList.
             Closes the export window and shows a success message.
             """
             if not exportAnkiButton.get_state() and not exportDBButton.get_state(): # no export type selected
@@ -1276,8 +1281,7 @@ class MainWindow(ctk.CTk):
 
     def openImportTextWindow(self) -> None:
             """
-            Opens the import window to import raw pasted text (also known as bulk add entries).
-            The window allows the user to paste or type raw text, select entry and term-definition delimiters.
+            Opens the import window to import raw pasted text (also known as bulk add entries). The window allows the user to paste or type raw text, select entry and term-definition delimiters.
             The text can get parsed into individual entries based on the delimiters and definitions can be auto-generated using Wikipedia.
             """
             # Instantiate ImportList object
@@ -1371,8 +1375,7 @@ class MainWindow(ctk.CTk):
             # Left Column: Parse Button
             def parseButtonCommand() -> None:
                 """
-                Validates the input in the importTextbox and the selected delimiters from the dropdowns.
-                Parses the text from the importTextbox and adds reinserts entries into the importTextbox.
+                Validates the input in the importTextbox and the selected delimiters from the dropdowns. Parses the text from the importTextbox and adds reinserts entries into the importTextbox.
                 Can generate definitions automatically using Wikipedia if the term is missing a definition.
                 """
                 # Check if importTextbox is empty or contains only placeholder text
@@ -1392,7 +1395,8 @@ class MainWindow(ctk.CTk):
                 rawText = importTextbox.get("1.0", tk.END).strip()
                 entryDelimiter = entryDelimiterDropdown.get_selected()
                 termDefinitionDelimiter = termDefinitionDelimiterDropdown.get_selected()
-                
+
+                # Dictionaries used to map user-friendly option names to internal delimiter values
                 # Setup delimiter value mapping
                 entryDelimiterMap = {
                     "Line Break (Default)": "\n+",
@@ -1459,7 +1463,7 @@ class MainWindow(ctk.CTk):
             entryDelimiterLabel = ctk.CTkLabel(entryDelimiterFrame, text="Delimit entries by:", font=("League Spartan", 36), text_color=DarkGreen2)
             entryDelimiterLabel.pack(padx=(15,0), pady=(0,7), side='left')
 
-            entryDelimiterOptions = ["Line Break (Default)", "Semicolon", "Comma"]
+            entryDelimiterOptions = ["Line Break (Default)", "Semicolon", "Comma"] # List to allow for iteration of entry delimiter characters.
             entryDelimiterDropdown = SingleSelectComboBox(rightColumn,
                                                           options=entryDelimiterOptions,
                                                           font=("League Spartan", 32),
@@ -1491,7 +1495,7 @@ class MainWindow(ctk.CTk):
             termDefinitionDelimiterLabel = ctk.CTkLabel(termDefinitionDelimiterFrame, text="Delimit term-definitions by:", font=("League Spartan", 36), text_color=DarkGreen2)
             termDefinitionDelimiterLabel.pack(padx=(15,0), pady=(0,7), side='left')
 
-            termDefinitionDelimiterOptions = ["Colon (Default)", "Hyphen", "Equals"]
+            termDefinitionDelimiterOptions = ["Colon (Default)", "Hyphen", "Equals"] # List to allow for iteration of term definition delimiter characters.
 
             termDefinitionDelimiterDropdown = SingleSelectComboBox(rightColumn,
                                                           options=termDefinitionDelimiterOptions,
@@ -1543,9 +1547,7 @@ class MainWindow(ctk.CTk):
 
             def importButtonCommand() -> None:
                 """
-                Initiates the import process for the raw text.
-                Validates the input in the importTextbox, checks if delimiters are selected,
-                retrieves mass tags if provided, and validates the entries.
+                Initiates the import process for the raw text. Validates the input in the importTextbox, checks if delimiters are selected, retrieves mass tags if provided, and validates the entries.
                 If all validations pass, it imports the entries into the database and updates the main app UI.
                 """
                 # Check if the importTextbox is empty or contains only placeholder text
@@ -1603,9 +1605,11 @@ class MainWindow(ctk.CTk):
 
     def openImportDBWindow(self) -> None: # Opens the import window to import a Lexes DB file.
         """
-        Opens the import window to import a Lexes DB file.
-        The window allows the user to select a Lexes DB file and preview the file before import.
+        Opens the import window to import a Lexes DB file. The window allows the user to select a Lexes DB file and preview the file before import.
         Mass tags can be added to all entries in the database.
+        
+        Data Source: Previously user-exported Lexes database files are used for importing. They allow users to share and back-up their dictionary
+        data across devices or installations. This ensures compatibility with the app’s data format and supports user-driven data portability.
         """
         ### Popup Window Setup ###
         topLevel = ctk.CTkToplevel(self)
@@ -1637,8 +1641,9 @@ class MainWindow(ctk.CTk):
         
         def populatePreviewBox(entries) -> None:
             """
-            Populates the preview box with entries from the database.
-            Limits to the first 100 entries for performance.
+            Populates the preview box with entries from the database. Limits to the first 100 entries for performance.
+
+            - entries (list[Entry]): The list of entries to display in the preview box. List to allow for iteration.
             """
             entries = entries[:100]
 
@@ -1664,14 +1669,14 @@ class MainWindow(ctk.CTk):
                 ctk.CTkLabel(previewScrollable, text=truncatedTags, font=rowFont, text_color=rowColor,
                              anchor="w", width=tagsWidth).grid(row=i, column=2, sticky="w", padx=(8, 8))
 
-        def onFileSelected(filepath) -> None:
+        def onFileSelected(filePath) -> None:
             """
-            Callback function for when a file is selected in the importDirectoryEntry.
-
-            Reads the database file at filepath, validates it, extracts entries, and populates the preview box.
+            Callback function for when a file is selected in the importDirectoryEntry. Reads the database file at filepath, validates it, extracts entries, and populates the preview box.
             Updates the chosenFile label with the file name and number of entries.
+
+            - filePath (str): The file path of the selected database file. String as it represents a file path.
             """
-            fileName = os.path.basename(filepath)
+            fileName = os.path.basename(filePath)
 
             """
             Validate the selected database file.
@@ -1683,12 +1688,12 @@ class MainWindow(ctk.CTk):
             If all validations pass, it imports the entries into the database and updates the main app UI.
             """
             # File path selected
-            if not filepath:
+            if not filePath:
                 importDirectoryEntry.reset() # Reset the entry so Import button will fail.
                 return
 
             # Table is called 'master'
-            with sqlite3.connect(filepath) as conn:
+            with sqlite3.connect(filePath) as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='master'")
                 if not cursor.fetchone():
@@ -1699,7 +1704,7 @@ class MainWindow(ctk.CTk):
                     return
 
             # Table contains correct columns.
-            with sqlite3.connect(filepath) as conn:
+            with sqlite3.connect(filePath) as conn:
                 cursor = conn.cursor()
                 cursor.execute("PRAGMA table_info(master)")
                 columns = [col[1] for col in cursor.fetchall()]
@@ -1712,7 +1717,7 @@ class MainWindow(ctk.CTk):
                     return
 
             # Table isn't empty.
-            with sqlite3.connect(filepath) as conn:
+            with sqlite3.connect(filePath) as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM master")
                 count = cursor.fetchone()[0]
@@ -1725,8 +1730,8 @@ class MainWindow(ctk.CTk):
 
             # If we reach here, all validations passed
 
-            # Read the database file at filepath and extract entries
-            with sqlite3.connect(filepath) as conn:
+            # Read the database file at filePath and extract entries
+            with sqlite3.connect(filePath) as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT term, definition, tags FROM master")
                 entries = cursor.fetchall()
@@ -1867,8 +1872,7 @@ class MainWindow(ctk.CTk):
     
     def openSettingsWindow(self) -> None: # Opens the settings window to adjust application settings.
         """
-        Opens the settings window to change the app settings.
-        Window allows the user to set whether the app pre-load the tags entry with the last used tag, a default tag, or no tag at all.
+        Opens the settings window to change the app settings. Window allows the user to set whether the app pre-load the tags entry with the last used tag, a default tag, or no tag at all.
         Also allows the user to full reset the database which will delete all entry rows, but also reset the auto-increment UID counter back to 1.
         This will allow the user to start fresh with a new database, but will not delete the database file itself
         NOTE: Should ask the user to confirm they know what they are doing.
@@ -1906,9 +1910,9 @@ class MainWindow(ctk.CTk):
         # Dropdown
         def tagsAutofillDropdownCommand(selectedOption) -> None:
             """
-            Callback function for when the tags autofill dropdown is closed.
-            Packs the "default tags" entry if "Default" is selected.
-            Else hides it.
+            Callback function for when the tags autofill dropdown is closed. Packs the "default tags" entry if "Default" is selected. Else hides it.
+
+            - selectedOption (str): The option selected in the dropdown. String to represent the selected options as text.
             """
             if selectedOption == "Default":
                 if not defaultTagsEntry.winfo_ismapped(): # pack only if not already packed
@@ -1930,8 +1934,8 @@ class MainWindow(ctk.CTk):
                 defaultTagsEntry.delete(0, 'end')  # Clear the entry
                 defaultTagsEntry.pack_forget()
                 defaultTagsFrame.pack_forget()
-        
-        tagsAutofillOptions = ["Last Used", "Default", "None"]
+
+        tagsAutofillOptions = ["Last Used", "Default", "None"] # List for iteration of tag autofill options.
         tagsAutofillDropdown = SingleSelectComboBox(background,
                                                         options=tagsAutofillOptions,
                                                         font=("League Spartan", 32),
@@ -1974,6 +1978,7 @@ class MainWindow(ctk.CTk):
 
         ### Auto Select the Current Tags Autofill Option ###
         # Read the current tags autofill option from TAGSPREFERENCEPATH and translate
+        # Dictionary used to map internal keys to user-friendly option names
         TAGSPREFERENCEMAP = {
             "last_used": "Last Used",
             "default": "Default",
@@ -2025,9 +2030,8 @@ class MainWindow(ctk.CTk):
 
         def saveButtonCommand() -> None:
             """
-            Saves the settings and closes the window.
-            - Saves the tags autofill option selected in the dropdown to TAGSPREFERENCEPATH.
-            - If "Default" is selected, also saves the default tags entry to DEFAULTTAGSPATH.
+            Saves the settings and closes the window. Saves the tags autofill option selected in the dropdown to TAGSPREFERENCEPATH.
+            If "Default" is selected, also saves the default tags entry to DEFAULTTAGSPATH.
             """
             autofillOption = tagsAutofillDropdown.get_selected()
 
@@ -2079,8 +2083,7 @@ class MainWindow(ctk.CTk):
         ### Reset Database ###        
         def resetDatabase() -> None:
             """
-            Resets the database by deleting all entries and resetting the UID counter.
-            Asks for confirmation before proceeding.
+            Resets the database by deleting all entries and resetting the UID counter. Asks for confirmation before proceeding.
             """
             confirm = messagebox.askyesno("Reset Database",
                                           "Are you sure you want to reset the database? This will DELETE ALL ENTRIES and reset the UID counter.\nThis action cannot be undone.",
@@ -2128,12 +2131,10 @@ class MainWindow(ctk.CTk):
 
     def applyCustomScaling(self) -> None:
         """
-        Apply custom scaling to the application window and widgets.
-        This method checks the current DPI scaling of the display and adjusts the scaling of the application window and widgets accordingly.
+        Apply custom scaling to the application window and widgets. This method checks the current DPI scaling of the display and adjusts the scaling of the application window and widgets accordingly.
         
         For example:
-            Since Lexes was designed and developed on 100% DPI, if the device's DPI is set to 125%,
-            the application will scale down to 100% to maintain consistent sizing.
+        - Since Lexes was designed and developed on 100% DPI, if the device's DPI is set to 125%, the application will scale down to 100% to maintain consistent sizing.
         """
         user32 = ctypes.windll.user32 
         gdi32 = ctypes.windll.gdi32
@@ -2160,13 +2161,10 @@ class MainWindow(ctk.CTk):
         
     def updateDictionaryUI(self) -> None:
         """
-        Updates only the dictionary UI.
-        Clears the selected entries, to reset all entries highlighted.
+        Updates only the dictionary UI. Clears the selected entries, to reset all entries highlighted.
         Rebuilds the display list and populates the dictionary list with the entries filtered through the new parameters.
         Also updates the select all toggle state to be unselected as all entries are now unselected and calls delete button to update its state.
-        Shows or hides info message on dictionary list to indicate no entries shown.
-
-        This method is called after any change to the dictionary list, such as filtering, adding, deleting, or editing entries.
+        Shows or hides info message on dictionary list to indicate no entries shown. This method is called after any change to the dictionary list, such as filtering, adding, deleting, or editing entries.
         """
         self.dictionaryList.canvas.yview_moveto(0) # Reset scroll position
         
@@ -2181,6 +2179,7 @@ class MainWindow(ctk.CTk):
         self.updateDeleteButtonState()
         
         ### Check length of database ###
+        # Data Source: Entry count is loaded from a local SQLite database to ensure fast lookup.
         with sqlite3.connect(DBPATH) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM master")
@@ -2196,30 +2195,26 @@ class MainWindow(ctk.CTk):
 
     def updateAuxiliaryUI(self) -> None:
         """
-        Updates only the auxiliary UI components (filterBar).
-        Updates the filterBar options with the unique tags from the database as the total available tags change.
-
-        This method is called after any change to the tags in the database, such as adding, deleting, or editing tags.
-        It ensures that the filterBar reflects the current state of the tags available for filtering.
+        Updates only the auxiliary UI components (filterBar). sUpdates the filterBar options with the unique tags from the database as the total available tags change.
+        This method is called after any change to the tags in the database, such as adding, deleting, or editing tags. It ensures that the filterBar reflects the current state of the tags available for filtering.
         """
         self.filterBar.options = self.getUniqueTags()
         self.filterBar.refresh_options()
 
     def updateUI(self) -> None:
         """
-        Updates the entire UI of the application.
-        Calls both updateDictionaryUI and updateAuxiliaryUI to refresh the dictionary list and auxiliary components.
-
-        This method is called after any significant change to the application state that affects both the dictionary list and auxiliary components,
-        such as importing a new database, adding or deleting entries, or changing the filter options.
+        Updates the entire UI of the application. Calls both updateDictionaryUI and updateAuxiliaryUI to refresh the dictionary list and auxiliary components.
+        This method is called after any significant change to the application state that affects both the dictionary list and auxiliary components, such as importing a new database, adding or deleting entries, or changing the filter options.
         """
         self.updateDictionaryUI()
         self.updateAuxiliaryUI()
 
     def getUniqueTags(self) -> list[str]:
         """
-        Returns an list of unique tags, ordered by their first appearance in the database.
+        Returns an list of unique tags, ordered by their first appearance in the database, a list to allow for iteration later on.
         Uses a set for efficient uniqueness checking and a list to maintain order.
+
+        Data Source: Entries' tags are loaded from a local SQLite database to ensure fast lookup, and support complex queries.
         """
         seen = set()
         orderedTags = []
@@ -2237,8 +2232,14 @@ class MainWindow(ctk.CTk):
 
     def truncateText(self, text: str, maxWidth: int = 663, size: int = 64, weight="bold", font = "League Spartan") -> str:
             """
-            Returns the text truncated to fit within the specified pixel width, adding an ellipsis if necessary.
+            Returns the text truncated to fit within the specified pixel width, adding an ellipsis if necessary, string as input text is also string.
             If the text fits within maxWidth, returns the original text. Else, truncates the text and appends an ellipsis.
+
+            - text (str): The text to truncate. String to represent textually inputted text.
+            - maxWidth (int): The maximum width (in pixels) that the text can occupy. Integer as it represents max text width.
+            - size (int): The font size to use for measuring the text. Integer as it represents the font size in points.
+            - weight (str): The font weight to use for measuring the text. String as it represents the font weight.
+            - font (str): The font family to use for measuring the text. String as it represents the font family.
             """
             font = ctk.CTkFont(family=font, size=size, weight=weight)
             if font.measure(text) <= maxWidth:
@@ -2251,7 +2252,9 @@ class MainWindow(ctk.CTk):
     def countEntries(self) -> int:
         """
         Counts the number of entries in the database.
-        Returns the count of entries as an integer.
+        Returns the count of entries, integer as entries count are in increments of 1 and discrete.
+
+        Entry count is loaded from a local SQLite database to ensure fast lookup.
         """
         with sqlite3.connect(DBPATH) as conn:
             cursor = conn.cursor()

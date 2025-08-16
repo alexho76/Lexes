@@ -30,24 +30,30 @@ from tkinter import messagebox
 class SelectFilePathEntry(ctk.CTkFrame):
     def __init__(self,
                  master,
-
                  icon,
-                 icon_size,
-
-                 font,
-                 text_color,
-                 fg_color,
-                 border_color,
-                 border_width,
-
-                 placeholder_text,
-
-                 file_type=None,
-
-                 on_callback = None,
+                 icon_size: tuple,
+                 font: tuple,
+                 text_color: str,
+                 fg_color: str,
+                 border_color: str,
+                 border_width: float,
+                 placeholder_text: str,
+                 file_type: str = None,
+                 on_callback: callable = None,
                  **kwargs):
         """
         Initialise the SelectFilePathEntry widget with custom styling, icon, and callback.
+        - master (CTk): The parent widget for the SelectFilePathEntry. CTk so it can use customTkinter features.
+        - icon (Image): The icon image to display in the entry. Image as it represents the icon image.
+        - icon_size (tuple): The size of the icon image. Tuple as it represents the dimensions (width, height).
+        - font (tuple): The font configuration for the path label text. Tuple as it represents the font family and size.
+        - text_color (str): The text color for the path label. String as it represents a color value.
+        - fg_color (str): The foreground color for the entry. String as it represents a color value.
+        - border_color (str): The border color for the entry. String as it represents a color value.
+        - border_width (float): The border width for the entry. Float as it represents the width in pixels.
+        - placeholder_text (str): The placeholder text for the path label. String as it represents the default text.
+        - file_type (str): The file type to restrict selection (e.g., ".csv", ".db"). String as it represents the file extension.
+        - on_callback (callable): The callback function to call when a file is selected. Callable as it represents a callback function.
         """
         super().__init__(master, fg_color=fg_color, border_color=border_color, border_width=border_width, **kwargs)
         ### Icon Setup ###
@@ -72,8 +78,9 @@ class SelectFilePathEntry(ctk.CTkFrame):
     def _open_dialog(self, event=None) -> None:
         """
         Private Method
-        Opens a file dialog for selecting a file path based on the file type.
-        Updates the label and triggers callback if set.
+
+        Opens a file dialog for selecting a file path based on the file type. Updates the label and triggers callback if set.
+        - event (tk.Event): The event that triggered the dialog. Tkinter Event containing information about the mouse click.
         """
         file_type = self.file_type if self.file_type else ""
 
@@ -103,6 +110,7 @@ class SelectFilePathEntry(ctk.CTkFrame):
     def get_path(self) -> str:
         """
         Public Method
+
         Returns the currently selected file path as a string, or empty string if none.
         """
         return self.file_path if self.file_path else ""
@@ -110,8 +118,8 @@ class SelectFilePathEntry(ctk.CTkFrame):
     def reset(self) -> None:
         """
         Public Method
-        Resets the SelectFilePathEntry widget to its initial state.
-        Clears the stored file path and restores the placeholder text to normal.
+
+        Resets the SelectFilePathEntry widget to its initial state. Clears the stored file path and restores the placeholder text to normal.
         """
         self.file_path = ""
         self.path_label.configure(text=self.placeholder_text)

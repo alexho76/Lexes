@@ -26,28 +26,42 @@ import customtkinter as ctk
 
 class ExportButton(ctk.CTkFrame):
     def __init__(self, master, *,
-                 neutral_text,
-                 active_text,
-                 width=212,
-                 height=65,
-                 corner_radius=5,
-                 font=("League Spartan", 36),
-
-                 image_neutral=None,
-                 image_active=None,
-                 image_size,
-
-                 fg_color_neutral,
-                 fg_color_active,
-                 text_color_neutral,
-                 text_color_active,
-                 bg_color="transparent",
-                 border_color,
-
-                 callback_command=None,
+                 neutral_text: str,
+                 active_text: str,
+                 width: int = 212,
+                 height: int = 65,
+                 corner_radius: int = 5,
+                 font: tuple = ("League Spartan", 36),
+                 image_neutral = None,
+                 image_active = None,
+                 image_size: tuple = (32, 32),
+                 fg_color_neutral: str = "transparent",
+                 fg_color_active: str = "transparent",
+                 text_color_neutral: str = "transparent",
+                 text_color_active: str = "transparent",
+                 bg_color: str = "transparent",
+                 border_color: str = "transparent",
+                 callback_command: callable = None,
                  **kwargs):
         """
         Initalise the ExportButton widget with custom styles, images, and text.
+        - master (CTk): The parent widget for the ExportButton. CTk so it can use customTkinter features.
+        - neutral_text (str): The text to display when the button is inactive. String as it represents the button label.
+        - active_text (str): The text to display when the button is active. String as it represents the button label.
+        - width (int): The width of the button. Integer as it represents the pixel width.
+        - height (int): The height of the button. Integer as it represents the pixel height.
+        - corner_radius (int): The corner radius of the button. Integer as it represents the pixel radius.
+        - font (tuple): The font configuration for the button text. Tuple as it represents the font family and size.
+        - image_neutral (Image): The image to display when the button is inactive. Image as it represents the button icon.
+        - image_active (Image): The image to display when the button is active. Image as it represents the button icon.
+        - image_size (tuple): The size of the button images. Tuple as it represents the width and height.
+        - fg_color_neutral (str): The foreground color for the button when inactive. String as it represents a color value.
+        - fg_color_active (str): The foreground color for the button when active. String as it represents a color value.
+        - text_color_neutral (str): The text color for the button when inactive. String as it represents a color value.
+        - text_color_active (str): The text color for the button when active. String as it represents a color value.
+        - bg_color (str): The background color for the button. String as it represents a color value.
+        - border_color (str): The border color for the button. String as it represents a color value.
+        - callback_command (callable): The function to call when the button is clicked. Callable as it represents a callback function.
         """
         super().__init__(master, width=width, height=height,
                          corner_radius=corner_radius, fg_color=bg_color, **kwargs)
@@ -90,7 +104,9 @@ class ExportButton(ctk.CTkFrame):
     def _on_click(self, event=None) -> str:
         """
         Private Method
+
         Handles button click event. Triggers the callback and toggles the button state.
+        - event (tk.Event): The click event. Tkinter Event containing information about the click.
         """
         self._toggle_command()
         return "break"
@@ -98,6 +114,7 @@ class ExportButton(ctk.CTkFrame):
     def toggle(self) -> None:
         """
         Public Method
+
         Toggles the button state between active and inactive, updating appearance accordingly.
         """
         self.state_active = not self.state_active
@@ -106,6 +123,7 @@ class ExportButton(ctk.CTkFrame):
     def _toggle_command(self) -> None:
         """
         Private Method
+
         Executes the callback command with the active text.
         """
         if self.callback_command:
@@ -114,6 +132,7 @@ class ExportButton(ctk.CTkFrame):
     def _update_appearance(self) -> None:
         """
         Private Method
+
         Updates the button appearance based on the current state (active/inactive).
         """
         if self.state_active:
@@ -128,6 +147,7 @@ class ExportButton(ctk.CTkFrame):
     def get_state(self) -> bool:
         """
         Public Method
+
         Returns bool (True if active, False if inactive) indicating the current state of the button.
         """
         return self.state_active
@@ -135,8 +155,9 @@ class ExportButton(ctk.CTkFrame):
     def set_state(self, active: bool) -> None:
         """
         Public Method
+
         Sets the button state to active or inactive, updating appearance accordingly.
-        Argument: active is a boolean of the target state.
+        - active (bool): Boolean as it represents the target state.
         """
         self.state_active = active
         self._update_appearance()

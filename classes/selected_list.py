@@ -30,25 +30,39 @@ from .helper import Helper
 class SelectedList:
     def __init__(self,
                  entries: list = None):
+        """
+        Initiates the SelectedList with its list of entries to hold.
+        - entries (list[Entry]): The list of selected Entry objects. List so that it can be iterated and indexes looked up.
+        """
         self.entries = entries if entries is not None else [] # mutable argument solution - list of selected Entry objects
     
-    # NOTE: Takes selectedList object as parameter.
     def unselectAll(self,
                     selectedList: 'SelectedList') -> None:
+        """
+        Unselects all entries in the selected list.
+        - selectedList (SelectedList): The list of all selected Entry objects to unselect. List so it can be iterated.
+        """
         for entry in self.entries:
             entry.unselect(selectedList)
 
-    # Deletes all selected entries from DB and clears self.entries.
     def deleteAll(self) -> None:
+        """
+        Deletes all selected entries from the database and clears the selected list.
+        """
         for entry in self.entries:
             entry.delete()
         self.entries.clear()
     
-    # Creates a new CSV at location and writes entry info to rows.
-    # NOTE: ANKI FORMAT: term;definition;tags
     def exportToAnki(self,
                      filePath: str,
                      includeTags: bool = True) -> None:
+        """
+        Creates a new CSV at location and writes entry info to rows.
+        
+        NOTE: ANKI FORMAT: term;definition;tags
+        - filePath (str): The path to the CSV file to create. String as it represents the file path.
+        - includeTags (bool): Whether to include tags in the export. Boolean as it represents a true/false value.
+        """
         fullPath = filePath
 
         entriesToExport = self.entries.copy() # mutable argument solution
@@ -68,11 +82,15 @@ class SelectedList:
                 
                 writer.writerow([term, definition, tags])
 
-    # Creates a new DB at location and writes entry info to rows.
-    # NOTE: exported .db table has same format as original .db table, but uid and createdAt columns are left blank for re-creation upon import.
     def exportToDB(self,
                    filePath: str,
                    includeTags: bool = True) -> None:
+        """
+        Creates a new DB at location and writes entry info to rows.
+        NOTE: Exported .db table has same format as original .db table, but uid and createdAt columns are left blank for re-creation upon import.
+        - filePath (str): The path to the database file to create. String as it represents the file path.
+        - includeTags (bool): Whether to include tags in the export. Boolean as it represents a true/false value.
+        """
         fullPath = filePath
 
         entriesToExport = self.entries.copy() # mutable argument solution

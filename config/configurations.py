@@ -2,7 +2,7 @@
 File: config/configurations.py
 
 Purpose:
-    Stores constant app-wide configurations and settings for the program.
+    Stores constant app-wide configurations and settings for the program. Uses constants to act as single, consistent file paths across the whole app.
 
 Contains:
     - DBPATH: Default database path for the application.

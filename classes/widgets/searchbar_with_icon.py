@@ -27,22 +27,36 @@ import customtkinter as ctk
 
 class SearchBarWithIcon(ctk.CTkFrame):
     def __init__(self, master, *,
-                 width=500,
-                 height=50,
-                 corner_radius=200,
-                 entry_placeholder="Search by keyword",
-                 font=("League Spartan", 36),
-                 text_color="green",
-                 placeholder_text_color="darkgreen",
-                 fg_color="lightgray",
-                 border_width=0,
-                 icon=None,
-                 icon_hover=None,
-                 icon_width=60,
-                 on_search_callback = None,
+                 width: int = 500,
+                 height: int = 50,
+                 corner_radius: int = 200,
+                 entry_placeholder: str = "Search by keyword",
+                 font: tuple = ("League Spartan", 36),
+                 text_color: str = "green",
+                 placeholder_text_color: str = "darkgreen",
+                 fg_color: str = "lightgray",
+                 border_width: int = 0,
+                 icon = None,
+                 icon_hover = None,
+                 icon_width: int = 60,
+                 on_search_callback: callable = None,
                  **kwargs):
         """
         Initialise the SearchBarWithIcon widget with custom styles, icons, and callback.
+        - master (CTk): The parent widget for the SearchBarWithIcon. CTk so it can use customTkinter features.
+        - width (int): The width of the search bar. Integer as it represents the pixel width.
+        - height (int): The height of the search bar. Integer as it represents the pixel height.
+        - corner_radius (int): The corner radius of the search bar. Integer as it represents the pixel radius.
+        - entry_placeholder (str): The placeholder text for the search entry. String as it represents the default text.
+        - font (tuple): The font configuration for the search entry text. Tuple as it represents the font family and size.
+        - text_color (str): The text color for the search entry. String as it represents a color value.
+        - placeholder_text_color (str): The text color for the placeholder text. String as it represents a color value.
+        - fg_color (str): The foreground color for the search bar. String as it represents a color value.
+        - border_width (int): The border width for the search bar. Integer as it represents the width in pixels.
+        - icon (Image): The default icon for the search button. Image as it represents the icon image.
+        - icon_hover (Image): The hover icon for the search button. Image as it represents the icon image.
+        - icon_width (int): The width of the search icon. Integer as it represents the width in pixels.
+        - on_search_callback (callable): The callback function to call when the search is triggered. Callable as it represents a callback function.
         """
         super().__init__(master, width=width, height=height, fg_color="transparent", **kwargs)
         ### Appearance ###
@@ -106,6 +120,7 @@ class SearchBarWithIcon(ctk.CTkFrame):
     def _on_icon_click(self, event=None) -> None:
         """
         Private Method
+
         Handles icon button click event, triggers search callback, and updates icon appearance.
         """
         if self.on_search_callback:
@@ -119,7 +134,9 @@ class SearchBarWithIcon(ctk.CTkFrame):
     def _on_enter_press(self, event=None) -> None:
         """
         Private Method
+
         Handles Enter key press in search entry, triggers search callback, and updates icon appearance.
+        - event (tk.Event): The event object associated with the key press. Tkinter Event so it can be used to identify the widget that triggered the enter press event.
         """
         if self.on_search_callback:
             self.on_search_callback(self.get())
@@ -132,7 +149,9 @@ class SearchBarWithIcon(ctk.CTkFrame):
     def _on_hover_enter(self, event) -> None:
         """
         Private Method
+
         Handles mouse entering icon button, updates icon to hover image.
+        - event (tk.Event): The event object associated with the mouse enter event. Tkinter Event so it can be used to identify the widget that triggered the hover event.
         """
         self.icon_button.configure(image=self.icon_image_hover)
         self.icon_button.place(x=self.width - self.icon_width - 26, y=(self.height - (self.height - 2)) // 2 + 5)
@@ -140,7 +159,9 @@ class SearchBarWithIcon(ctk.CTkFrame):
     def _on_hover_leave(self, event) -> None:
         """
         Private Method
+
         Handles mouse leaving icon button, returns icon to default image.
+        - event (tk.Event): The event object associated with the mouse leave event. Tkinter Event so it can be used to identify the widget that triggered the hover event.
         """
         self.icon_button.configure(image=self.icon_image_default)
         self.icon_button.place(x=self.width - self.icon_width - 25, y=(self.height - (self.height - 2)) // 2 + 5)
@@ -148,6 +169,7 @@ class SearchBarWithIcon(ctk.CTkFrame):
     def get(self) -> str:
         """
         Public Method
+
         Returns the current search text as a string.
         """
         return self.search_entry.get()
@@ -155,7 +177,9 @@ class SearchBarWithIcon(ctk.CTkFrame):
     def set(self, text: str) -> None:
         """
         Public Method
+
         Sets the search entry text to inputted string.
+        - text (str): The text to set in the search entry. String as it represents the search query displayed as a label.
         """
         self.search_entry.delete(0, "end")
         self.search_entry.insert(0, text)
@@ -163,6 +187,7 @@ class SearchBarWithIcon(ctk.CTkFrame):
     def clear(self) -> None:
         """
         Public Method
+
         Clears the search entry text.
         """
         self.search_entry.delete(0, "end")

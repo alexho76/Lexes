@@ -28,7 +28,6 @@ from .helper import Helper
 from .entry import Entry
 
 class ImportList:
-    # Initiates the ImportList with its attributes, avoiding mutable default arguments.
     def __init__(self,
                  filePath: str = "",
                  rawText: str = "",
@@ -36,6 +35,15 @@ class ImportList:
                  termDefinitionDelimiter: str = ":",
                  massTags: str = "",
                  parsedEntries: list[Entry] = None):
+        """
+        Initiates the ImportList with its attributes, avoiding mutable default arguments.
+        - filePath (str): The path to the file to import entries from. String as it represents the file path.
+        - rawText (str): The raw text to parse into entries. String as it represents the text to be parsed.
+        - entryDelimiter (str): The delimiter to separate entries in the raw text. String as it represents the delimiter used in the text.
+        - termDefinitionDelimiter (str): The delimiter to separate terms and definitions in each entry. String as it represents the delimiter used in the entry.
+        - massTags (str): The tags to add to each entry. String as it represents the textually inputted series of tags to be added.
+        - parsedEntries (list[Entry]): The list of parsed Entry objects. List so that it can be iterated.
+        """
         self.rawText = rawText # raw text input to be parsed into entries
         self.entryDelimiter = entryDelimiter # delimiter to separate entries in raw text
         self.termDefinitionDelimiter = termDefinitionDelimiter # delimiter to separate term and definition in each entry
@@ -43,10 +51,11 @@ class ImportList:
         self.parsedEntries = parsedEntries if parsedEntries is not None else [] # mutable argument solution - list of Entry objects parsed from raw text
         self.filePath = filePath # path to the database file for importing entries
 
-    # Parses the raw text chunk into entries (term, definition) tuples. Generates definitions via Wikipedia API if needed.
-    # Returns Boolean of successful parse and list of parsed entries as tuples all in a tuple.
-    # NOTE: Reworded parsedEntries -> trialParsedEntries to avoid duplicate names.
     def parseText(self) -> tuple[bool, list[tuple[str, str]]]:
+        """
+        Parses the raw text chunk into entries (term, definition) tuples. Generates definitions via Wikipedia API if needed.
+        Returns Boolean of successful parse and list of parsed entries as tuples all in a tuple.
+        """
         rawEntries = re.split(self.entryDelimiter, self.rawText.strip())
         trialParsedEntries = []
         successfulParse = True
@@ -77,9 +86,11 @@ class ImportList:
 
         return successfulParse, trialParsedEntries
 
-    # Validates text format (one entry per line, term and definition separated by colon). Populates self.parsedEntries with Entry objects if successful.
-    # Returns True if all entries are valid, False otherwise.
     def validateEntries(self) -> bool:
+        """
+        Validates text format (one entry per line, term and definition separated by colon).
+        Populates self.parsedEntries with Entry objects if successful. Returns True if all entries are valid, False otherwise.
+        """
         self.parsedEntries.clear()
         entriesToValidate = re.split(r"\n+", self.rawText.strip())
 
@@ -102,9 +113,10 @@ class ImportList:
 
         return True
 
-    # Adds all entries in self.parsedEntries to DB and clears attributes storing inputs.
-    # Returns the number of entries added.
     def importAndClear(self) -> int:
+        """
+        Adds all entries in self.parsedEntries to DB and clears attributes storing inputs. Returns the number of entries added.
+        """
         count = len(self.parsedEntries)
         
         for entry in self.parsedEntries:
@@ -117,8 +129,10 @@ class ImportList:
 
         return count
     
-    # Imports all entries from DB at absolutePath into self.parsedEntries.
     def importDB(self) -> None:
+        """
+        Imports all entries from DB at filePath into self.parsedEntries.
+        """
         with sqlite3.connect(self.filePath) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM master")
