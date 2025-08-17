@@ -1,7 +1,7 @@
 """
 Program: Lexes
 Author: Alexander Ho (ho-0084@mhs.vic.edu.au / alexanderh6886@gmail.com)
-Date Created: 25/06/2025
+Date Created: 15/05/2025
 Date Last Modified: 17/08/2025  
 Description: Personal dictionary and flashcard creation solution for students. Created for VCE Software Development 3&4 SAT. See README.md for more information.
 
