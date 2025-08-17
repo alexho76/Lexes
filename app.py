@@ -2200,15 +2200,18 @@ class MainWindow(ctk.CTk):
     def updateAuxiliaryUI(self) -> None:
         """
         Updates only the auxiliary UI components (filterBar). sUpdates the filterBar options with the unique tags from the database as the total available tags change.
-        This method is called after any change to the tags in the database, such as adding, deleting, or editing tags. It ensures that the filterBar reflects the current state of the tags available for filtering.
+        This method is called after any change to the tags in the database, such as adding, deleting, or editing tags. It ensures that the filterBar reflects the current
+        state of the tags available for filtering. Also resets the scroll position of filter bar to prevent lingering at the bottom after major UI changes.
         """
         self.filterBar.options = self.getUniqueTags()
         self.filterBar.refresh_options()
+        self.filterBar.reset_scroll()
 
     def updateUI(self) -> None:
         """
         Updates the entire UI of the application. Calls both updateDictionaryUI and updateAuxiliaryUI to refresh the dictionary list and auxiliary components.
-        This method is called after any significant change to the application state that affects both the dictionary list and auxiliary components, such as importing a new database, adding or deleting entries, or changing the filter options.
+        This method is called after any significant change to the application state that affects both the dictionary list and auxiliary components, such as
+        importing a new database, adding or deleting entries, or changing the filter options.
         """
         self.updateDictionaryUI()
         self.updateAuxiliaryUI()

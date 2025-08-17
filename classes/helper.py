@@ -51,16 +51,16 @@ class Helper:
                 
             if data.get("type") == "standard": # Normal page case
                 extract = data.get("extract")
-                return str(extract) if extract else None
+                return " ".join(str(extract).split()) if extract else None
             
             elif data.get("type") == "disambiguation": # Disambiguation page case
                 try:
-                    return str(wikipedia.summary(q))
+                    return " ".join(str(wikipedia.summary(q)).split())
                 except wikipedia.DisambiguationError as e:
                     firstOption = e.options[0] if e.options else None # Takes first page out of disambiguation pages
                     if firstOption:
                         try:
-                            return str(wikipedia.summary(firstOption))   
+                            return " ".join(str(wikipedia.summary(firstOption)).split())
                         except Exception:
                             return None
                     return None

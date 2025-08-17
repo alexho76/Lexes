@@ -71,6 +71,8 @@ class ImportList:
                 if definition == "":
                     try:
                         definition = Helper.wikipediaAPI(term)
+                        if definition is not None:
+                            definition = definition.replace(":", ";")
                     except Exception as e:
                         print(f"Error occurred while fetching definition for '{term}': {e}")
                         definition = None
@@ -83,6 +85,8 @@ class ImportList:
                 # Generate definition using Wikipedia API if definition is empty
                 try:
                     definition = Helper.wikipediaAPI(term)
+                    if definition is not None:
+                            definition = definition.replace(":", ";")
                 except Exception as e:
                     print(f"Error occurred while fetching definition for '{term}': {e}")
                     definition = None

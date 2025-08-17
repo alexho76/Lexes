@@ -578,3 +578,13 @@ class MultiSelectComboBox(ctk.CTkFrame):
             self.require_checkbox.configure(state="disabled")
             self.require_all_var.set(False)
             self.selected_text_var.set(self.default_text)
+    
+    def reset_scroll(self) -> None:
+        """
+        Public Method
+
+        Resets the dropdown's scroll position to the top. Intended to be called after drastic reductions in tag numbers. E.g. after mass deletion
+        to avoid lingering at the bottom of the scrollable area which would be now empty.
+        """
+        if self.canvas is not None:
+            self.canvas.yview_moveto(0)
