@@ -41,7 +41,8 @@ class Helper:
             url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{q}"
 
             try:
-                response = requests.get(url, verify = False)
+                headers = {"User-Agent": "Lexes/1.0 (https://github.com/alexho76/Lexes)"}
+                response = requests.get(url, headers=headers, verify=False)
                 response.raise_for_status()
             except requests.RequestException as e:
                 print(e)
@@ -85,6 +86,8 @@ class Helper:
 
     @staticmethod
     def quickSort(entries, attribute) -> list:
+        import sys
+        sys.setrecursionlimit(9999)
         """
         Performs quicksort on Entry objects based on various attributes: alphabeticalAscending, alphabeticalDescending, dateAscending, dateDescending.
         Returns a sorted list of Entry objects.

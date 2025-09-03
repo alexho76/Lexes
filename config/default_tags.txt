@@ -1,1 +1,1 @@
-tag
+default_tag_1 default_tag_2
